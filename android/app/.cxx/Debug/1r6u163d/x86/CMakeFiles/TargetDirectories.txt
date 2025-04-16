@@ -1,0 +1,2 @@
+C:/Users/LENOVO/pfe/android/app/.cxx/Debug/1r6u163d/x86/CMakeFiles/edit_cache.dir
+C:/Users/LENOVO/pfe/android/app/.cxx/Debug/1r6u163d/x86/CMakeFiles/rebuild_cache.dir

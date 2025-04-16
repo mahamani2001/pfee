@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "471490010056",
+    "project_id": "pfeapp-54f2f",
+    "storage_bucket": "pfeapp-54f2f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:471490010056:android:b26f17b6dd645f087d3efd",
+        "android_client_info": {
+          "package_name": "com.example.mypsy_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBlX_1rLPWo5Ea0Zl99O4cVjY-gnDNuEBU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:471490010056:android:d6435e37b27629c57d3efd",
+        "android_client_info": {
+          "package_name": "com.example.pfeApp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBlX_1rLPWo5Ea0Zl99O4cVjY-gnDNuEBU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
