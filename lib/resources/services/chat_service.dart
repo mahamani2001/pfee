@@ -1,24 +1,14 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:mypsy_app/resources/services/http_service.dart';
 
 class ChatService {
   final String baseUrl = 'http://10.0.2.2:3001/api/messages';
 
-  Future<String?> _getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('jwt');
-  }
-
   // 🔁 Récupérer les messages chiffrés depuis le backend
   Future<List<dynamic>> getMessages(int appointmentId) async {
-    final token = await _getToken();
-    final response = await http.get(
-      Uri.parse('$baseUrl/$appointmentId'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
+    final response = await HttpService().request(
+      url: '$baseUrl/$appointmentId',
+      method: 'GET',
     );
 
     if (response.statusCode == 200) {
@@ -36,21 +26,18 @@ class ChatService {
     required String iv,
     required String ciphertext,
     required String tag,
+    required int receiverId,
   }) async {
-    final token = await _getToken();
-
-    final response = await http.post(
-      Uri.parse(baseUrl),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({
+    final response = await HttpService().request(
+      url: baseUrl,
+      method: 'POST',
+      body: {
         'appointmentId': appointmentId,
+        'to': receiverId, // ✅ C’EST ÇA QUI MANQUAIT
         'iv': iv,
         'ciphertext': ciphertext,
         'tag': tag,
-      }),
+      },
     );
 
     if (response.statusCode != 201) {

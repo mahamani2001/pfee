@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mypsy_app/resources/services/appointment_service.dart';
+import 'package:mypsy_app/resources/services/auth_service.dart';
 import 'package:mypsy_app/screens/consultation/chatconsultation.dart';
 import 'package:mypsy_app/shared/routes.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';
@@ -54,7 +55,7 @@ class AppointmentList extends StatefulWidget {
 
 class _AppointmentListState extends State<AppointmentList> {
   List<dynamic> appointments = [];
-
+  String? userRole;
   @override
   void initState() {
     super.initState();
@@ -64,7 +65,11 @@ class _AppointmentListState extends State<AppointmentList> {
   Future<void> loadAppointments() async {
     final data =
         await AppointmentService().getAppointmentsByStatus(widget.status);
-    setState(() => appointments = data);
+    final role = await AuthService().getUserRole();
+    setState(() {
+      appointments = data;
+      userRole = role;
+    });
   }
 
   @override
@@ -81,10 +86,14 @@ class _AppointmentListState extends State<AppointmentList> {
       itemCount: appointments.length,
       itemBuilder: (context, index) {
         final appt = appointments[index];
+        final displayName = userRole == 'psychiatrist'
+            ? appt['patient_name'] ?? 'Patient inconnu'
+            : "Dr. ${appt['psychiatrist_name'] ?? 'Inconnu'}";
         return AppointmentCard(
           id: appt['id'],
           psychiatristId: appt['psychiatrist_id'],
-          name: "Dr. ${appt['psychiatrist_name'] ?? 'Inconnu'}",
+          patientId: appt['patient_id'],
+          name: displayName,
           time: appt['start_time'].toString().substring(0, 5),
           date: appt['date'],
           status: widget.status,
@@ -99,6 +108,7 @@ class _AppointmentListState extends State<AppointmentList> {
 class AppointmentCard extends StatelessWidget {
   final int id;
   final int psychiatristId;
+  final int patientId;
   final String name;
   final String time;
   final String date;
@@ -109,6 +119,7 @@ class AppointmentCard extends StatelessWidget {
     super.key,
     required this.id,
     required this.psychiatristId,
+    required this.patientId,
     required this.name,
     required this.time,
     required this.date,
@@ -204,7 +215,7 @@ class AppointmentCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                if (status == 'confirmed') ...[
+                if (status == 'confirmed' || status == 'pending') ...[
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () async {
@@ -280,7 +291,7 @@ class AppointmentCard extends StatelessWidget {
                     ),
                   ),
                 ],
-                if (status == 'pending' || status == 'cancelled') ...[
+                if (status == 'cancelled') ...[
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () async {
@@ -319,12 +330,16 @@ class AppointmentCard extends StatelessWidget {
                 }
                 if (snapshot.hasData && snapshot.data == true) {
                   return ElevatedButton.icon(
-                    onPressed: () {
+                    onPressed: () async {
+                      final userRole = await AuthService().getUserRole();
+                      final receiverId = userRole == 'psychiatrist'
+                          ? patientId
+                          : psychiatristId;
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (_) => ChatScreen(
-                            peerId: psychiatristId.toString(),
+                            peerId: receiverId.toString(),
                             peerName: name,
                             appointmentId: id,
                           ),

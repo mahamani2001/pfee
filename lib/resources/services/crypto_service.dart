@@ -69,33 +69,34 @@ class CryptoService {
       'mac': base64Encode(secretBox.mac.bytes), // facultatif
     };
   }
-Future<String> decryptMessage({
-  required String cipherTextBase64,
-  required String nonceBase64,
-  required String macBase64, // 👈 ajoute ce paramètre
-  required String peerPublicKeyBase64,
-}) async {
-  final myKeyPair = await getMyKeyPair();
-  final peerPublicKey = await getPeerPublicKey(peerPublicKeyBase64);
 
-  final sharedSecret = await algorithm.sharedSecretKey(
-    keyPair: myKeyPair,
-    remotePublicKey: peerPublicKey,
-  );
+  Future<String> decryptMessage({
+    required String cipherTextBase64,
+    required String nonceBase64,
+    required String macBase64, // 👈 ajoute ce paramètre
+    required String peerPublicKeyBase64,
+  }) async {
+    final myKeyPair = await getMyKeyPair();
+    final peerPublicKey = await getPeerPublicKey(peerPublicKeyBase64);
 
-  final secretBox = SecretBox(
-    base64Decode(cipherTextBase64),
-    nonce: base64Decode(nonceBase64),
-    mac: Mac(base64Decode(macBase64)), // ✅ ici tu vérifies l’authenticité
-  );
+    final sharedSecret = await algorithm.sharedSecretKey(
+      keyPair: myKeyPair,
+      remotePublicKey: peerPublicKey,
+    );
 
-  final decrypted = await aesGcm.decrypt(
-    secretBox,
-    secretKey: sharedSecret,
-  );
+    final secretBox = SecretBox(
+      base64Decode(cipherTextBase64),
+      nonce: base64Decode(nonceBase64),
+      mac: Mac(base64Decode(macBase64)), // ✅ ici tu vérifies l’authenticité
+    );
 
-  return utf8.decode(decrypted);
-}
+    final decrypted = await aesGcm.decrypt(
+      secretBox,
+      secretKey: sharedSecret,
+    );
+
+    return utf8.decode(decrypted);
+  }
 
   // 🔑 Récupère ma clé publique (X25519) locale
   Future<SimplePublicKey> getPublicKey() async {

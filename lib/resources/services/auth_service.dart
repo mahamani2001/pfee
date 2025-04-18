@@ -117,4 +117,47 @@ class AuthService {
       throw Exception('Erreur récupération de la clé publique');
     }
   }
+
+  Future<String?> getUserRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('jwt');
+    if (token == null) return null;
+
+    try {
+      final parts = token.split('.');
+      if (parts.length != 3) return null;
+
+      final payload = base64.normalize(parts[1]);
+      final decoded = utf8.decode(base64Url.decode(payload));
+      final Map<String, dynamic> payloadMap = jsonDecode(decoded);
+
+      return payloadMap['role']; // ou 'userType' ou 'type' selon backend
+    } catch (e) {
+      print('❌ Erreur lors du décodage du rôle : $e');
+      return null;
+    }
+  }
+
+  static Future<String?> refreshToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    final refreshToken = prefs.getString('refresh_token');
+    if (refreshToken == null) return null;
+
+    final response = await http.post(
+      Uri.parse('http://10.0.2.2:3001/api/auth/refresh-token'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'refreshToken': refreshToken}),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      await prefs.setString('jwt', data['token']);
+      await prefs.setString('refresh_token', data['refreshToken']);
+      return data['token'];
+    } else {
+      print('🔴 Refresh token expiré ou invalide');
+      // ❌ On ne supprime rien, on laisse l'utilisateur dans l'app
+      return null;
+    }
+  }
 }
