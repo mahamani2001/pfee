@@ -30,6 +30,7 @@ class _ChatScreenState extends State<ChatScreen> {
   late String peerName;
   late int appointmentId;
   late int myUserId;
+  bool _isChatScreenActive = true;
 
   @override
   void initState() {
@@ -39,8 +40,9 @@ class _ChatScreenState extends State<ChatScreen> {
       peerName = widget.peerName;
       appointmentId = widget.appointmentId;
       myUserId = await AuthService().getUserId() ?? 0;
-
-      await SocketService().connectSocket();
+      SocketService().onMessage = handleIncomingMessage;
+      await SocketService()
+          .connectSocket(onMessageCallback: handleIncomingMessage);
 
       SocketService().onUserOnline = (userId) {
         if (userId == peerId) {
@@ -57,8 +59,15 @@ class _ChatScreenState extends State<ChatScreen> {
           });
         }
       };
-
-      SocketService().onMessage = handleIncomingMessage;
+      SocketService().onMessageRead = (messageId) {
+        setState(() {
+          for (var msg in messages) {
+            if (msg['id'] == messageId && msg['fromMe']) {
+              msg['status'] = 'read';
+            }
+          }
+        });
+      };
       await loadMessages();
     });
 
@@ -80,6 +89,9 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void handleIncomingMessage(Map<String, dynamic> data) async {
+    print("📩 handleIncomingMessage appelé !");
+    print("Données socket = $data");
+
     final fromId = data['from'].toString();
     if (fromId != peerId) return;
 
@@ -101,14 +113,16 @@ class _ChatScreenState extends State<ChatScreen> {
         'createdAt': data['createdAt'] ?? DateTime.now().toIso8601String(),
       });
     });
+
+    // ✅ Marquer comme lu, mais NE recharge PAS tout l'historique
     await HttpService().request(
       url: 'http://10.0.2.2:3001/api/messages/$appointmentId/read',
       method: 'PUT',
-      body: {}, // même vide c’est important
+      body: {},
     );
 
-// Recharge l’historique pour afficher les nouveaux statuts (read)
-    await loadMessages();
+    // ❌ Supprime ceci
+    // await loadMessages();
   }
 
   String _formatTime(String? iso) {
@@ -167,6 +181,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     final peerPublicKey = await AuthService().fetchPeerPublicKey(peerId);
     final encrypted = await CryptoService().encryptMessage(text, peerPublicKey);
+    print('📤 Envoi message vers $peerId (type: ${peerId.runtimeType})');
 
     SocketService().sendMessage({
       'to': int.parse(peerId),
@@ -197,7 +212,10 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
+    _isChatScreenActive = false;
     SocketService().onMessage = null;
+    SocketService().onMessageRead = null;
+    super.dispose();
     super.dispose();
   }
 

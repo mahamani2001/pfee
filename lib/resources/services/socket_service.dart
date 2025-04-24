@@ -16,7 +16,9 @@ class SocketService {
   Function(String userId)? onUserTyping;
   Function(String userId)? onUserStopTyping;
 
-  Future<void> connectSocket() async {
+  Function(int messageId)? onMessageRead;
+
+  Future<void> connectSocket({OnMessageReceived? onMessageCallback}) async {
     if (_socket != null && _socket!.connected) return;
 
     final prefs = await AuthService().storage;
@@ -31,8 +33,10 @@ class SocketService {
       'reconnectionDelay': 1000,
     });
 
+    // 🔄 Assign callback au moment de la connexion
+    onMessage = onMessageCallback;
+
     _socket!.on('connect', (_) async {
-      print('🟢 Socket connecté ✅');
       print('🟢 Socket connecté ✅');
       final userId = await AuthService().getUserId();
       if (userId != null) {
@@ -40,16 +44,21 @@ class SocketService {
       }
     });
 
-    _socket!.on('disconnect', (_) {
-      print('🔌 Déconnecté du socket');
-    });
-
     _socket!.on('receive_message', (data) {
       print('📩 Message reçu via socket: $data');
       if (onMessage != null) {
+        print("📩 Appel de onMessage !");
         onMessage!(data);
+      } else {
+        print("⚠️ Aucun callback pour onMessage");
       }
     });
+    _socket!.on('message_read', (data) {
+      final messageId = data['messageId'];
+      print('📘 Message lu reçu : messageId = $messageId');
+      onMessageRead?.call(messageId);
+    });
+
     _socket!.on('user_online', (data) {
       final userId = data['userId'].toString();
       print('🔵 Utilisateur en ligne : $userId');

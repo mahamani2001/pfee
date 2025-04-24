@@ -1,7 +1,7 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:mypsy_app/resources/services/fcm_service.dart';
 import 'package:mypsy_app/screens/apointment/appointment.dart';
-import 'package:mypsy_app/screens/chat/chat.dart';
+import 'package:mypsy_app/screens/chat/ConsultationLauncherScreen.dart';
 import 'package:mypsy_app/screens/home/home.dart';
 import 'package:mypsy_app/screens/menu/menu_page.dart';
 import 'package:mypsy_app/screens/profil/profile.dart';
@@ -28,7 +28,8 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   final List<Widget> _screens = [
     const Home(),
     const Appointment(),
-    const Chat(),
+    const Placeholder(), // ou un écran neutre temporaire
+
     const MenuPage()
   ];
   @override
@@ -36,7 +37,6 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await FCMService.initFCM(context); // ou toute initialisation lourde
-   
     });
 
     _currentIndex = widget.initialTabIndex;

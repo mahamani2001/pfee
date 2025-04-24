@@ -254,7 +254,7 @@ class _BookingPageState extends State<BookingPage> {
                 child: Text(
                   appointmentId != null
                       ? "Reprogrammer le rendez-vous"
-                      : "Confirmer le rendez-vous",
+                      : "Prendre un rendez-vous",
                   style: const TextStyle(fontSize: 16, color: Colors.white),
                 ),
               ),

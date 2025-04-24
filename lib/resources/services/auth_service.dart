@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:typed_data';
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:mypsy_app/resources/services/crypto_service.dart';
@@ -57,6 +57,67 @@ class AuthService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('jwt', token);
     await prefs.setString('refresh_token', refreshToken);
+  }
+
+  Future<String?> getAccessToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('access_token');
+  }
+
+  Future<String?> getRefreshToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('refresh_token');
+  }
+
+  bool isTokenExpired(String? token) {
+    if (token == null) return true;
+
+    try {
+      final parts = token.split('.');
+      if (parts.length != 3) return true;
+
+      final payload =
+          utf8.decode(base64Url.decode(base64Url.normalize(parts[1])));
+      final payloadMap = json.decode(payload);
+
+      final exp = payloadMap['exp'];
+      final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+
+      return exp < now;
+    } catch (_) {
+      return true;
+    }
+  }
+
+  Future<String?> getValidToken() async {
+    final accessToken = await getAccessToken();
+
+    if (!isTokenExpired(accessToken)) {
+      return accessToken;
+    }
+
+    print('🔁 Token expiré. Tentative de refresh...');
+    final refreshToken = await getRefreshToken();
+    if (refreshToken == null) return null;
+
+    final response = await http.post(
+      Uri.parse('http://10.0.2.2:3001/api/auth/refresh-token'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'refreshToken': refreshToken}),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final newAccessToken = data['token'];
+      final newRefreshToken = data['refreshToken'];
+
+      await saveTokens(newAccessToken, newRefreshToken);
+      print('✅ Nouveau token rafraîchi avec succès');
+      return newAccessToken;
+    } else {
+      print('❌ Erreur lors du refresh: ${response.body}');
+      return null;
+    }
   }
 
   Future<int?> getUserId() async {
@@ -159,5 +220,10 @@ class AuthService {
       // ❌ On ne supprime rien, on laisse l'utilisateur dans l'app
       return null;
     }
+  }
+
+  Future<String?> getToken() async {
+    final prefs = await storage;
+    return prefs.read(key: 'token');
   }
 }

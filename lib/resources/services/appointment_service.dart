@@ -46,10 +46,22 @@ class AppointmentService {
   // 3️⃣ Récupérer les rendez-vous par statut
   Future<List<dynamic>> getAppointmentsByStatus(String status) async {
     final response = await HttpService().request(
-      url: '$baseUrl/me?status=$status',
+      url: 'http://10.0.2.2:3001/api/appointments/me?status=$status',
       method: 'GET',
     );
-    return jsonDecode(response.body);
+
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(response.body);
+      if (decoded is List) {
+        return decoded;
+      } else {
+        print('❌ Structure inattendue : $decoded');
+        return [];
+      }
+    } else {
+      print("❌ Erreur API ${response.statusCode} - ${response.body}");
+      return [];
+    }
   }
 
   // 4️⃣ Récupérer les créneaux disponibles
@@ -129,5 +141,28 @@ class AppointmentService {
     } else {
       return false;
     }
+  }
+
+  Future<bool> confirmAppointment(int appointmentId) async {
+    try {
+      final response = await HttpService().request(
+        url: 'http://10.0.2.2:3001/api/appointments/$appointmentId/confirm',
+        method: 'PUT',
+        body: {}, // même vide c’est important pour éviter le JSON.parse null côté Node.js
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print("❌ Erreur confirmAppointment: $e");
+      return false; // on retourne false en cas d’erreur
+    }
+  }
+
+  Future<bool> rejectAppointment(int appointmentId) async {
+    final response = await HttpService().request(
+      url: '$baseUrl/$appointmentId/reject',
+      method: 'PUT',
+    );
+    return response.statusCode == 200;
   }
 }
