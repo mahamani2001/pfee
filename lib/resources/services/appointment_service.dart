@@ -160,9 +160,14 @@ class AppointmentService {
 
   Future<bool> rejectAppointment(int appointmentId) async {
     final response = await HttpService().request(
-      url: '$baseUrl/$appointmentId/reject',
+      url: 'http://10.0.2.2:3001/api/appointments/$appointmentId/reject',
       method: 'PUT',
+      body: {},
     );
+
+    print(
+        "🔴 Reject response: ${response.statusCode} | ${response.body}"); // ← AJOUTE CETTE LIGNE
+
     return response.statusCode == 200;
   }
 }

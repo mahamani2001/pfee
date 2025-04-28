@@ -103,8 +103,7 @@ class _ChatScreenState extends State<ChatScreen> {
       peerPublicKeyBase64: peerPublicKey,
     );
 
-    isPeerTyping = false;
-
+    if (!mounted) return; // 🔥 Protège ici
     setState(() {
       messages.add({
         'text': decrypted,
@@ -114,15 +113,11 @@ class _ChatScreenState extends State<ChatScreen> {
       });
     });
 
-    // ✅ Marquer comme lu, mais NE recharge PAS tout l'historique
     await HttpService().request(
       url: 'http://10.0.2.2:3001/api/messages/$appointmentId/read',
       method: 'PUT',
       body: {},
     );
-
-    // ❌ Supprime ceci
-    // await loadMessages();
   }
 
   String _formatTime(String? iso) {

@@ -69,7 +69,7 @@ class AuthService {
     return prefs.getString('refresh_token');
   }
 
-  bool isTokenExpired(String? token) {
+  static bool isTokenExpired(String? token) {
     if (token == null) return true;
 
     try {
