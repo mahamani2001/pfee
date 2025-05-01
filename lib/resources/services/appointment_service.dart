@@ -170,4 +170,31 @@ class AppointmentService {
 
     return response.statusCode == 200;
   }
+
+  Future<bool> extendAppointment({
+    required int appointmentId,
+    required int extraMinutes,
+  }) async {
+    final response = await HttpService().request(
+      url: 'http://10.0.2.2:3001/api/appointments/$appointmentId/extend',
+      method: 'PUT',
+      body: {'extraMinutes': extraMinutes},
+    );
+
+    return response.statusCode == 200;
+  }
+
+  Future<Map<String, dynamic>?> getAppointmentById(int appointmentId) async {
+    final response = await HttpService().request(
+      url: 'http://10.0.2.2:3001/api/appointments/$appointmentId',
+      method: 'GET',
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      print('❌ Erreur récupération rendez-vous : ${response.body}');
+      return null;
+    }
+  }
 }

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:encrypt/encrypt.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'package:mypsy_app/app.dart';
 import 'package:mypsy_app/firebase_options.dart';
@@ -23,6 +24,8 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 Future<void> main({String? env}) async {
   WidgetsFlutterBinding.ensureInitialized();
+  final storage = FlutterSecureStorage();
+  await storage.deleteAll();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   /*  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);

@@ -102,6 +102,7 @@ AppVersion? version;
 
 //check minimum app version required
 Future<dynamic> checkForceUpdate(BuildContext context) async {
+  return false;
   mypsyApi api = mypsyApi();
 
   String? minRequiredConfigPart;
@@ -131,6 +132,7 @@ Future<dynamic> checkForceUpdate(BuildContext context) async {
 
 //check latest version required
 Future<dynamic> checkOptionalUpdate(BuildContext context) async {
+  return false;
   mypsyApi api = mypsyApi();
   dynamic res = await api.getAppVersion();
   String? currentAppVerison;

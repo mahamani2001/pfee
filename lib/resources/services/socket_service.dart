@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mypsy_app/screens/chat/ConsultationLauncherScreen.dart';
 import 'package:mypsy_app/screens/consultation/chatconsultation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:mypsy_app/resources/services/auth_service.dart';
 
@@ -22,39 +23,57 @@ class SocketService {
   Function(String userId)? onUserStopTyping;
   Function(int messageId)? onMessageRead;
   Function(Map<String, dynamic> data)? onPatientJoined;
-
   Future<void> connectSocket({OnMessageReceived? onMessageCallback}) async {
-    if (_socket != null && _socket!.connected) return;
+    if (_socket != null && _socket!.connected) {
+      print('🟢 Socket déjà connecté.');
+      return;
+    }
 
-    final prefs = await AuthService().storage;
-    var token = await prefs.read(key: 'token');
+    var token = await AuthService().getJwtToken();
 
     if (token == null || AuthService.isTokenExpired(token)) {
-      final newToken = await AuthService.refreshToken();
-      if (newToken != null) {
-        token = newToken;
+      print('🔁 Token expiré. Tentative de refresh...');
+      final refreshedToken = await AuthService.refreshToken();
+      if (refreshedToken != null) {
+        token = refreshedToken;
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('jwt', refreshedToken);
+        print('✅ Token rafraîchi avec succès pour le socket');
       } else {
-        print('❌ Échec du refresh token.');
+        print('❌ Impossible de rafraîchir le token. Déconnexion forcée.');
         return;
       }
     }
 
-    _socket = IO.io('http://10.0.2.2:3001', <String, dynamic>{
+    print('📥 Token final utilisé pour le socket : $token');
+
+    _socket = IO.io('http://10.0.2.2:3001', {
       'transports': ['websocket'],
-      'autoConnect': true,
       'auth': {'token': token},
+      'autoConnect': true,
       'reconnection': true,
       'reconnectionAttempts': 5,
       'reconnectionDelay': 1000,
     });
-
     onMessage = onMessageCallback;
 
     _socket!.on('connect', (_) async {
-      print('🟢 Socket connecté ✅');
+      print('🟢 Socket connecté avec succès ✅');
       final userId = await AuthService().getUserId();
       if (userId != null) {
         _socket!.emit('online', {'userId': userId});
+        print('📡 Emit "online" avec userId : $userId');
+      }
+    });
+
+    _socket!.on('connect_error', (err) async {
+      print('🔴 Erreur de connexion socket : $err');
+
+      if (err.toString().contains('jwt expired') ||
+          err.toString().contains('Unauthorized')) {
+        navigatorKey.currentState
+            ?.pushNamedAndRemoveUntil('/login', (route) => false);
+        disconnect(); // ferme le socket
       }
     });
 
@@ -161,10 +180,18 @@ class SocketService {
     _socket?.emit(isTyping ? 'typing' : 'stop_typing', {'to': toUserId});
   }
 
+  void reconnect() async {
+    if (_socket == null || !_socket!.connected) {
+      print('🔄 Tentative de reconnexion au socket...');
+      await connectSocket();
+    }
+  }
+
   void disconnect() {
     _socket?.disconnect();
     _socket = null;
   }
 
   bool get isConnected => _socket?.connected ?? false;
+  IO.Socket? get socket => _socket;
 }

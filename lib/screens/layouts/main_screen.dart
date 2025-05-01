@@ -1,5 +1,6 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:mypsy_app/resources/services/fcm_service.dart';
+import 'package:mypsy_app/screens/anxiety_quiz/quiz_screen.dart';
 import 'package:mypsy_app/screens/apointment/appointment.dart';
 import 'package:mypsy_app/screens/chat/ConsultationLauncherScreen.dart';
 import 'package:mypsy_app/screens/home/home.dart';
@@ -28,7 +29,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   final List<Widget> _screens = [
     const Home(),
     const Appointment(),
-    const Placeholder(), // ou un écran neutre temporaire
+    const QuestionPage(), // ou un écran neutre temporaire
 
     const MenuPage()
   ];

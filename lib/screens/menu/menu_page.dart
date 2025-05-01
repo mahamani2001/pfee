@@ -1,3 +1,4 @@
+import 'package:mypsy_app/screens/anxiety_quiz/quiz_screen.dart';
 import 'package:mypsy_app/screens/layouts/page_layout.dart';
 import 'package:mypsy_app/screens/profil/widgets/hotline_info.dart';
 import 'package:mypsy_app/screens/profil/widgets/hotline_inquiry.dart';
@@ -37,7 +38,10 @@ class MenuPage extends StatelessWidget {
               Navigator.pushNamed(context, Routes.contact);
             }),
             buildMenuItem('Quiz', () {
-              Navigator.pushNamed(context, Routes.contact);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const QuestionPage()),
+              );
             }),
             buildExternalLink('Règlement  ', urlReglemnt),
             buildMenuItem('Mentions légales', () {}),

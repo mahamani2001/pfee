@@ -9,6 +9,49 @@ import 'package:cryptography/cryptography.dart';
 class AuthService {
   final String baseUrl = 'http://10.0.2.2:3001/api/auth';
   final storage = FlutterSecureStorage();
+  Future<String?> getJwtToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('jwt');
+  }
+
+  static bool isTokenExpired(String? token) {
+    if (token == null) return true;
+    try {
+      final parts = token.split('.');
+      if (parts.length != 3) return true;
+      final payload =
+          utf8.decode(base64Url.decode(base64Url.normalize(parts[1])));
+      final payloadMap = json.decode(payload);
+      final exp = payloadMap['exp'];
+      final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      return exp < now;
+    } catch (_) {
+      return true;
+    }
+  }
+
+  static Future<String?> refreshToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    final refreshToken = prefs.getString('refresh_token');
+    if (refreshToken == null) return null;
+
+    final response = await http.post(
+      Uri.parse('http://10.0.2.2:3001/api/auth/refresh-token'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'refreshToken': refreshToken}),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      await prefs.setString('jwt', data['token']);
+      await prefs.setString('refresh_token', data['refreshToken']);
+      return data['token'];
+    } else {
+      print('🔴 Impossible de refreshToken : ${response.body}');
+      return null;
+    }
+  }
+
   Future<Map<String, dynamic>> login(String email, String password) async {
     final response = await http.post(
       Uri.parse('$baseUrl/login'),
@@ -69,26 +112,6 @@ class AuthService {
     return prefs.getString('refresh_token');
   }
 
-  static bool isTokenExpired(String? token) {
-    if (token == null) return true;
-
-    try {
-      final parts = token.split('.');
-      if (parts.length != 3) return true;
-
-      final payload =
-          utf8.decode(base64Url.decode(base64Url.normalize(parts[1])));
-      final payloadMap = json.decode(payload);
-
-      final exp = payloadMap['exp'];
-      final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-
-      return exp < now;
-    } catch (_) {
-      return true;
-    }
-  }
-
   Future<String?> getValidToken() async {
     final accessToken = await getAccessToken();
 
@@ -121,18 +144,17 @@ class AuthService {
   }
 
   Future<int?> getUserId() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('jwt');
+    final token = await getJwtToken();
     if (token == null) return null;
-
-    final parts = token.split('.');
-    if (parts.length != 3) return null;
-
-    final payload = base64.normalize(parts[1]);
-    final decoded = utf8.decode(base64Url.decode(payload));
-    final Map<String, dynamic> payloadMap = jsonDecode(decoded);
-
-    return payloadMap['userId'];
+    try {
+      final parts = token.split('.');
+      final payload =
+          utf8.decode(base64Url.decode(base64Url.normalize(parts[1])));
+      final Map<String, dynamic> payloadMap = json.decode(payload);
+      return payloadMap['userId'];
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<void> sendPublicKeyToBackend(
@@ -199,31 +221,23 @@ class AuthService {
     }
   }
 
-  static Future<String?> refreshToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    final refreshToken = prefs.getString('refresh_token');
-    if (refreshToken == null) return null;
-
-    final response = await http.post(
-      Uri.parse('http://10.0.2.2:3001/api/auth/refresh-token'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'refreshToken': refreshToken}),
-    );
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      await prefs.setString('jwt', data['token']);
-      await prefs.setString('refresh_token', data['refreshToken']);
-      return data['token'];
-    } else {
-      print('🔴 Refresh token expiré ou invalide');
-      // ❌ On ne supprime rien, on laisse l'utilisateur dans l'app
-      return null;
-    }
-  }
-
   Future<String?> getToken() async {
     final prefs = await storage;
     return prefs.read(key: 'token');
+  }
+
+  static Future<void> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    final storage = FlutterSecureStorage();
+
+    try {
+      // 🔥 Supprimer les données sensibles stockées
+      await storage.deleteAll(); // Supprimer tout de FlutterSecureStorage
+      await prefs.clear(); // Supprimer tout de SharedPreferences
+
+      print('🧹 Déconnexion réussie : stockage nettoyé.');
+    } catch (e) {
+      print('❌ Erreur lors du logout: $e');
+    }
   }
 }

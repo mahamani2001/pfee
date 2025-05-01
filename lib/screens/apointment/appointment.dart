@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:mypsy_app/resources/services/appointment_service.dart';
 import 'package:mypsy_app/resources/services/auth_service.dart';
@@ -27,7 +29,7 @@ class Appointment extends StatelessWidget {
               indicatorColor: AppColors.mypsyDarkBlue,
               tabs: [
                 Tab(text: 'À venir'),
-                Tab(text: 'En attente'),
+                Tab(text: 'En '),
                 Tab(text: 'Annulé'),
               ],
             ),
@@ -105,7 +107,7 @@ class _AppointmentListState extends State<AppointmentList> {
   }
 }
 
-class AppointmentCard extends StatelessWidget {
+class AppointmentCard extends StatefulWidget {
   final int id;
   final int psychiatristId;
   final int patientId;
@@ -130,8 +132,38 @@ class AppointmentCard extends StatelessWidget {
   });
 
   @override
+  State<AppointmentCard> createState() => _AppointmentCardState();
+}
+
+class _AppointmentCardState extends State<AppointmentCard> {
+  bool canAccess = false;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAccess();
+    _timer = Timer.periodic(const Duration(seconds: 30), (_) => _checkAccess());
+  }
+
+  Future<void> _checkAccess() async {
+    final access = await AppointmentService().checkAccess(widget.id);
+    if (mounted) {
+      setState(() {
+        canAccess = access;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final dateFr = formatDateFr(date);
+    final dateFr = formatDateFr(widget.date);
 
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -146,7 +178,7 @@ class AppointmentCard extends StatelessWidget {
                 const Icon(Icons.person, size: 40),
                 const SizedBox(width: 12),
                 Expanded(
-                    child: Text(name,
+                    child: Text(widget.name,
                         style: const TextStyle(
                             fontWeight: FontWeight.w600, fontSize: 16))),
               ],
@@ -156,7 +188,7 @@ class AppointmentCard extends StatelessWidget {
               children: [
                 const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
                 const SizedBox(width: 8),
-                Text("$dateFr à $time",
+                Text("$dateFr à ${widget.time}",
                     style: const TextStyle(color: Colors.grey)),
               ],
             ),
@@ -171,112 +203,107 @@ class AppointmentCard extends StatelessWidget {
   }
 
   List<Widget> _buildActionButtons(BuildContext context) {
-    if (userRole == 'psychiatrist' && status == 'pending') {
+    if (widget.userRole == 'psychiatrist' && widget.status == 'pending') {
       return [
         _button(context, 'Confirmer', Colors.green, () async {
-          await AppointmentService().confirmAppointment(id);
-          onReload();
+          await AppointmentService().confirmAppointment(widget.id);
+          widget.onReload();
         }),
         const SizedBox(width: 8),
         _button(context, 'Rejeter', Colors.red, () async {
-          await AppointmentService().rejectAppointment(id);
-          onReload();
+          await AppointmentService().rejectAppointment(widget.id);
+          widget.onReload();
         }),
       ];
-    } else if (status == 'pending' || status == 'confirmed') {
+    } else if (widget.status == 'pending' || widget.status == 'confirmed') {
       return [
         _button(context, 'Reprogrammer', AppColors.mypsyDarkBlue, () async {
           await Navigator.pushNamed(context, Routes.booking, arguments: {
-            'psychiatristId': psychiatristId,
-            'appointmentId': id,
+            'psychiatristId': widget.psychiatristId,
+            'appointmentId': widget.id,
           });
-          onReload();
+          widget.onReload();
         }),
         const SizedBox(width: 8),
         _button(context, 'Annuler', Colors.red, () async {
-          await AppointmentService().cancelAppointment(id);
-          onReload();
+          await AppointmentService().cancelAppointment(widget.id);
+          widget.onReload();
         }),
       ];
-    } else if (status == 'cancelled') {
-      if (userRole == 'patient') {
+    } else if (widget.status == 'cancelled') {
+      if (widget.userRole == 'patient') {
         return [
           _button(context, 'Reprogrammer', AppColors.mypsyDarkBlue, () async {
             await Navigator.pushNamed(context, Routes.booking, arguments: {
-              'psychiatristId': psychiatristId,
-              'appointmentId': id,
+              'psychiatristId': widget.psychiatristId,
+              'appointmentId': widget.id,
             });
-            onReload();
+            widget.onReload();
           }),
         ];
       } else {
-        return []; // Psy : pas de bouton reprogrammer
+        return [];
       }
     }
     return [];
   }
 
-  Widget _button(BuildContext context, String text, Color color,
-          VoidCallback onPressed) =>
-      Expanded(
-        child: ElevatedButton(
-          onPressed: onPressed,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: color,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-          child: Text(text, style: const TextStyle(color: Colors.white)),
+  Widget _button(
+      BuildContext context, String text, Color color, VoidCallback onPressed) {
+    return Expanded(
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: color,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
-      );
+        child: Text(text, style: const TextStyle(color: Colors.white)),
+      ),
+    );
+  }
 
   Widget _buildJoinButton(BuildContext context) {
-    if (status == 'cancelled') {
-      return const SizedBox(); // Si annulé, ne rien afficher du tout
+    if (widget.status == 'cancelled') {
+      return const SizedBox();
     }
 
-    return FutureBuilder<bool>(
-      future: AppointmentService().checkAccess(id),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const SizedBox();
-        }
-        if (snapshot.data == true) {
-          return ElevatedButton.icon(
-            onPressed: () async {
-              final userRole = await AuthService().getUserRole();
-              final receiverId =
-                  userRole == 'psychiatrist' ? patientId : psychiatristId;
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ConsultationLauncherScreen(
-                    peerId: receiverId.toString(),
-                    peerName: name,
-                    appointmentId: id,
-                    mode: 'chat',
-                  ),
-                ),
-              );
-            },
-            icon: const Icon(Icons.chat, color: Colors.white),
-            label: const Text(
-              "Rejoindre la consultation",
-              style: TextStyle(color: Colors.white),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+    if (canAccess) {
+      return ElevatedButton.icon(
+        onPressed: () async {
+          final userRole = await AuthService().getUserRole();
+          final receiverId = userRole == 'psychiatrist'
+              ? widget.patientId
+              : widget.psychiatristId;
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ConsultationLauncherScreen(
+                peerId: receiverId.toString(),
+                peerName: widget.name,
+                appointmentId: widget.id,
+                mode: 'chat',
               ),
             ),
           );
-        }
-        return const Text(
-          "Disponible à l'heure du rendez-vous",
-          style: TextStyle(color: Colors.grey),
-        );
-      },
-    );
+        },
+        icon: const Icon(Icons.chat, color: Colors.white),
+        label: const Text(
+          "Rejoindre la consultation",
+          style: TextStyle(color: Colors.white),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.green,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
+    } else {
+      return const Text(
+        "Disponible à l'heure du rendez-vous",
+        style: TextStyle(color: Colors.grey),
+      );
+    }
   }
 }
