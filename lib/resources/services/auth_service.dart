@@ -222,8 +222,7 @@ class AuthService {
   }
 
   Future<String?> getToken() async {
-    final prefs = await storage;
-    return prefs.read(key: 'token');
+    return await storage.read(key: 'token');
   }
 
   static Future<void> logout() async {

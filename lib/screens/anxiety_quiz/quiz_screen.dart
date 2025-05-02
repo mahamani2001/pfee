@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:mypsy_app/resources/services/auth_service.dart';
+
 import 'package:mypsy_app/resources/services/question_model.dart';
+import 'package:mypsy_app/resources/services/quiz_service.dart';
 import 'package:mypsy_app/screens/anxiety_quiz/result_screnn.dart';
 
 class QuestionPage extends StatefulWidget {
@@ -43,21 +46,35 @@ class _QuestionPageState extends State<QuestionPage> {
     return "Sévère";
   }
 
-  void submitQuiz() {
+  void submitQuiz() async {
     int total = 0;
     for (var q in questions) {
       total += getScore(q.userAnswered);
     }
+
     final category = getAnxietyLevel(total);
     final scorePercent = (total / (questions.length * 3)) * 100;
+
+    final userId = await AuthService().getUserId();
+    final token =
+        await AuthService().getToken(); // 👈 celui que tu stockes avec OTP
+
+    if (userId == null || token == null) {
+      print("❌ Impossible de récupérer l’utilisateur ou le token");
+      return;
+    }
+
+    await QuizService().submitResult(
+      userId: userId,
+      score: scorePercent,
+      anxietyLevel: category,
+      token: token,
+    );
 
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => ResultPage(
-          score: scorePercent,
-          category: category,
-        ),
+        builder: (_) => ResultPage(score: scorePercent, category: category),
       ),
     );
   }

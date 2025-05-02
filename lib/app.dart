@@ -66,6 +66,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             Routes.contact: (context) => const ContactPage(),
             Routes.doctorInfo: (context) => const DoctorDetailScreen(),
             Routes.booking: (context) => const BookingPage(),
+            
           },
         ),
       );

@@ -4,7 +4,7 @@ class AnxietyModel {
   late Interpreter _interpreter;
 
   Future<void> loadModel() async {
-    _interpreter = await Interpreter.fromAsset('model/anxiety_model.tflite');
+    _interpreter = await Interpreter.fromAsset('anxiety_model.tflite');
   }
 
   Future<int> predict(List<double> inputs) async {

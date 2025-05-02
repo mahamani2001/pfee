@@ -93,6 +93,8 @@ class _ChatScreenState extends State<ChatScreen> {
                 peerName: peerName,
                 startTime: start,
                 duration: duration,
+                psychiatristId: int.parse(peerId),
+                appointmentId: appointmentId,
               ),
             ),
           );
@@ -214,6 +216,8 @@ class _ChatScreenState extends State<ChatScreen> {
               peerName: peerName,
               startTime: startTime,
               duration: consultationDuration,
+              psychiatristId: int.parse(peerId), // 🔥 ID du psychiatre
+              appointmentId: appointmentId,
             ),
           ),
         );

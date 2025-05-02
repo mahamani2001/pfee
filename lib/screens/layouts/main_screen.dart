@@ -5,6 +5,7 @@ import 'package:mypsy_app/screens/apointment/appointment.dart';
 import 'package:mypsy_app/screens/chat/ConsultationLauncherScreen.dart';
 import 'package:mypsy_app/screens/home/home.dart';
 import 'package:mypsy_app/screens/menu/menu_page.dart';
+import 'package:mypsy_app/screens/profil/DoctorListScreen.dart';
 import 'package:mypsy_app/screens/profil/profile.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';
 import 'package:mypsy_app/shared/ui/device_types.dart';
@@ -30,7 +31,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
     const Home(),
     const Appointment(),
     const QuestionPage(), // ou un écran neutre temporaire
-
+    const DoctorListScreen(),
     const MenuPage()
   ];
   @override
@@ -83,12 +84,20 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
                     title: 'Quiz',
                   ),
                 ),
-                GestureDetector(
+                /*   GestureDetector(
                   onTap: () => setState(() => _currentIndex = 3),
                   child: IconMenu(
                     icon: 'assets/menu/user.svg',
                     isSelected: _currentIndex == 3,
                     title: 'Profil',
+                  ),
+                ), */
+                GestureDetector(
+                  onTap: () => setState(() => _currentIndex = 3),
+                  child: IconMenu(
+                    icon: 'assets/menu/psy.svg',
+                    isSelected: _currentIndex == 3,
+                    title: 'Psy',
                   ),
                 ),
               ],

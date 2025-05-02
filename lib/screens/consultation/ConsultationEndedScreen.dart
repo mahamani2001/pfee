@@ -1,22 +1,127 @@
 import 'package:flutter/material.dart';
+import 'package:mypsy_app/resources/services/RatingService.dart';
+import 'package:smooth_star_rating_null_safety/smooth_star_rating_null_safety.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
-class ConsultationEndedScreen extends StatelessWidget {
+class ConsultationEndedScreen extends StatefulWidget {
   final String peerName;
+  final int psychiatristId;
+  final int appointmentId;
   final DateTime startTime;
   final Duration duration;
 
   const ConsultationEndedScreen({
     super.key,
     required this.peerName,
+    required this.psychiatristId,
+    required this.appointmentId,
     required this.startTime,
     required this.duration,
   });
 
   @override
+  State<ConsultationEndedScreen> createState() =>
+      _ConsultationEndedScreenState();
+}
+
+class _ConsultationEndedScreenState extends State<ConsultationEndedScreen> {
+  double _rating = 4.0;
+  bool _loading = false;
+
+  Future<void> _submitRating() async {
+    setState(() => _loading = true);
+
+    final response = await http.post(
+      Uri.parse('http://10.0.2.2:3001/api/ratings'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'psychiatristId': widget.psychiatristId,
+        'appointmentId': widget.appointmentId,
+        'rating': _rating,
+      }),
+    );
+
+    setState(() => _loading = false);
+
+    if (response.statusCode == 200) {
+      Navigator.of(context).pop(); // fermer le dialog
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Merci pour votre note 🌟")),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Erreur : ${response.body}")),
+      );
+    }
+  }
+
+  void _showRatingDialog() {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Notez votre consultation"),
+        content: StatefulBuilder(
+          builder: (context, setStateDialog) => Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SmoothStarRating(
+                rating: _rating,
+                size: 40,
+                filledIconData: Icons.star,
+                halfFilledIconData: Icons.star_half,
+                defaultIconData: Icons.star_border,
+                starCount: 5,
+                allowHalfRating: true,
+                onRatingChanged: (val) {
+                  setState(() => _rating = val);
+                  setStateDialog(() {}); // pour mettre à jour l’UI du dialog
+                },
+              ),
+              const SizedBox(height: 20),
+              _loading
+                  ? const CircularProgressIndicator()
+                  : ElevatedButton(
+                      onPressed: () async {
+                        setState(() => _loading = true);
+                        setStateDialog(() {}); // mettre à jour le dialog
+
+                        try {
+                          await RatingService().submitRating(
+                            psychiatristId: widget.psychiatristId,
+                            appointmentId: widget.appointmentId,
+                            rating: _rating,
+                          );
+                          Navigator.of(context).pop();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Merci pour votre note 🌟"),
+                            ),
+                          );
+                        } catch (e) {
+                          setState(() => _loading = false);
+                          setStateDialog(() {});
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text("Erreur : $e")),
+                          );
+                        }
+                      },
+                      child: const Text("Envoyer"),
+                    ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final endTime = startTime.add(duration);
-    final formattedStart = "${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')}";
-    final formattedEnd = "${endTime.hour.toString().padLeft(2, '0')}:${endTime.minute.toString().padLeft(2, '0')}";
+    final endTime = widget.startTime.add(widget.duration);
+    final formattedStart =
+        "${widget.startTime.hour.toString().padLeft(2, '0')}:${widget.startTime.minute.toString().padLeft(2, '0')}";
+    final formattedEnd =
+        "${endTime.hour.toString().padLeft(2, '0')}:${endTime.minute.toString().padLeft(2, '0')}";
 
     return Scaffold(
       appBar: AppBar(
@@ -27,18 +132,13 @@ class ConsultationEndedScreen extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            const Icon(Icons.check_circle_outline, color: Colors.green, size: 100),
+            const Icon(Icons.check_circle_outline,
+                color: Colors.green, size: 100),
             const SizedBox(height: 20),
-            Text(
-              "Merci 🙏",
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: Colors.black),
-            ),
+            Text("Merci 🙏", style: Theme.of(context).textTheme.headlineMedium),
             const SizedBox(height: 10),
-            Text(
-              "Votre consultation avec $peerName est terminée.",
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 16),
-            ),
+            Text("Votre consultation avec ${widget.peerName} est terminée.",
+                textAlign: TextAlign.center),
             const SizedBox(height: 30),
             Container(
               padding: const EdgeInsets.all(16),
@@ -49,18 +149,19 @@ class ConsultationEndedScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("👤 Psychiatre : $peerName"),
+                  Text("👤 Psychiatre : ${widget.peerName}"),
                   const SizedBox(height: 8),
                   Text("🕒 Heure : $formattedStart - $formattedEnd"),
                   const SizedBox(height: 8),
-                  Text("⏳ Durée : ${duration.inMinutes} minutes"),
+                  Text("⏳ Durée : ${widget.duration.inMinutes} minutes"),
                 ],
               ),
             ),
             const Spacer(),
             ElevatedButton.icon(
               onPressed: () {
-                Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+                Navigator.pushNamedAndRemoveUntil(
+                    context, '/home', (route) => false);
               },
               icon: const Icon(Icons.home),
               label: const Text("Retour à l'accueil"),
@@ -71,10 +172,7 @@ class ConsultationEndedScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             OutlinedButton.icon(
-              onPressed: () {
-                // TODO: Naviguer vers la page de feedback/évaluation
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Fonction noter à implémenter")));
-              },
+              onPressed: _showRatingDialog,
               icon: const Icon(Icons.star_border),
               label: const Text("Noter la consultation"),
               style: OutlinedButton.styleFrom(
