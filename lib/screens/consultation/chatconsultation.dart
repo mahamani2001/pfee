@@ -38,14 +38,16 @@ class _ChatScreenState extends State<ChatScreen> {
   bool isLoadingConsultation = true;
   late DateTime startTime;
   Duration remainingTime = Duration.zero; // ✅ pour affichage dans le build
-
   Timer? _timer;
   Duration consultationDuration = const Duration(minutes: 30); // 🔥 initial
   Duration elapsedTime = Duration.zero;
   bool isConsultationEnded = false;
+
   Future<void> initConsultationTiming() async {
     print("🚀 initConsultationTiming lancé");
     final data = await AppointmentService().getAppointmentById(appointmentId);
+    print(
+        "🔍 Appointment ID juste avant initConsultationTiming : $appointmentId");
 
     if (data != null) {
       try {
@@ -61,23 +63,46 @@ class _ChatScreenState extends State<ChatScreen> {
         final hour = int.parse(timeParts[0]);
         final minute = int.parse(timeParts[1]);
 
-        // ⚠️ Ne pas utiliser .toLocal() si tout est déjà en heure locale
-        final start = DateTime(year, month, day, hour, minute);
+// conversion UTC correcte depuis PostgreSQL
+        // 👇 on considère que date et heure du backend sont déjà en heure locale tunisienne
+        final start = DateTime(year, month, day, hour, minute).toLocal();
+
+        print("⚠️ isUtc ? ${start.isUtc}");
+        print("🕒 Start local : $start");
+        startTime = start;
+        final now = DateTime.now().toLocal(); // heure locale aussi
+        print("🧪 Décalage total : ${start.difference(now)}");
         final duration = Duration(minutes: data['duration_minutes']);
         final end = start.add(duration);
-        final now = DateTime.now();
 
-        if (!mounted) return;
-
+        remainingTime = end.isAfter(now) ? end.difference(now) : Duration.zero;
+        print("🕒 START   : $start");
+        print("🕒 NOW     : $now");
+        print("⏳ DURATION: $duration");
+        print("⏳ END     : $end");
+        print("⏳ RemainingTime Calculé: $remainingTime");
         setState(() {
           startTime = start;
           consultationDuration = duration;
 
           if (now.isBefore(start)) {
-            remainingTime = duration;
+            // Consultation pas encore commencée
+            isConsultationEnded = false;
+            remainingTime = Duration.zero;
+
+            final delay = start.difference(now); // <- par exemple 1h27
+            Future.delayed(delay, () {
+              if (!mounted) return;
+              startConsultationTimer();
+              setState(() {
+                remainingTime = consultationDuration;
+              });
+            });
           } else if (now.isBefore(end)) {
+            // Consultation en cours
             remainingTime = end.difference(now);
           } else {
+            // Consultation terminée
             remainingTime = Duration.zero;
             isConsultationEnded = true;
           }
@@ -93,8 +118,8 @@ class _ChatScreenState extends State<ChatScreen> {
                 peerName: peerName,
                 startTime: start,
                 duration: duration,
-                psychiatristId: int.parse(peerId),
-                appointmentId: appointmentId,
+                psychiatristId: int.parse(data['psychiatrist_id'].toString()),
+                appointmentId: data['id'],
               ),
             ),
           );
@@ -175,6 +200,8 @@ class _ChatScreenState extends State<ChatScreen> {
       };
 
       await loadMessages();
+      print(
+          "🔍 Appointment ID juste avant initConsultationTiming : $appointmentId");
       await initConsultationTiming();
     });
 
@@ -201,13 +228,16 @@ class _ChatScreenState extends State<ChatScreen> {
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted) return;
 
-      final now = DateTime.now();
+      final now = DateTime.now(); // ✅ Heure locale
       final endTime = startTime.add(consultationDuration);
+
       final remaining = endTime.difference(now);
 
-      if (remaining <= Duration.zero) {
+      if (remaining <= Duration.zero && !isConsultationEnded) {
         _timer?.cancel();
-        setState(() => isConsultationEnded = true);
+        isConsultationEnded = true; // ⚠️ PAS de setState ici
+
+        if (!mounted) return;
 
         Navigator.pushReplacement(
           context,
@@ -216,15 +246,15 @@ class _ChatScreenState extends State<ChatScreen> {
               peerName: peerName,
               startTime: startTime,
               duration: consultationDuration,
-              psychiatristId: int.parse(peerId), // 🔥 ID du psychiatre
+              psychiatristId: int.parse(peerId),
               appointmentId: appointmentId,
             ),
           ),
         );
       } else {
         setState(() {
+          remainingTime = remaining;
           elapsedTime = now.difference(startTime);
-          remainingTime = remaining; // ✅ ici on le met à jour
         });
       }
     });
@@ -324,9 +354,10 @@ class _ChatScreenState extends State<ChatScreen> {
 
   // 🕒 Ajoute ici la fonction pour formater la durée
   String _formatDuration(Duration duration) {
-    final minutes = duration.inMinutes;
-    final seconds = duration.inSeconds % 60;
-    return '$minutes:${seconds.toString().padLeft(2, '0')}';
+    final hours = duration.inHours.toString().padLeft(2, '0');
+    final minutes = (duration.inMinutes % 60).toString().padLeft(2, '0');
+    final seconds = (duration.inSeconds % 60).toString().padLeft(2, '0');
+    return '$hours:$minutes:$seconds';
   }
 
   Future<void> loadMessages() async {
@@ -480,7 +511,7 @@ class _ChatScreenState extends State<ChatScreen> {
         backgroundColor: const Color(0xFFEDEDED),
         body: Column(
           children: [
-            if (!isConsultationEnded)
+            if (!isConsultationEnded && isPsychiatrist)
               Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),

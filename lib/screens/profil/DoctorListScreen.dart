@@ -53,7 +53,20 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('Trouver un professionnel')),
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              Navigator.pushNamedAndRemoveUntil(
+                  context, '/home', (route) => false);
+            },
+          ),
+          title: const Text('Trouver un professionnel'),
+          backgroundColor: const Color(0xFF457B9D),
+          foregroundColor: const Color.fromARGB(255, 0, 0, 0),
+          elevation: 0,
+          centerTitle: true,
+        ),
         body: allDoctors.isEmpty
             ? const Center(child: CircularProgressIndicator())
             : Column(
@@ -67,7 +80,7 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
                         hintText: "Rechercher un psychiatre...",
                         prefixIcon: const Icon(Icons.search),
                         filled: true,
-                        fillColor: Colors.grey.shade100,
+                        fillColor: const Color(0xFFF0F4F8),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(30),
                           borderSide: BorderSide.none,
@@ -91,13 +104,12 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
                         const SizedBox(height: 8),
                         Container(
                           decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.grey.shade300),
+                            color: const Color(0xFFEAF4FB), // Fond très doux
+                            borderRadius: BorderRadius.circular(16),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black12.withOpacity(0.03),
-                                blurRadius: 4,
+                                color: Colors.black12.withOpacity(0.04),
+                                blurRadius: 6,
                                 offset: const Offset(0, 2),
                               ),
                             ],
@@ -109,7 +121,8 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
                               isExpanded: true,
                               icon:
                                   const Icon(Icons.keyboard_arrow_down_rounded),
-                              dropdownColor: Colors.white,
+                              dropdownColor:
+                                  const Color.fromARGB(255, 255, 255, 255),
                               style: const TextStyle(
                                   fontSize: 15, color: Colors.black87),
                               hint: const Text('Toutes les spécialités'),
@@ -156,7 +169,7 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
                                 horizontal: 16, vertical: 8),
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: const Color.fromARGB(255, 203, 221, 255),
                               borderRadius: BorderRadius.circular(16),
                               boxShadow: [
                                 BoxShadow(
@@ -170,7 +183,8 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
                               children: [
                                 const CircleAvatar(
                                   radius: 30,
-                                  backgroundImage: AssetImage("assets/psy.jpg"),
+                                  backgroundImage:
+                                      AssetImage("assets/images/psy.jpg"),
                                 ),
                                 const SizedBox(width: 16),
                                 Expanded(
@@ -190,9 +204,10 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
                                           doctor['specialty'] ?? 'Psychiatre',
                                           style: const TextStyle(fontSize: 12),
                                         ),
-                                        backgroundColor: Colors.blue.shade50,
-                                        labelStyle:
-                                            const TextStyle(color: Colors.blue),
+                                        backgroundColor:
+                                            const Color(0xFFDCEFFF),
+                                        labelStyle: const TextStyle(
+                                            color: Color(0xFF457B9D)),
                                       ),
                                       const SizedBox(height: 6),
                                       Row(
@@ -216,23 +231,22 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
                                     ],
                                   ),
                                 ),
-                                const Column(
+                                Column(
                                   children: [
                                     Row(
                                       children: [
                                         Icon(Icons.star,
                                             size: 18, color: Colors.orange),
-                                        SizedBox(width: 3),
-                                        Text("4.5",
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.bold)),
+                                        const SizedBox(width: 3),
+                                        Text(
+                                          (doctor['rating'] ?? '—').toString(),
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.bold),
+                                        ),
                                       ],
                                     ),
-                                    SizedBox(height: 8),
-                                    Icon(Icons.favorite_border,
-                                        color: Colors.grey),
                                   ],
-                                )
+                                ),
                               ],
                             ),
                           ),

@@ -98,6 +98,7 @@ class AppointmentService {
     required int psychiatristId,
     required String date,
     required String startTime,
+    int durationMinutes = 30,
   }) async {
     final response = await HttpService().request(
       url: '$baseUrl/propose',
@@ -106,6 +107,7 @@ class AppointmentService {
         'psychiatristId': psychiatristId,
         'date': date,
         'startTime': startTime,
+        'duration_minutes': durationMinutes,
       },
     );
     return response.statusCode == 201;

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:mypsy_app/resources/services/appointment_service.dart';
+import 'package:mypsy_app/shared/routes.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';
 import 'package:table_calendar/table_calendar.dart';
 
@@ -42,7 +43,7 @@ class _BookingPageState extends State<BookingPage> {
   List<String> generateTimeSlots({
     required String start,
     required String end,
-    int stepMinutes = 45,
+    int stepMinutes = 30,
   }) {
     final format = DateFormat("HH:mm");
     final startTime = format.parse(start);
@@ -133,7 +134,7 @@ class _BookingPageState extends State<BookingPage> {
         psychiatristId: psychiatristId,
         date: dateStr,
         startTime: formattedStartTime,
-        durationMinutes: 45,
+        durationMinutes: 30,
         availabilityId: timeToAvailabilityId[formattedStartTime], // 👈
       );
       success = result['status'] == 201;
@@ -145,6 +146,7 @@ class _BookingPageState extends State<BookingPage> {
         psychiatristId: psychiatristId,
         date: dateStr,
         startTime: formattedStartTime,
+        durationMinutes: 30,
       );
     }
 
@@ -154,7 +156,11 @@ class _BookingPageState extends State<BookingPage> {
             ? "Rendez-vous reprogrammé avec succès"
             : "Rendez-vous réservé avec succès"),
       ));
-      Navigator.pop(context, true);
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        Routes.appointmentSuccess,
+        (route) => false,
+      );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text("Erreur lors de la réservation"),
@@ -165,12 +171,11 @@ class _BookingPageState extends State<BookingPage> {
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(
-          title: Text(appointmentId != null
-              ? "Reprogrammer le rendez-vous"
-              : "Prendre rendez-vous"),
-          backgroundColor: AppColors.mypsyPrimary,
-          foregroundColor: Colors.white,
-        ),
+            title: Text(appointmentId != null
+                ? "Reprogrammer le rendez-vous"
+                : "Prendre rendez-vous"),
+            backgroundColor: const Color(0xFF457B9D),
+            foregroundColor: const Color.fromARGB(255, 0, 0, 0)),
         body: ListView(
           padding: const EdgeInsets.all(16),
           children: [

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mypsy_app/screens/anxiety_quiz/quiz_screen.dart';
-import 'package:mypsy_app/screens/anxiety_quiz/history_page.dart'; // ⚠️ à créer
+import 'package:mypsy_app/screens/anxiety_quiz/history_page.dart';
+import 'package:mypsy_app/shared/routes.dart';
 
 class ResultPage extends StatelessWidget {
   final double score;
@@ -11,21 +12,6 @@ class ResultPage extends StatelessWidget {
     required this.score,
     required this.category,
   });
-
-  Color getCategoryColor(String level) {
-    switch (level) {
-      case "Anxiété minimale":
-        return Colors.green;
-      case "Légère":
-        return Colors.orange;
-      case "Modérée":
-        return Colors.deepOrange;
-      case "Sévère":
-        return Colors.red;
-      default:
-        return Colors.grey;
-    }
-  }
 
   String getEmoji(String category) {
     switch (category) {
@@ -42,64 +28,115 @@ class ResultPage extends StatelessWidget {
     }
   }
 
+  Color getBackgroundColor(String category) {
+    switch (category) {
+      case "Anxiété minimale":
+        return const Color.fromARGB(255, 255, 255, 255);
+      case "Légère":
+        return const Color.fromARGB(255, 255, 255, 255);
+      case "Modérée":
+        return const Color.fromARGB(255, 255, 255, 255);
+      case "Sévère":
+        return const Color.fromARGB(255, 255, 255, 255);
+      default:
+        return Colors.grey.shade100;
+    }
+  }
+
+  String getMotivationalText(String category) {
+    switch (category) {
+      case "Anxiété minimale":
+        return "Continue à prendre soin de toi 🌿";
+      case "Légère":
+        return "Respire profondément, tu vas dans la bonne direction 🌤️";
+      case "Modérée":
+        return "Tu n’es pas seul·e. Parler aide beaucoup 🤝";
+      case "Sévère":
+        return "Courage, chaque petit pas compte ❤️‍🩹";
+      default:
+        return "Prends soin de toi 🧘‍♀️";
+    }
+  }
+
+  Color getCategoryColor(String level) {
+    switch (level) {
+      case "Anxiété minimale":
+        return Colors.green;
+      case "Légère":
+        return Colors.orange;
+      case "Modérée":
+        return Colors.deepOrange;
+      case "Sévère":
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final scoreText = "${score.toStringAsFixed(1)}%";
-    final color = getCategoryColor(category);
     final emoji = getEmoji(category);
-    final bool shouldConsult = category == "Modérée" || category == "Sévère";
+    final shouldConsult = category == "Modérée" || category == "Sévère";
+    final bgColor = getBackgroundColor(category);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
+      backgroundColor: bgColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFF457B9D),
         foregroundColor: Colors.black,
         elevation: 0.5,
-        title: const Text(" Résultat du quiz"),
+        title: const Text("Résultat du quiz"),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pushNamedAndRemoveUntil(
+                context, '/home', (route) => false);
+          },
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const SizedBox(height: 20),
-            const Text("Votre niveau d’anxiété",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
             Text(
               "$emoji $category",
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: color,
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+            Text("Score global : $scoreText",
+                style: const TextStyle(fontSize: 16)),
+            const SizedBox(height: 1),
+            Padding(
+              padding: const EdgeInsets.only(top: 16.0, bottom: 8),
+              child: Text(
+                getMotivationalText(category),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: getCategoryColor(category),
+                ),
               ),
             ),
             const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.speed, color: color),
-                const SizedBox(width: 8),
-                Text("Score global : $scoreText"),
-              ],
-            ),
-            const SizedBox(height: 8),
             LinearProgressIndicator(
               value: score / 100,
-              color: color,
-              backgroundColor: Colors.grey[300],
+              backgroundColor: Colors.grey.shade300,
+              color: getCategoryColor(category),
               minHeight: 8,
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(8),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             const Text(
               "🙏 Merci d’avoir complété le quiz.\nCe résultat est indicatif et ne remplace pas un avis médical.",
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 13, color: Colors.grey),
+              style: TextStyle(fontSize: 13, color: Colors.black87),
             ),
             const SizedBox(height: 32),
 
-            // 🔍 Voir l’historique
+            // ✅ Bouton Historique
             ElevatedButton.icon(
               onPressed: () {
                 Navigator.push(
@@ -110,16 +147,18 @@ class ResultPage extends StatelessWidget {
               icon: const Icon(Icons.history),
               label: const Text("Voir l’historique"),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.grey.shade200,
-                foregroundColor: Colors.black,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black87,
+                minimumSize: const Size.fromHeight(48),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30)),
+                  borderRadius: BorderRadius.circular(15),
+                ),
               ),
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
+
+            // ✅ Reprendre le quiz
             ElevatedButton.icon(
               onPressed: () {
                 Navigator.pushReplacement(
@@ -130,40 +169,36 @@ class ResultPage extends StatelessWidget {
               icon: const Icon(Icons.refresh),
               label: const Text("Reprendre le quiz"),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
+                backgroundColor: Colors.blue.shade50,
                 foregroundColor: Colors.blue,
-                side: const BorderSide(color: Colors.blue),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                minimumSize: const Size.fromHeight(48),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(15),
                 ),
               ),
             ),
 
-            // ✅ Ajoute la virgule ici
-            if (shouldConsult)
-              Padding(
-                padding: const EdgeInsets.only(top: 16),
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/psy-list');
-                  },
-                  icon: const Icon(Icons.support_agent),
-                  label: const Text("Parler à un professionnel"),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red.shade50,
-                    foregroundColor: Colors.red.shade800,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 24, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(24),
-                    ),
+            if (shouldConsult) ...[
+              const SizedBox(height: 12),
+
+              // ✅ Bouton contact
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pushNamed(context, Routes.doctorliste);
+                },
+                icon: const Icon(Icons.handshake),
+                label: const Text("Un coup de pouce professionnel"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.pink.shade50,
+                  foregroundColor: Colors.pink.shade800,
+                  minimumSize: const Size.fromHeight(48),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
                   ),
                 ),
               ),
-
-            // 🔄 Reprendre
+            ],
           ],
         ),
       ),

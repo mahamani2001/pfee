@@ -1,10 +1,13 @@
 import 'package:mypsy_app/provider/api_provider.dart';
 import 'package:mypsy_app/resources/services/socket_service.dart';
+import 'package:mypsy_app/screens/apointment/AppointmentSuccessScreen.dart';
 import 'package:mypsy_app/screens/calendar/calednar_info.dart';
 import 'package:mypsy_app/screens/consultation/chatconsultation.dart';
 
 import 'package:mypsy_app/screens/home/doctor_info.dart';
+import 'package:mypsy_app/screens/home/home.dart';
 import 'package:mypsy_app/screens/menu/sub_pages/contact.dart';
+import 'package:mypsy_app/screens/profil/DoctorListScreen.dart';
 import 'package:mypsy_app/screens/splash/splash.dart';
 import 'package:mypsy_app/shared/routes.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';
@@ -63,10 +66,14 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                 )
               : const SplashScreen(),
           routes: {
+            '/home': (context) => const Home(),
             Routes.contact: (context) => const ContactPage(),
             Routes.doctorInfo: (context) => const DoctorDetailScreen(),
             Routes.booking: (context) => const BookingPage(),
-            
+            Routes.appointmentSuccess: (context) =>
+                const AppointmentSuccessScreen(),
+            Routes.doctorliste: (context) => const DoctorListScreen(),
+            '/psy-list': (context) => const DoctorListScreen(),
           },
         ),
       );

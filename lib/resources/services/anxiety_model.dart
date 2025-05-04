@@ -1,22 +1,31 @@
 import 'package:tflite_flutter/tflite_flutter.dart';
 
 class AnxietyModel {
-  late Interpreter _interpreter;
+  Interpreter? _interpreter;
 
   Future<void> loadModel() async {
-    _interpreter = await Interpreter.fromAsset('anxiety_model.tflite');
+    print("⏳ Tentative de chargement du modèle...");
+    try {
+      _interpreter = await Interpreter.fromAsset('assets/model_anxiety.tflite');
+      print("✅ Modèle TFLite chargé avec succès !");
+    } catch (e) {
+      print("❌ Erreur de chargement du modèle : $e");
+      _interpreter = null;
+    }
   }
 
   Future<int> predict(List<double> inputs) async {
-    var input = [inputs]; // shape [1, 7]
+    if (_interpreter == null) {
+      throw Exception("❌ Le modèle n’a pas été chargé correctement !");
+    }
+
+    var input = [inputs];
     var output = List.filled(4, 0.0).reshape([1, 4]);
 
-    _interpreter.run(input, output);
-
-    // Trouver l’index du score le plus élevé (softmax)
-    final result = output[0];
+    _interpreter!.run(input, output);
+    final List<double> result = List<double>.from(output[0]);
     final maxIndex =
         result.indexWhere((x) => x == result.reduce((a, b) => a > b ? a : b));
-    return maxIndex; // 0 = Minimal, 1 = Léger, etc.
+    return maxIndex;
   }
 }

@@ -50,7 +50,7 @@ class Home extends StatelessWidget {
                             backgroundImage: doctors[i]['image'] != null
                                 ? NetworkImage(doctors[i]['image'])
                                 : const AssetImage(
-                                        "assets/assets/menu/hotline.jpg")
+                                        "assets/images/doctor_avatar.png")
                                     as ImageProvider,
                           ),
                           const SizedBox(width: 12),
