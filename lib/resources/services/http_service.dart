@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mypsy_app/resources/services/auth_service.dart';
@@ -71,5 +72,34 @@ class HttpService {
     }
 
     return response;
+  }
+
+  Future<http.StreamedResponse> multipartRequestFromPath({
+    required String method,
+    required String url,
+    required Map<String, String> fieldMap,
+    required String fileField,
+    required String filePath,
+  }) async {
+    final request = http.MultipartRequest(method, Uri.parse(url));
+    final token = await _getAccessToken();
+
+    // Ajout du token dans les headers
+    if (token != null) {
+      request.headers['Authorization'] = 'Bearer $token';
+    }
+
+    request.fields.addAll(fieldMap);
+
+    final file = await http.MultipartFile.fromPath(fileField, filePath);
+    request.files.add(file);
+
+    return await request.send(); // ✅ send ici
+  }
+
+  Future<void> downloadFile(String url, String savePath) async {
+    final response = await http.get(Uri.parse(url));
+    final file = File(savePath);
+    await file.writeAsBytes(response.bodyBytes);
   }
 }

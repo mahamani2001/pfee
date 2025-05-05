@@ -57,7 +57,7 @@ class FCMService {
         final prefs = await SharedPreferences.getInstance();
         final jwt = prefs.getString('jwt');
         final response = await http.put(
-          Uri.parse('http://10.0.2.2:3001/api/auth/fcm-token'),
+          Uri.parse('http://192.168.1.2:3001/api/auth/fcm-token'),
           headers: {
             'Authorization': 'Bearer $jwt',
             'Content-Type': 'application/json',

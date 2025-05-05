@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
-  final String baseUrl = 'http://10.0.2.2:3001/api/auth';
+  final String baseUrl = 'http://192.168.1.2:3001/api/auth';
 
   Future<Map<String, dynamic>> login(String email, String password) async {
     final response = await http.post(
@@ -37,7 +37,7 @@ class AuthService {
     final token = prefs.getString('jwt');
 
     final response = await http.get(
-      Uri.parse('http://10.0.2.2:3001/api/auth/$userId/x25519-public-key'),
+      Uri.parse('http://192.168.1.2:3001/api/auth/$userId/x25519-public-key'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',

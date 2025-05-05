@@ -29,7 +29,7 @@ class Appointment extends StatelessWidget {
               indicatorColor: AppColors.mypsyDarkBlue,
               tabs: [
                 Tab(text: 'À venir'),
-                Tab(text: 'En '),
+                Tab(text: 'En attente'),
                 Tab(text: 'Annulé'),
               ],
             ),

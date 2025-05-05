@@ -26,7 +26,7 @@ class _MentalStatusCardState extends State<MentalStatusCard> {
   Future<void> fetchResults() async {
     try {
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:3001/api/quiz/${widget.userId}'),
+        Uri.parse('http://192.168.1.2:3001/api/quiz/${widget.userId}'),
       );
 
       if (response.statusCode == 200) {

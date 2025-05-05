@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cryptography/cryptography.dart';
 
 class AuthService {
-  final String baseUrl = 'http://10.0.2.2:3001/api/auth';
+  final String baseUrl = 'http://192.168.1.2:3001/api/auth';
   final storage = FlutterSecureStorage();
   Future<String?> getJwtToken() async {
     final prefs = await SharedPreferences.getInstance();
@@ -36,7 +36,7 @@ class AuthService {
     if (refreshToken == null) return null;
 
     final response = await http.post(
-      Uri.parse('http://10.0.2.2:3001/api/auth/refresh-token'),
+      Uri.parse('http://192.168.1.2:3001/api/auth/refresh-token'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'refreshToken': refreshToken}),
     );
@@ -124,7 +124,7 @@ class AuthService {
     if (refreshToken == null) return null;
 
     final response = await http.post(
-      Uri.parse('http://10.0.2.2:3001/api/auth/refresh-token'),
+      Uri.parse('http://192.168.1.2:3001/api/auth/refresh-token'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'refreshToken': refreshToken}),
     );
@@ -163,7 +163,7 @@ class AuthService {
     final token = prefs.getString('jwt');
 
     final response = await http.put(
-      Uri.parse('http://10.0.2.2:3001/api/auth/publicKey'),
+      Uri.parse('http://192.168.1.2:3001/api/auth/publicKey'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -185,7 +185,7 @@ class AuthService {
     final token = prefs.getString('jwt');
 
     final response = await http.get(
-      Uri.parse('http://10.0.2.2:3001/api/auth/publicKey/$peerId'),
+      Uri.parse('http://192.168.1.2:3001/api/auth/publicKey/$peerId'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',

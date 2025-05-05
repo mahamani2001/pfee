@@ -8,7 +8,7 @@ class CryptoService {
   final algorithm = X25519();
   final aesGcm = AesGcm.with256bits();
   final storage = FlutterSecureStorage();
-  final String baseUrl = 'http://10.0.2.2:3001/api/auth';
+  final String baseUrl = 'http://192.168.1.2:3001/api/auth';
 
   // 🔐 Générer et stocker la paire de clés X25519 si non existante
   Future<void> generateAndStoreKeyPair() async {

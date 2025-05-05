@@ -1,5 +1,9 @@
 import 'dart:async'; // ← important pour Timer
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_sound/public/flutter_sound_player.dart';
+import 'package:flutter_sound/public/flutter_sound_recorder.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:mypsy_app/resources/services/appointment_service.dart';
 import 'package:mypsy_app/resources/services/http_service.dart';
 import 'package:mypsy_app/resources/services/socket_service.dart';
@@ -7,6 +11,11 @@ import 'package:mypsy_app/resources/services/auth_service.dart';
 import 'package:mypsy_app/resources/services/crypto_service.dart';
 import 'package:mypsy_app/resources/services/chat_service.dart';
 import 'package:mypsy_app/screens/consultation/ConsultationEndedScreen.dart';
+import 'package:open_file/open_file.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter_sound/flutter_sound.dart';
+import 'dart:io';
 
 class ChatScreen extends StatefulWidget {
   final String peerId;
@@ -42,6 +51,53 @@ class _ChatScreenState extends State<ChatScreen> {
   Duration consultationDuration = const Duration(minutes: 30); // 🔥 initial
   Duration elapsedTime = Duration.zero;
   bool isConsultationEnded = false;
+  FlutterSoundRecorder? _recorder;
+  bool _isRecording = false;
+  String? _recordedFilePath;
+  bool _isRecorderInitialized = false;
+  final FlutterSoundPlayer _audioPlayer = FlutterSoundPlayer();
+  bool _isPlayerInitialized = false;
+
+  final flutterSoundHelper = FlutterSoundHelper();
+  Future<Duration?> getAudioDuration(String filePath) async {
+    try {
+      final player = AudioPlayer();
+      await player.setFilePath(filePath); // ❌ ne joue rien, juste charge
+      final duration = player.duration;
+      await player.dispose(); // libère les ressources
+      return duration;
+    } catch (e) {
+      print("❌ Erreur de durée audio : $e");
+      return null;
+    }
+  }
+
+  Future<void> _playAudioWithJustAudio(String filePath) async {
+    final file = File(filePath);
+    if (!await file.exists()) {
+      print("❌ Fichier audio introuvable : $filePath");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Fichier audio introuvable")),
+      );
+      return;
+    }
+
+    final player = AudioPlayer();
+
+    try {
+      await player.setFilePath(filePath);
+      await player.play();
+      print("🎧 Lecture en cours...");
+      player.playerStateStream.listen((state) {
+        if (state.processingState == ProcessingState.completed) {
+          print("✅ Lecture terminée");
+          player.dispose(); // Libère les ressources
+        }
+      });
+    } catch (e) {
+      print("❌ Erreur pendant la lecture : $e");
+    }
+  }
 
   Future<void> initConsultationTiming() async {
     print("🚀 initConsultationTiming lancé");
@@ -63,54 +119,40 @@ class _ChatScreenState extends State<ChatScreen> {
         final hour = int.parse(timeParts[0]);
         final minute = int.parse(timeParts[1]);
 
-// conversion UTC correcte depuis PostgreSQL
-        // 👇 on considère que date et heure du backend sont déjà en heure locale tunisienne
         final start = DateTime(year, month, day, hour, minute).toLocal();
-
-        print("⚠️ isUtc ? ${start.isUtc}");
-        print("🕒 Start local : $start");
-        startTime = start;
-        final now = DateTime.now().toLocal(); // heure locale aussi
-        print("🧪 Décalage total : ${start.difference(now)}");
         final duration = Duration(minutes: data['duration_minutes']);
+        final now = DateTime.now().toLocal();
         final end = start.add(duration);
 
-        remainingTime = end.isAfter(now) ? end.difference(now) : Duration.zero;
-        print("🕒 START   : $start");
-        print("🕒 NOW     : $now");
-        print("⏳ DURATION: $duration");
-        print("⏳ END     : $end");
-        print("⏳ RemainingTime Calculé: $remainingTime");
+        bool consultationHasEnded = false;
+
+        if (now.isBefore(start)) {
+          consultationHasEnded = false;
+          remainingTime = Duration.zero;
+
+          final delay = start.difference(now);
+          Future.delayed(delay, () {
+            if (!mounted) return;
+            startConsultationTimer();
+            setState(() {
+              remainingTime = duration;
+            });
+          });
+        } else if (now.isBefore(end)) {
+          consultationHasEnded = false;
+          remainingTime = end.difference(now);
+        } else {
+          consultationHasEnded = true;
+          remainingTime = Duration.zero;
+        }
+
         setState(() {
           startTime = start;
           consultationDuration = duration;
-
-          if (now.isBefore(start)) {
-            // Consultation pas encore commencée
-            isConsultationEnded = false;
-            remainingTime = Duration.zero;
-
-            final delay = start.difference(now); // <- par exemple 1h27
-            Future.delayed(delay, () {
-              if (!mounted) return;
-              startConsultationTimer();
-              setState(() {
-                remainingTime = consultationDuration;
-              });
-            });
-          } else if (now.isBefore(end)) {
-            // Consultation en cours
-            remainingTime = end.difference(now);
-          } else {
-            // Consultation terminée
-            remainingTime = Duration.zero;
-            isConsultationEnded = true;
-          }
+          isConsultationEnded = consultationHasEnded;
         });
 
-        if (!isConsultationEnded) {
-          startConsultationTimer();
-        } else {
+        if (consultationHasEnded) {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
@@ -123,16 +165,97 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
             ),
           );
+        } else {
+          startConsultationTimer();
         }
+
+        print("🕒 START   : $start");
+        print("🕒 NOW     : $now");
+        print("⏳ DURATION: $duration");
+        print("⏳ END     : $end");
+        print("⏳ RemainingTime Calculé: $remainingTime");
       } catch (e) {
         print("❌ Erreur parsing date/heure : $e");
       }
     }
   }
 
+  Future<void> _toggleRecording() async {
+    if (!_isRecorderInitialized) {
+      print("❌ Recorder non initialisé !");
+      return;
+    }
+
+    if (_isRecording) {
+      final path = await _recorder!.stopRecorder();
+      print("🎯 Chemin enregistré : $path");
+
+      final file = File(path!);
+      final fileSize = await file.length();
+      print("🎤 Fichier audio enregistré : $path");
+      print("📏 Taille du fichier : $fileSize octets");
+      final audioBytes = await file.readAsBytes();
+      print("📏 Taille finale fichier: ${audioBytes.length}");
+
+      setState(() {
+        _isRecording = false;
+        _recordedFilePath = path;
+      });
+
+      if (fileSize < 1000) {
+        print("⚠️ Audio trop court ou vide.");
+        return;
+      }
+      final audioDuration = await getAudioDuration(path);
+
+      // On ajoute au chat localement pour tester
+      final fileName = path.split('/').last;
+      setState(() {
+        messages.add({
+          'text': '🎤 $fileName',
+          'filePath': path,
+          'duration': audioDuration?.inSeconds ?? 0,
+          'type': 'audio',
+          'fromMe': true,
+          'status': 'sent',
+          'createdAt': DateTime.now().toIso8601String(),
+        });
+      });
+
+// 🔥 Émission via socket
+      final bytes = await File(path).readAsBytes();
+
+      SocketService().emit('send_voice', {
+        'to': int.parse(peerId),
+        'appointmentId': appointmentId,
+        'fileName': fileName,
+        'duration': audioDuration?.inSeconds ?? 0,
+        'audio': bytes,
+      });
+    } else {
+      final tempDir = await getTemporaryDirectory();
+      final path =
+          '${tempDir.path}/${DateTime.now().millisecondsSinceEpoch}.aac';
+      // nom fixe
+
+      final files = Directory(tempDir.path).listSync();
+      files.forEach((f) => print("🗂️ ${f.path}"));
+
+      await _recorder!.startRecorder(toFile: path, codec: Codec.aacADTS);
+      print(path);
+      setState(() {
+        _isRecording = true;
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+    _recorder = FlutterSoundRecorder();
+    _initRecorder();
+    _initPlayer();
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       peerId = widget.peerId;
       peerName = widget.peerName;
@@ -222,6 +345,13 @@ class _ChatScreenState extends State<ChatScreen> {
     };
   }
 
+  Future<void> _initPlayer() async {
+    await _audioPlayer.openPlayer();
+    setState(() {
+      _isPlayerInitialized = true;
+    });
+  }
+
   void startConsultationTimer() {
     _timer?.cancel();
 
@@ -258,6 +388,41 @@ class _ChatScreenState extends State<ChatScreen> {
         });
       }
     });
+  }
+
+  Future<void> _initRecorder() async {
+    final micStatus = await Permission.microphone.request();
+    if (micStatus != PermissionStatus.granted) {
+      throw Exception('Microphone permission not granted');
+    }
+
+    await _recorder?.openRecorder();
+    _isRecorderInitialized = true;
+  }
+
+  Future<void> _playAudio(String fileName) async {
+    if (!_isPlayerInitialized) return;
+
+    final dir = await getTemporaryDirectory();
+    final filePath = '${dir.path}/$fileName';
+    print("🎧 Demande de lecture : $filePath");
+    print("🎧 Player initialized: $_isPlayerInitialized");
+
+    final file = File(filePath);
+    if (!await file.exists()) {
+      print("❌ Fichier introuvable : $filePath");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Fichier audio introuvable')),
+      );
+      return;
+    }
+
+    print("🎧 Lecture de $filePath");
+    await _audioPlayer.startPlayer(
+      fromURI: filePath, // ou fileUrl
+      codec: Codec.aacADTS,
+      whenFinished: () => print('✅ Lecture terminée'),
+    );
   }
 
   void extendConsultation() async {
@@ -316,6 +481,35 @@ class _ChatScreenState extends State<ChatScreen> {
     final fromId = data['from'].toString();
     if (fromId != peerId) return;
 
+    if (!mounted) return;
+
+    // 🔊 Cas 1: Message vocal en temps réel (non chiffré)
+    if (data['type'] == 'audio') {
+      final fileUrl = data['fileUrl']; // 🔁 utilise bien cette clé
+      final fileName = data['fileName'] ?? 'audio.aac';
+      final dir = await getTemporaryDirectory();
+      final filePath = '${dir.path}/$fileName';
+
+      try {
+        await HttpService().downloadFile(fileUrl, filePath);
+        setState(() {
+          messages.add({
+            'text': '🎤 $fileName',
+            'filePath': filePath,
+            'duration': data['duration'] ?? 0,
+            'type': 'audio',
+            'fromMe': false,
+            'status': 'received',
+            'createdAt': data['createdAt'] ?? DateTime.now().toIso8601String(),
+          });
+        });
+      } catch (e) {
+        print("❌ Erreur téléchargement audio : $e");
+      }
+      return;
+    }
+
+    // 🔐 Cas 2: Message texte chiffré
     final peerPublicKey = await AuthService().fetchPeerPublicKey(fromId);
     final decrypted = await CryptoService().decryptMessage(
       cipherTextBase64: data['cipherText'],
@@ -324,7 +518,20 @@ class _ChatScreenState extends State<ChatScreen> {
       peerPublicKeyBase64: peerPublicKey,
     );
 
-    if (!mounted) return;
+    // 🔍 Cas 3: Message spécial
+    if (decrypted == '__MEDICAL_CARD_REQUEST__') {
+      setState(() {
+        messages.add({
+          'text': 'Do you have any medical card?',
+          'type': 'choice',
+          'options': ['Yes', 'No'],
+          'fromMe': false,
+        });
+      });
+      return;
+    }
+
+    // 📝 Cas 4: Message texte normal
     setState(() {
       messages.add({
         'text': decrypted,
@@ -334,12 +541,11 @@ class _ChatScreenState extends State<ChatScreen> {
       });
     });
 
+    // Lecture confirmée
     await HttpService().request(
-      url: 'http://10.0.2.2:3001/api/messages/$appointmentId/read',
+      url: 'http://192.168.1.2:3001/api/messages/$appointmentId/read',
       method: 'PUT',
-      body: {
-        'extraMinutes': 15,
-      },
+      body: {},
     );
   }
 
@@ -363,8 +569,9 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> loadMessages() async {
     final peerPublicKey = await AuthService().fetchPeerPublicKey(peerId);
     final data = await ChatService().getMessages(appointmentId);
+
     await HttpService().request(
-      url: 'http://10.0.2.2:3001/api/messages/$appointmentId/read',
+      url: 'http://192.168.1.2:3001/api/messages/$appointmentId/read',
       method: 'PUT',
       body: {},
     );
@@ -379,6 +586,33 @@ class _ChatScreenState extends State<ChatScreen> {
 
       if (!(from == peerId || to == peerId)) continue;
 
+      // 🟡 Cas des messages audio (non chiffrés, contiennent un fichier)
+      if (msg['type'] == 'audio') {
+        final fileUrl =
+            msg['ciphertext']; // ou msg['fileUrl'] selon ton backend
+        final fileName = msg['fileName'] ?? fileUrl.split('/').last;
+        final localPath = '${(await getTemporaryDirectory()).path}/$fileName';
+
+        try {
+          await HttpService().downloadFile(fileUrl, localPath);
+
+          setState(() {
+            messages.add({
+              'type': 'audio',
+              'filePath': localPath,
+              'duration': msg['duration'] ?? 0,
+              'fromMe': msg['sender_id'] == myUserId,
+              'createdAt': msg['created_at'],
+            });
+          });
+        } catch (e) {
+          print('❌ Erreur lors du téléchargement du vocal : $e');
+        }
+
+        continue; // 👈 évite d’aller au décryptage
+      }
+
+      // 🔐 Cas des messages texte chiffrés
       try {
         final decrypted = await CryptoService().decryptMessage(
           cipherTextBase64: msg['ciphertext'],
@@ -444,19 +678,31 @@ class _ChatScreenState extends State<ChatScreen> {
   void dispose() {
     _isChatScreenActive = false;
     _timer?.cancel();
+    _recorder?.closeRecorder();
+    _recorder = null;
     SocketService().onMessage = null;
     SocketService().onMessageRead = null;
+
     super.dispose();
+  }
+
+  String formatDuration(int seconds) {
+    final minutes = (seconds ~/ 60).toString().padLeft(2, '0');
+    final secs = (seconds % 60).toString().padLeft(2, '0');
+    return '$minutes:$secs';
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
+        resizeToAvoidBottomInset: true,
         appBar: AppBar(
-          backgroundColor: const Color(0xFF075E54),
+          backgroundColor: const Color.fromARGB(255, 17, 61, 145),
+          centerTitle: false,
+          toolbarHeight: 70,
           title: Row(
             children: [
               const CircleAvatar(
-                radius: 18,
+                radius: 20,
                 backgroundImage: AssetImage('assets/images/doctor_avatar.png'),
               ),
               const SizedBox(width: 10),
@@ -509,39 +755,41 @@ class _ChatScreenState extends State<ChatScreen> {
           ],
         ),
         backgroundColor: const Color(0xFFEDEDED),
-        body: Column(
-          children: [
-            if (!isConsultationEnded && isPsychiatrist)
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.hourglass_bottom,
-                            color: Colors.orange),
-                        const SizedBox(width: 8),
-                        Text(
-                          _formatDuration(remainingTime),
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: remainingTime.inMinutes <= 5
-                                ? Colors.red
-                                : Colors.black,
+        body: ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+          child: Column(
+            children: [
+              if (!isConsultationEnded && isPsychiatrist)
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.hourglass_bottom,
+                              color: Colors.orange),
+                          const SizedBox(width: 8),
+                          Text(
+                            _formatDuration(remainingTime),
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: remainingTime.inMinutes <= 5
+                                  ? Colors.red
+                                  : Colors.black,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    if (isPsychiatrist)
+                        ],
+                      ),
                       ElevatedButton.icon(
                         onPressed: extendConsultation,
                         icon: const Icon(Icons.add_alarm, size: 18),
                         label: const Text('Prolonger'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
+                          backgroundColor:
+                              const Color.fromARGB(255, 255, 255, 255),
                           padding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 8),
                           shape: RoundedRectangleBorder(
@@ -549,115 +797,433 @@ class _ChatScreenState extends State<ChatScreen> {
                           ),
                         ),
                       ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            if (isConsultationEnded)
-              const Center(
-                child: Text(
-                  "⏰ La consultation est terminée",
-                  style: TextStyle(color: Colors.red, fontSize: 18),
+              if (isConsultationEnded)
+                const Center(
+                  child: Text(
+                    "⏰ La consultation est terminée",
+                    style: TextStyle(color: Colors.red, fontSize: 18),
+                  ),
                 ),
-              ),
-            Expanded(
-              child: isConsultationEnded
-                  ? const Center()
-                  : ListView.builder(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 8),
-                      itemCount: messages.length + (isPeerTyping ? 1 : 0),
-                      itemBuilder: (_, index) {
-                        if (isPeerTyping && index == messages.length) {
+              Expanded(
+                child: isConsultationEnded
+                    ? const Center()
+                    : ListView.builder(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 8),
+                        itemCount: messages.length + (isPeerTyping ? 1 : 0),
+                        itemBuilder: (_, index) {
+                          if (isPeerTyping && index == messages.length) {
+                            return Align(
+                              alignment: Alignment.centerLeft,
+                              child: Container(
+                                margin: const EdgeInsets.symmetric(vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 14, vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(18),
+                                ),
+                                child: Text(
+                                  "$peerName est en train d’écrire...",
+                                  style: const TextStyle(
+                                      fontStyle: FontStyle.italic,
+                                      color: Colors.grey),
+                                ),
+                              ),
+                            );
+                          }
+
+                          final msg = messages[index];
+                          final fromMe = msg['fromMe'] ?? false;
+                          final type = msg['type'] ?? 'text';
+                          if (type == 'pdf') {
+                            return _buildPdfBubble(
+                                msg['fileName'], msg['filePath'], fromMe);
+                          }
+
+                          if (type == 'image') {
+                            return _buildImageBubble(msg['filePath'], fromMe);
+                          }
+
+                          if (msg['text']
+                              .toString()
+                              .startsWith('🎤 Message vocal')) {
+                            final fileName = msg['text'].split(':').last.trim();
+                            return Align(
+                              alignment: fromMe
+                                  ? Alignment.centerRight
+                                  : Alignment.centerLeft,
+                              child: GestureDetector(
+                                onTap: () => _playAudio(fileName),
+                                child: Container(
+                                  margin:
+                                      const EdgeInsets.symmetric(vertical: 4),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 14, vertical: 10),
+                                  decoration: BoxDecoration(
+                                    color: Colors.green[100],
+                                    borderRadius: BorderRadius.circular(18),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.play_arrow,
+                                          color: Colors.black),
+                                      const SizedBox(width: 8),
+                                      Text('Écouter le message'),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          }
+
+                          if (type == 'audio') {
+                            final filePath = msg['filePath'];
+                            return buildAudioBubble(filePath, fromMe);
+                          }
+
+                          if (type == 'choice') {
+                            return _buildChoiceMessage(
+                                msg['text'], msg['options'] ?? [], fromMe);
+                          }
+
                           return Align(
-                            alignment: Alignment.centerLeft,
+                            alignment: fromMe
+                                ? Alignment.centerRight
+                                : Alignment.centerLeft,
                             child: Container(
                               margin: const EdgeInsets.symmetric(vertical: 4),
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 14, vertical: 10),
                               decoration: BoxDecoration(
-                                color: Colors.grey[200],
+                                color: fromMe
+                                    ? const Color(0xFFDCF8C6)
+                                    : Colors.white,
                                 borderRadius: BorderRadius.circular(18),
                               ),
-                              child: Text(
-                                "$peerName est en train d’écrire...",
-                                style: const TextStyle(
-                                    fontStyle: FontStyle.italic,
-                                    color: Colors.grey),
-                              ),
+                              child: Text(msg['text'],
+                                  style: const TextStyle(fontSize: 16)),
                             ),
                           );
-                        }
-
-                        final msg = messages[index];
-                        final fromMe = msg['fromMe'] ?? false;
-
-                        return Align(
-                          alignment: fromMe
-                              ? Alignment.centerRight
-                              : Alignment.centerLeft,
-                          child: Container(
-                            margin: const EdgeInsets.symmetric(vertical: 4),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 14, vertical: 10),
-                            decoration: BoxDecoration(
-                              color: fromMe
-                                  ? const Color(0xFFDCF8C6)
-                                  : Colors.white,
-                              borderRadius: BorderRadius.circular(18),
-                            ),
-                            child: Text(msg['text'],
-                                style: const TextStyle(fontSize: 16)),
-                          ),
-                        );
-                      },
-                    ),
-            ),
-            if (!isConsultationEnded) _buildMessageInput(),
-          ],
+                        },
+                      ),
+              ),
+              if (!isConsultationEnded) _buildMessageInput(),
+            ],
+          ),
         ),
       );
+  Widget buildAudioBubble(String filePath, bool fromMe) {
+    return FutureBuilder<Duration?>(
+      future: getAudioDuration(filePath),
+      builder: (context, snapshot) {
+        final duration = snapshot.data ?? Duration.zero;
+        final durationFormatted = formatDuration(duration.inSeconds);
+
+        return Align(
+          alignment: fromMe ? Alignment.centerRight : Alignment.centerLeft,
+          child: Container(
+            margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: fromMe ? const Color(0xFF128C7E) : const Color(0xFFE5E5EA),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: Icon(Icons.play_arrow,
+                      color: fromMe ? Colors.white : Colors.black87),
+                  onPressed: () => _playAudioWithJustAudio(filePath),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  durationFormatted,
+                  style: TextStyle(
+                    color: fromMe ? Colors.white : Colors.black87,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPdfBubble(String fileName, String filePath, bool fromMe) {
+    return Align(
+      alignment: fromMe ? Alignment.centerRight : Alignment.centerLeft,
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: fromMe ? const Color(0xFFDCF8C6) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.picture_as_pdf, size: 28, color: Colors.red),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                fileName,
+                style: const TextStyle(fontSize: 14),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.open_in_new, size: 20),
+              onPressed: () {
+                // Ouvre le PDF avec n'importe quel lecteur ou WebView
+                _openFile(filePath);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImageBubble(String filePath, bool fromMe) {
+    return Align(
+      alignment: fromMe ? Alignment.centerRight : Alignment.centerLeft,
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          color: Colors.grey[100],
+        ),
+        clipBehavior: Clip.hardEdge,
+        child: Image.file(
+          File(filePath),
+          width: 200,
+          height: 200,
+          fit: BoxFit.cover,
+        ),
+      ),
+    );
+  }
 
   Widget _buildMessageInput() {
     final isDisabled = isConsultationEnded;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-      color: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      decoration: const BoxDecoration(
+        color: Color(0xFFEDEDED),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       child: Row(
         children: [
-          IconButton(
-            icon: const Icon(Icons.attach_file, color: Colors.grey),
-            onPressed: isDisabled ? null : () {},
-          ),
           Expanded(
-            child: TextField(
-              controller: _messageController,
-              enabled: !isDisabled,
-              onChanged: (text) {
-                SocketService().emitTyping(
-                  toUserId: int.parse(peerId),
-                  isTyping: text.isNotEmpty,
-                );
-              },
-              decoration: const InputDecoration(
-                hintText: "Écrire un message...",
-                border: InputBorder.none,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: TextField(
+                controller: _messageController,
+                enabled: !isDisabled,
+                onChanged: (text) {
+                  SocketService().emitTyping(
+                    toUserId: int.parse(peerId),
+                    isTyping: text.isNotEmpty,
+                  );
+                },
+                decoration: const InputDecoration(
+                  hintText: "Type something...",
+                  border: InputBorder.none,
+                ),
               ),
             ),
           ),
-          GestureDetector(
-            onTap: isDisabled ? null : sendMessage,
-            child: Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: isDisabled ? Colors.grey : const Color(0xFF128C7E),
-              ),
-              child: const Icon(Icons.send, color: Colors.white),
-            ),
+          const SizedBox(width: 8),
+          ValueListenableBuilder<TextEditingValue>(
+            valueListenable: _messageController,
+            builder: (context, value, child) {
+              final hasText = value.text.trim().isNotEmpty;
+              return GestureDetector(
+                onTap: isDisabled
+                    ? null
+                    : hasText
+                        ? sendMessage
+                        : _toggleRecording,
+                child: CircleAvatar(
+                  radius: 24,
+                  backgroundColor: Colors.teal,
+                  child: Icon(
+                    hasText
+                        ? Icons.send
+                        : (_isRecording ? Icons.stop : Icons.mic),
+                    color: Colors.white,
+                  ),
+                ),
+              );
+            },
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildChoiceMessage(String question, List options, bool fromMe) =>
+      Container(
+        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF0F2F5), // Couleur de bulle bleue/grise
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          crossAxisAlignment:
+              fromMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          children: [
+            Text(
+              question,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              "Choose one option",
+              style: TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 10,
+              children: options.map<Widget>((option) {
+                return ChoiceChip(
+                  label: Text(option),
+                  selected: false,
+                  onSelected: (_) {
+                    if (option.toLowerCase() == 'yes') {
+                      setState(() {
+                        messages.add({
+                          'text': 'Please upload your medical card',
+                          'fromMe': true,
+                          'status': 'sent',
+                          'createdAt': DateTime.now().toIso8601String(),
+                        });
+                      });
+                      _showUploadDialog();
+                    } else {
+                      sendMessageWithText("No medical card available.");
+                    }
+                  },
+                  backgroundColor: Colors.grey[200],
+                  selectedColor: option.toLowerCase() == 'yes'
+                      ? Colors.green
+                      : Colors.redAccent,
+                  labelStyle: const TextStyle(fontWeight: FontWeight.w500),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+      );
+
+  void sendMessageWithText(String message) {
+    _messageController.text = message;
+    sendMessage();
+  }
+
+  void _openFile(String filePath) async {
+    // Utilise le package `open_file` pour ouvrir le fichier (PDF ou image)
+    try {
+      await OpenFile.open(filePath);
+    } catch (e) {
+      print("❌ Impossible d’ouvrir le fichier : $e");
+    }
+  }
+
+  void _showUploadDialog() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      backgroundColor: Colors.white,
+      builder: (context) => Padding(
+        padding:
+            const EdgeInsets.only(left: 20, right: 20, top: 30, bottom: 40),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.medical_services_outlined,
+                size: 40, color: Colors.teal),
+            const SizedBox(height: 10),
+            const Text(
+              "Téléversez votre carte médicale",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.teal,
+              ),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: () async {
+                await _pickMedicalFile(); // 👈 à ajouter ensuite
+                Navigator.pop(context);
+              },
+              icon: const Icon(Icons.upload_file),
+              label: const Text("Choisir un fichier (PDF ou image)"),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.teal,
+                foregroundColor: Colors.white,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pickMedicalFile() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'png', 'jpg', 'jpeg'],
+    );
+
+    if (result != null && result.files.isNotEmpty) {
+      final file = result.files.first;
+      final fileName = file.name;
+
+      // 👉 ici tu peux soit envoyer dans le chat, soit l’envoyer au backend plus tard
+      if (file.extension == 'pdf') {
+        setState(() {
+          messages.add({
+            'type': 'pdf',
+            'filePath': file.path,
+            'fileName': file.name,
+            'fromMe': true,
+            'createdAt': DateTime.now().toIso8601String(),
+          });
+        });
+      } else {
+        setState(() {
+          messages.add({
+            'type': 'image',
+            'filePath': file.path,
+            'fromMe': true,
+            'createdAt': DateTime.now().toIso8601String(),
+          });
+        });
+      }
+    }
   }
 }

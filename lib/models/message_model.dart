@@ -5,6 +5,8 @@ class Message {
   final String nonce;
   final String mac;
   final String senderPublicEphemeral;
+  final String type; // 'text', 'choice', 'file', etc.
+  final List<String>? options;
 
   Message({
     required this.senderId,
@@ -13,6 +15,8 @@ class Message {
     required this.nonce,
     required this.mac,
     required this.senderPublicEphemeral,
+    this.type = 'text',
+    this.options,
   });
 
   factory Message.fromJson(Map<String, dynamic> json) => Message(
@@ -22,5 +26,8 @@ class Message {
         nonce: json['nonce'],
         mac: json['mac'],
         senderPublicEphemeral: json['sender_public_ephemeral'],
+        type: json['type'] ?? 'text',
+        options:
+            json['options'] != null ? List<String>.from(json['options']) : null,
       );
 }

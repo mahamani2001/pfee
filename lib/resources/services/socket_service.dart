@@ -47,7 +47,7 @@ class SocketService {
 
     print('📥 Token final utilisé pour le socket : $token');
 
-    _socket = IO.io('http://10.0.2.2:3001', {
+    _socket = IO.io('http://192.168.1.2:3001', {
       'transports': ['websocket'],
       'auth': {'token': token},
       'autoConnect': true,
@@ -185,6 +185,22 @@ class SocketService {
       print('🔄 Tentative de reconnexion au socket...');
       await connectSocket();
     }
+  }
+
+  void sendVoiceMessage({
+    required int toUserId,
+    required String fileName,
+    required List<int> audioBytes,
+    required int appointmentId,
+    required int durationSeconds,
+  }) {
+    _socket?.emit('send_voice', {
+      'to': toUserId,
+      'fileName': fileName,
+      'audio': audioBytes,
+      'appointmentId': appointmentId,
+      'duration': durationSeconds,
+    });
   }
 
   void disconnect() {

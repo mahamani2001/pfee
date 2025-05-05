@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mypsy_app/resources/services/RatingService.dart';
+import 'package:mypsy_app/resources/services/auth_service.dart';
 import 'package:smooth_star_rating_null_safety/smooth_star_rating_null_safety.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -28,13 +29,30 @@ class ConsultationEndedScreen extends StatefulWidget {
 class _ConsultationEndedScreenState extends State<ConsultationEndedScreen> {
   double _rating = 4.0;
   bool _loading = false;
+  bool isPsychiatrist = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkUserRole(); // ✅ vérifie le rôle à l'ouverture de l'écran
+  }
+
+  void _checkUserRole() async {
+    final role = await AuthService().getUserRole();
+    setState(() {
+      isPsychiatrist = role == 'psychiatrist';
+    });
+  }
 
   Future<void> _submitRating() async {
     setState(() => _loading = true);
-
+    final token = await AuthService().getToken();
     final response = await http.post(
-      Uri.parse('http://10.0.2.2:3001/api/ratings'),
-      headers: {'Content-Type': 'application/json'},
+      Uri.parse('http://192.168.1.2:3001/api/appointments/ratings'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token', // ✅ ajoute le token ici
+      },
       body: jsonEncode({
         'psychiatristId': widget.psychiatristId,
         'appointmentId': widget.appointmentId,
@@ -45,7 +63,7 @@ class _ConsultationEndedScreenState extends State<ConsultationEndedScreen> {
     setState(() => _loading = false);
 
     if (response.statusCode == 200) {
-      Navigator.of(context).pop(); // fermer le dialog
+      Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Merci pour votre note 🌟")),
       );
@@ -171,14 +189,15 @@ class _ConsultationEndedScreenState extends State<ConsultationEndedScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            OutlinedButton.icon(
-              onPressed: _showRatingDialog,
-              icon: const Icon(Icons.star_border),
-              label: const Text("Noter la consultation"),
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size.fromHeight(50),
+            if (!isPsychiatrist)
+              OutlinedButton.icon(
+                onPressed: _showRatingDialog,
+                icon: const Icon(Icons.star_border),
+                label: const Text("Noter la consultation"),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(50),
+                ),
               ),
-            ),
           ],
         ),
       ),

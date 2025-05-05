@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class QuizService {
-  final String baseUrl = "http://10.0.2.2:3001/api/quiz";
+  final String baseUrl = "http://192.168.1.2:3001/api/quiz";
 
   Future<void> submitResult({
     required int userId,

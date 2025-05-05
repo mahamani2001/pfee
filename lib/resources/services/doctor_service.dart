@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class DoctorService {
-  final String baseUrl = 'http://10.0.2.2:3001/api';
+  final String baseUrl = 'http://192.168.1.2:3001/api';
 
   Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
