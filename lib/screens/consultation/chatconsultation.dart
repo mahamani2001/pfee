@@ -1,8 +1,10 @@
 import 'dart:async'; // ← important pour Timer
+import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/public/flutter_sound_player.dart';
 import 'package:flutter_sound/public/flutter_sound_recorder.dart';
+import 'package:http/http.dart' as http;
 import 'package:just_audio/just_audio.dart';
 import 'package:mypsy_app/resources/services/appointment_service.dart';
 import 'package:mypsy_app/resources/services/http_service.dart';
@@ -16,6 +18,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'dart:io';
+
+import 'package:url_launcher/url_launcher.dart';
 
 class ChatScreen extends StatefulWidget {
   final String peerId;
@@ -508,6 +512,18 @@ class _ChatScreenState extends State<ChatScreen> {
       }
       return;
     }
+    if (data['type'] == 'pdf' || data['type'] == 'image') {
+      setState(() {
+        messages.add({
+          'type': data['type'],
+          'filePath': data['fileUrl'],
+          'fileName': data['fileName'],
+          'fromMe': false,
+          'createdAt': data['createdAt'],
+        });
+      });
+      return;
+    }
 
     // 🔐 Cas 2: Message texte chiffré
     final peerPublicKey = await AuthService().fetchPeerPublicKey(fromId);
@@ -974,9 +990,10 @@ class _ChatScreenState extends State<ChatScreen> {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                fileName,
+                fileName ?? 'Document',
                 style: const TextStyle(fontSize: 14),
                 overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
             ),
             IconButton(
@@ -993,6 +1010,8 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildImageBubble(String filePath, bool fromMe) {
+    final isUrl = filePath.startsWith('http');
+
     return Align(
       alignment: fromMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
@@ -1002,12 +1021,21 @@ class _ChatScreenState extends State<ChatScreen> {
           color: Colors.grey[100],
         ),
         clipBehavior: Clip.hardEdge,
-        child: Image.file(
-          File(filePath),
-          width: 200,
-          height: 200,
-          fit: BoxFit.cover,
-        ),
+        child: isUrl
+            ? Image.network(
+                filePath,
+                width: 200,
+                height: 200,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) =>
+                    const Icon(Icons.error),
+              )
+            : Image.file(
+                File(filePath),
+                width: 200,
+                height: 200,
+                fit: BoxFit.cover,
+              ),
       ),
     );
   }
@@ -1023,6 +1051,10 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
       child: Row(
         children: [
+          IconButton(
+            icon: Icon(Icons.attach_file, color: Colors.teal),
+            onPressed: isConsultationEnded ? null : _pickMedicalFile,
+          ),
           Expanded(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -1136,9 +1168,22 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _openFile(String filePath) async {
-    // Utilise le package `open_file` pour ouvrir le fichier (PDF ou image)
     try {
-      await OpenFile.open(filePath);
+      if (filePath.startsWith('http')) {
+        final encoded = Uri.encodeFull(filePath);
+        final uri = Uri.parse(encoded);
+
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        } else {
+          print(
+              '❌ Impossible d’ouvrir le lien dans une app... essai navigateur');
+          await launchUrl(uri, mode: LaunchMode.platformDefault);
+        }
+      } else {
+        // ✅ ouvrir localement si c'est un fichier
+        await OpenFile.open(filePath);
+      }
     } catch (e) {
       print("❌ Impossible d’ouvrir le fichier : $e");
     }
@@ -1200,29 +1245,34 @@ class _ChatScreenState extends State<ChatScreen> {
     );
 
     if (result != null && result.files.isNotEmpty) {
-      final file = result.files.first;
-      final fileName = file.name;
+      final file = File(result.files.first.path!);
+      final fileName = result.files.first.name;
+      final extension = result.files.first.extension;
+      final userId = await AuthService().getUserId();
 
-      // 👉 ici tu peux soit envoyer dans le chat, soit l’envoyer au backend plus tard
-      if (file.extension == 'pdf') {
+      final fileUrl = await ChatService().uploadFileMessage(
+        file: file,
+        appointmentId: appointmentId,
+        receiverId: int.parse(peerId),
+      );
+      print('📁 Fichier uploadé: $fileName → $fileUrl');
+
+      if (fileUrl != null) {
+        final fileType = (extension == 'pdf') ? 'pdf' : 'image';
         setState(() {
           messages.add({
-            'type': 'pdf',
-            'filePath': file.path,
-            'fileName': file.name,
+            'type': fileType,
+            'filePath': fileUrl,
+            'fileName': fileName,
             'fromMe': true,
             'createdAt': DateTime.now().toIso8601String(),
           });
         });
+        print("🖼️ type: $fileType | fileName: $fileName | fileUrl: $fileUrl");
       } else {
-        setState(() {
-          messages.add({
-            'type': 'image',
-            'filePath': file.path,
-            'fromMe': true,
-            'createdAt': DateTime.now().toIso8601String(),
-          });
-        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Erreur envoi fichier')),
+        );
       }
     }
   }
