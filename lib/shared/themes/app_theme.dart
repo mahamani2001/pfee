@@ -72,7 +72,7 @@ class AppThemes {
     color: AppColors.mypsyBlack,
     fontSize: 15,
     fontFamily: fontInter,
-    fontWeight: FontWeight.w400,
+    fontWeight: FontWeight.w600,
   );
   static const TextStyle placeholderStyle = TextStyle(
     color: AppColors.mypsyPlaceholderColor,

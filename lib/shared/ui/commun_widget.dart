@@ -21,3 +21,15 @@ SizedBox spacerXLarge = const SizedBox(
 SizedBox spaceBetweenInput = const SizedBox(
   height: 14,
 );
+
+BoxDecoration mainDecoration = const BoxDecoration(
+  gradient: LinearGradient(
+    colors: [
+      Color(0xFF0097E0),
+      Color.fromARGB(255, 19, 157, 192),
+    ],
+    stops: [0.1, 0.6],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomCenter,
+  ),
+);
