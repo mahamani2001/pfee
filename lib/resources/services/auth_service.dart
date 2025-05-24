@@ -1,10 +1,8 @@
 import 'dart:convert';
-
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:mypsy_app/resources/services/crypto_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:cryptography/cryptography.dart';
 
 class AuthService {
   final String baseUrl = 'http://192.168.1.2:3001/api/auth';
@@ -27,6 +25,22 @@ class AuthService {
       return exp < now;
     } catch (_) {
       return true;
+    }
+  }
+
+  Future<String?> getUserFullName() async {
+    final token = await getJwtToken();
+    if (token == null) return null;
+
+    try {
+      final parts = token.split('.');
+      final payload =
+          utf8.decode(base64Url.decode(base64Url.normalize(parts[1])));
+      final Map<String, dynamic> payloadMap = json.decode(payload);
+      return payloadMap['full_name'];
+    } catch (e) {
+      print('❌ Erreur lecture du nom : $e');
+      return null;
     }
   }
 

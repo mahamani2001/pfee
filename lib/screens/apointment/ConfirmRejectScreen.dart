@@ -1,21 +1,7 @@
-// Nouvelle page pour confirmer ou rejeter un rendez-vous
-
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:image_picker/image_picker.dart';
 import 'package:mypsy_app/resources/services/appointment_service.dart';
-import 'package:mypsy_app/resources/services/http_service.dart';
-import 'package:mypsy_app/resources/services/socket_service.dart';
-import 'package:mypsy_app/resources/services/auth_service.dart';
-import 'package:mypsy_app/resources/services/crypto_service.dart';
-import 'package:mypsy_app/resources/services/chat_service.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';
 import 'package:mypsy_app/utils/functions.dart';
-import 'package:path/path.dart' as path;
-import 'package:file_picker/file_picker.dart';
-import 'package:url_launcher/url_launcher_string.dart';
 
 class ConfirmRejectScreen extends StatelessWidget {
   final int appointmentId;

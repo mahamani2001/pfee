@@ -13,7 +13,7 @@ class QuestionModel {
 List<QuestionModel> questions = [
   QuestionModel(
     question:
-        "Vous êtes-vous senti(e) nerveux(se) ou anxieux(se) sans raison particulière ?",
+        "Vous êtes-vous senti(e) nerveux(se), anxieux(se) ou sur les nerfs ?",
     options: ["Jamais", "Parfois", "Souvent", "Toujours"],
   ),
   QuestionModel(
@@ -22,25 +22,26 @@ List<QuestionModel> questions = [
     options: ["Jamais", "Parfois", "Souvent", "Toujours"],
   ),
   QuestionModel(
-    question: "Avez-vous souvent trop de pensées stressantes ou négatives ?",
+    question:
+        "Vous êtes-vous inquiété(e) excessivement à propos de différentes choses ?",
     options: ["Jamais", "Parfois", "Souvent", "Toujours"],
   ),
   QuestionModel(
-    question: "Vos pensées deviennent-elles parfois catastrophiques ?",
+    question: "Avez-vous eu du mal à vous détendre ?",
     options: ["Jamais", "Parfois", "Souvent", "Toujours"],
   ),
   QuestionModel(
     question:
-        "Avez-vous eu l’impression que quelque chose de grave allait arriver sans explication ?",
+        "Vous êtes-vous senti(e) tellement agité(e) que rester assis(e) tranquillement était difficile ?",
+    options: ["Jamais", "Parfois", "Souvent", "Toujours"],
+  ),
+  QuestionModel(
+    question: "Vous êtes-vous senti(e) facilement agacé(e) ou irrité(e) ?",
     options: ["Jamais", "Parfois", "Souvent", "Toujours"],
   ),
   QuestionModel(
     question:
-        "Avez-vous ressenti des tensions musculaires ou des douleurs inexpliquées ?",
-    options: ["Jamais", "Parfois", "Souvent", "Toujours"],
-  ),
-  QuestionModel(
-    question: "Votre cœur s’est-il mis à battre rapidement ?",
+        "Avez-vous eu peur que quelque chose de terrible puisse arriver ?",
     options: ["Jamais", "Parfois", "Souvent", "Toujours"],
   ),
 ];

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:mypsy_app/screens/chat/ConsultationLauncherScreen.dart';
+import 'package:mypsy_app/screens/consultation/ConsultationLauncherScreen.dart';
 import 'package:mypsy_app/screens/consultation/chatconsultation.dart';
+import 'package:mypsy_app/screens/consultation/video_call_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:mypsy_app/resources/services/auth_service.dart';
@@ -11,6 +12,8 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 class SocketService {
   static final SocketService _instance = SocketService._internal();
   factory SocketService() => _instance;
+  String? get socketId => _socket?.id;
+
   SocketService._internal();
 
   IO.Socket? _socket;
@@ -64,6 +67,21 @@ class SocketService {
         _socket!.emit('online', {'userId': userId});
         print('📡 Emit "online" avec userId : $userId');
       }
+    });
+    // 🔔 ÉCOUTE de l'appel entrant juste après connexion
+    _socket!.on('incoming_call', (data) {
+      final roomId = 'room-${data['appointmentId']}';
+      final callerName = data['callerName'];
+      final appointmentId = data['appointmentId'];
+
+      navigatorKey.currentState?.push(MaterialPageRoute(
+        builder: (_) => VideoCallScreen(
+          roomId: roomId,
+          peerName: callerName,
+          appointmentId: appointmentId,
+          isCaller: false,
+        ),
+      ));
     });
 
     _socket!.on('connect_error', (err) async {
@@ -168,16 +186,24 @@ class SocketService {
     });
   }
 
-  void emit(String event, Map<String, dynamic> data) {
-    _socket?.emit(event, data);
-  }
-
   void sendMessage(Map<String, dynamic> payload) {
     _socket?.emit('send_message', payload);
   }
 
+  void on(String event, Function(dynamic) callback) {
+    _socket?.on(event, callback);
+  }
+
+  void emit(String event, Map<String, dynamic> data) {
+    _socket?.emit(event, data);
+  }
+
   void emitTyping({required int toUserId, required bool isTyping}) {
     _socket?.emit(isTyping ? 'typing' : 'stop_typing', {'to': toUserId});
+  }
+
+  void off(String event) {
+    _socket?.off(event);
   }
 
   void reconnect() async {

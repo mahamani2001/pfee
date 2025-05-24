@@ -7,7 +7,6 @@ import 'package:mypsy_app/shared/themes/app_theme.dart';
 import 'package:mypsy_app/shared/ui/device_types.dart';
 import 'package:mypsy_app/utils/functions.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

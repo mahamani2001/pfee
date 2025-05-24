@@ -28,14 +28,28 @@ class _HistoryPageState extends State<HistoryPage> {
       });
     } catch (e) {
       print('❌ Erreur historique : $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content:
+                Text('Erreur lors de la récupération de l’historique : $e')),
+      );
       setState(() {
         isLoading = false;
       });
     }
   }
 
-  String formatDate(DateTime date) =>
-      DateFormat('dd/MM/yyyy – HH:mm').format(date);
+  String formatDate(dynamic date) {
+    DateTime dateTime;
+    if (date is String) {
+      dateTime = DateTime.parse(date); // Convertir la chaîne en DateTime
+    } else if (date is DateTime) {
+      dateTime = date;
+    } else {
+      return 'Date inconnue';
+    }
+    return DateFormat('dd/MM/yyyy – HH:mm').format(dateTime);
+  }
 
   Color getCardColor(String level) {
     switch (level) {
@@ -75,7 +89,7 @@ class _HistoryPageState extends State<HistoryPage> {
           foregroundColor: Colors.black,
           elevation: 0.4,
           title: const Text(
-            " Historique de mes résultats",
+            "Historique de mes résultats",
             style: TextStyle(fontWeight: FontWeight.w600),
           ),
         ),
@@ -115,7 +129,7 @@ class _HistoryPageState extends State<HistoryPage> {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                "Score : ${h['score'].toStringAsFixed(1)}%",
+                                "Score : ${(h['score'] as num).toDouble().toStringAsFixed(1)}%", // Conversion en double
                                 style: const TextStyle(fontSize: 16),
                               ),
                               Text(

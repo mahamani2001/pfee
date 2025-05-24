@@ -19,7 +19,7 @@ class FileUploadService {
     });
 
     final response = await _dio.post(
-      'http://192.168.1.2001/uploads',
+      'http://192.168.1.2:3001/uploads',
       data: formData,
       options: Options(
         headers: {

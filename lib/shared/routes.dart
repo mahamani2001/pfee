@@ -6,4 +6,5 @@ class Routes {
   static const consultation = '/consultation';
   static const appointmentSuccess = '/appointment/success';
   static const doctorliste = '/psy-list';
+  static const notificationsScreen = '/notifications';
 }

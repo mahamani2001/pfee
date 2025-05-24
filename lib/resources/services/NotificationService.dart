@@ -1,0 +1,40 @@
+// 📁 resources/services/notification_service.dart
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+
+class NotificationService {
+  final String baseUrl = 'http://192.168.1.2:3001/api/notifications';
+
+  Future<List<dynamic>> getMyNotifications() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jwt = prefs.getString('jwt');
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/me'),
+      headers: {'Authorization': 'Bearer $jwt'},
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      print("Erreur getMyNotifications: ${response.body}");
+      return [];
+    }
+  }
+
+  Future<void> markAsRead(int notifId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final jwt = prefs.getString('jwt');
+
+    await http.put(
+      Uri.parse('$baseUrl/$notifId/read'),
+      headers: {'Authorization': 'Bearer $jwt'},
+    );
+  }
+
+  Future<bool> hasUnread() async {
+    final all = await getMyNotifications();
+    return all.any((n) => n['status'] == 'unread');
+  }
+}

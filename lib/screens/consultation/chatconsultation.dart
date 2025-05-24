@@ -1,10 +1,6 @@
 import 'dart:async'; // ← important pour Timer
-import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_sound/public/flutter_sound_player.dart';
-import 'package:flutter_sound/public/flutter_sound_recorder.dart';
-import 'package:http/http.dart' as http;
 import 'package:just_audio/just_audio.dart';
 import 'package:mypsy_app/resources/services/appointment_service.dart';
 import 'package:mypsy_app/resources/services/http_service.dart';
@@ -61,6 +57,7 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _isRecorderInitialized = false;
   final FlutterSoundPlayer _audioPlayer = FlutterSoundPlayer();
   bool _isPlayerInitialized = false;
+  String myFullName = '';
 
   final flutterSoundHelper = FlutterSoundHelper();
   Future<Duration?> getAudioDuration(String filePath) async {
@@ -259,6 +256,7 @@ class _ChatScreenState extends State<ChatScreen> {
     _recorder = FlutterSoundRecorder();
     _initRecorder();
     _initPlayer();
+    
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       peerId = widget.peerId;
@@ -271,33 +269,42 @@ class _ChatScreenState extends State<ChatScreen> {
       await SocketService()
           .connectSocket(onMessageCallback: handleIncomingMessage);
       SocketService().socket?.on('duration_extended', (data) async {
-        print("📲 reçu duration_extended côté Flutter : $data");
+        print("📡 PATIENT a reçu l'événement duration_extended: $data");
+
         final int receivedAppointmentId = data['appointmentId'];
         final int extraMinutes = data['extraMinutes'];
 
-        if (receivedAppointmentId == appointmentId) {
-          if (!mounted) return;
+        if (receivedAppointmentId != appointmentId) return;
 
-          final updated =
-              await AppointmentService().getAppointmentById(appointmentId);
-          if (updated != null) {
-            final updatedDuration =
-                Duration(minutes: updated['duration_minutes']);
-            final now = DateTime.now();
-            final end = startTime.add(updatedDuration);
+        final newData =
+            await AppointmentService().getAppointmentById(appointmentId);
+        if (newData == null) return;
 
-            setState(() {
-              consultationDuration = updatedDuration;
-              elapsedTime = now.isAfter(startTime)
-                  ? now.difference(startTime)
-                  : Duration.zero;
-              isConsultationEnded = now.isAfter(end);
-            });
+        final dateStr = newData['date'];
+        final timeStr = newData['start_time'];
 
-            _timer?.cancel();
-            startConsultationTimer(); // 🔁 relance le timer
-          }
-        }
+        final parts = dateStr.split('-') + timeStr.split(':');
+        final newStartTime = DateTime(
+          int.parse(parts[0]),
+          int.parse(parts[1]),
+          int.parse(parts[2]),
+          int.parse(parts[3]),
+          int.parse(parts[4]),
+        ).toLocal();
+
+        final updatedDuration = Duration(minutes: newData['duration_minutes']);
+        final now = DateTime.now();
+        final newEndTime = newStartTime.add(updatedDuration);
+
+        setState(() {
+          startTime = newStartTime;
+          consultationDuration = updatedDuration;
+          remainingTime = newEndTime.difference(now);
+          isConsultationEnded = now.isAfter(newEndTime);
+        });
+
+        _timer?.cancel();
+        startConsultationTimer();
       });
 
       SocketService().onUserOnline = (userId) {
@@ -712,7 +719,8 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) => Scaffold(
         resizeToAvoidBottomInset: true,
         appBar: AppBar(
-          backgroundColor: const Color.fromARGB(255, 17, 61, 145),
+          backgroundColor: const Color(0xFF457B9D),
+          foregroundColor: Colors.black,
           centerTitle: false,
           toolbarHeight: 70,
           title: Row(
@@ -1053,7 +1061,9 @@ class _ChatScreenState extends State<ChatScreen> {
         children: [
           IconButton(
             icon: Icon(Icons.attach_file, color: Colors.teal),
-            onPressed: isConsultationEnded ? null : _pickMedicalFile,
+            onPressed: isConsultationEnded
+                ? null
+                : () => _showFileTypeChooser(context),
           ),
           Expanded(
             child: Container(
@@ -1235,6 +1245,87 @@ class _ChatScreenState extends State<ChatScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Future<void> _pickFile({required String extension}) async {
+    final allowedExtensions =
+        extension == 'pdf' ? ['pdf'] : ['jpg', 'jpeg', 'png'];
+
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: allowedExtensions,
+    );
+
+    if (result != null && result.files.isNotEmpty) {
+      final file = File(result.files.first.path!);
+      final fileName = result.files.first.name;
+
+      final fileType = extension == 'pdf' ? 'pdf' : 'image';
+
+      final fileUrl = await ChatService().uploadFileMessage(
+        file: file,
+        appointmentId: appointmentId,
+        receiverId: int.parse(peerId),
+      );
+
+      if (fileUrl != null) {
+        setState(() {
+          messages.add({
+            'type': fileType,
+            'filePath': fileUrl,
+            'fileName': fileName,
+            'fromMe': true,
+            'createdAt': DateTime.now().toIso8601String(),
+          });
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Erreur envoi fichier')),
+        );
+      }
+    }
+  }
+
+  void _showFileTypeChooser(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      backgroundColor: Colors.white,
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          child: Wrap(
+            children: [
+              ListTile(
+                leading:
+                    const Icon(Icons.picture_as_pdf, color: Colors.deepPurple),
+                title: const Text('Document PDF'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickFile(extension: 'pdf');
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.image, color: Colors.teal),
+                title: const Text('Photo ou Image'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickFile(extension: 'image');
+                },
+              ),
+              const Divider(),
+              ListTile(
+                leading: const Icon(Icons.close, color: Colors.grey),
+                title: const Text('Annuler'),
+                onTap: () => Navigator.pop(context),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 

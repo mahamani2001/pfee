@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:mypsy_app/resources/services/auth_service.dart';
 import 'package:mypsy_app/resources/services/socket_service.dart';
 import 'package:mypsy_app/screens/consultation/chatconsultation.dart';
+import 'package:mypsy_app/screens/consultation/video_call_screen.dart';
 
 class ConsultationLauncherScreen extends StatelessWidget {
   final String peerId;
@@ -75,7 +77,6 @@ class ConsultationLauncherScreen extends StatelessWidget {
                           peerId: peerId,
                           peerName: peerName,
                           appointmentId: appointmentId,
-                          
                         ),
                       ),
                     );
@@ -116,8 +117,34 @@ class ConsultationLauncherScreen extends StatelessWidget {
               const SizedBox(height: 20),
               // 🟣 Appel vidéo
               ElevatedButton.icon(
-                onPressed: () {
-                  _showComingSoon(context);
+                onPressed: () async {
+                  final fullName = await AuthService()
+                      .getUserFullName(); // nom de l’appelant
+                  final userRole = await AuthService().getUserRole();
+
+                  final callerName =
+                      userRole == 'psychiatrist' ? 'Dr. $fullName' : fullName;
+
+                  // 1. Envoyer l’appel au peer via socket
+                  SocketService().emit('incoming_call', {
+                    'to': peerId, // ❗ ici peerId doit être un userId, pas vide
+                    'appointmentId': appointmentId,
+                    'callerName': callerName,
+                  });
+print('📞 Émission appel vidéo à $peerId (appointment $appointmentId)');
+
+                  // 2. Lancer l’appel côté appelant
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => VideoCallScreen(
+                        roomId: 'room-$appointmentId',
+                        peerName: peerName,
+                        appointmentId: appointmentId,
+                        isCaller: true,
+                      ),
+                    ),
+                  );
                 },
                 icon: const Icon(Icons.videocam_outlined, color: Colors.white),
                 label: const Text('Appel vidéo',

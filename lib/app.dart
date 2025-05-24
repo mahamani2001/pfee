@@ -2,11 +2,10 @@ import 'package:mypsy_app/provider/api_provider.dart';
 import 'package:mypsy_app/resources/services/socket_service.dart';
 import 'package:mypsy_app/screens/apointment/AppointmentSuccessScreen.dart';
 import 'package:mypsy_app/screens/calendar/calednar_info.dart';
-import 'package:mypsy_app/screens/consultation/chatconsultation.dart';
-
 import 'package:mypsy_app/screens/home/doctor_info.dart';
 import 'package:mypsy_app/screens/home/home.dart';
 import 'package:mypsy_app/screens/menu/sub_pages/contact.dart';
+import 'package:mypsy_app/screens/notifications_screen.dart';
 import 'package:mypsy_app/screens/profil/DoctorListScreen.dart';
 import 'package:mypsy_app/screens/splash/splash.dart';
 import 'package:mypsy_app/shared/routes.dart';
@@ -16,7 +15,6 @@ import 'package:flutter/material.dart';
 // ignore: depend_on_referenced_packages
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
-import 'package:mypsy_app/main.dart';
 
 // ignore: must_be_immutable
 class MyApp extends StatefulWidget {
@@ -74,6 +72,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                 const AppointmentSuccessScreen(),
             Routes.doctorliste: (context) => const DoctorListScreen(),
             '/psy-list': (context) => const DoctorListScreen(),
+            Routes.notificationsScreen: (_) => const NotificationsScreen(),
           },
         ),
       );

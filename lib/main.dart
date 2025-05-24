@@ -1,10 +1,7 @@
 import 'dart:io';
-
-import 'package:encrypt/encrypt.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
 import 'package:mypsy_app/app.dart';
 import 'package:mypsy_app/firebase_options.dart';
 import 'package:mypsy_app/helpers/app_config.dart';
@@ -15,7 +12,7 @@ import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:mypsy_app/env/dev.dart';
-import 'package:encrypt/encrypt.dart' as encrypt;
+
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
