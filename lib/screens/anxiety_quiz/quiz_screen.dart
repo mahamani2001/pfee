@@ -136,6 +136,7 @@ class _QuestionPageState extends State<QuestionPage> {
                 const SizedBox(height: 20),
                 Expanded(
                   child: PageView.builder(
+                    physics: const NeverScrollableScrollPhysics(),
                     controller: _pageController,
                     itemCount: questions.length,
                     onPageChanged: (index) {
@@ -239,6 +240,9 @@ class _QuestionPageState extends State<QuestionPage> {
                                   submitQuiz();
                                 }
                               },
+                        bgColors: currentQuestion < questions.length - 1
+                            ? AppColors.mypsyPrimary
+                            : AppColors.mypsyPurple,
                         text: currentQuestion < questions.length - 1
                             ? "Suivant"
                             : "Terminer",
