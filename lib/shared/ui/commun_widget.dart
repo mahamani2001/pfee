@@ -27,7 +27,7 @@ BoxDecoration mainDecorationBorder = BoxDecoration(
   gradient: const LinearGradient(
     colors: [
       Color(0xFF0097E0),
-      Color.fromARGB(255, 19, 157, 192),
+      Color(0xFF139DC0),
     ],
     stops: [0.1, 0.6],
     begin: Alignment.topLeft,

@@ -175,7 +175,7 @@ class _LoginState extends State<Login> {
               width: MediaQuery.of(context).size.width,
               child: mypsyButton(
                 onPress: _submitForm,
-                bgColors: AppColors.mypsyDarkBlue,
+                bgColors: AppColors.mypsyPurple,
                 text: 'Se connecter',
               ),
             ),
@@ -185,7 +185,7 @@ class _LoginState extends State<Login> {
             SizedBox(
               width: MediaQuery.of(context).size.width,
               child: mypsyButton(
-                colr: AppColors.mypsyDarkBlue,
+                colr: AppColors.mypsyPurple,
                 bgColors: AppColors.mypsyBgApp,
                 onPress: _submitForm,
                 text: 'Creer mon compte',

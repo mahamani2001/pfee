@@ -5,7 +5,7 @@ class AppColors {
   static const mypsyBgApp = Color(0xFFF5F5F5);
   static const mypsyPrimary = Color(0xFF0097E0);
   static const mypsySecondary = Color(0xFF4F2475);
-  static const mypsyDarkBlue = Color(0xFF035DDD);
+  static const mypsyDarkBlue = Color(0xFF139DC0);
   static const mypsyBlack = Color(0xFF000000);
   static const mypsyWhite = Color(0xFFFFFFFF);
   static const mypsyRed = Color(0xFFD30808);

@@ -24,7 +24,7 @@ class _QuestionPageState extends State<QuestionPage> {
 
   late AnxietyModel _anxietyModel;
   bool _modelReady = false;
-  int selectedOption = -1;
+  late List<int> selectedOptions;
 
   @override
   void initState() {
@@ -35,6 +35,7 @@ class _QuestionPageState extends State<QuestionPage> {
         _modelReady = true;
       });
     });
+    selectedOptions = List.filled(questions.length, -1);
   }
 
   @override
@@ -45,16 +46,13 @@ class _QuestionPageState extends State<QuestionPage> {
 
   void submitQuiz() async {
     if (!_modelReady) {
-      print("❌ Le modèle n’est pas prêt !");
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Modèle non prêt, réessayez plus tard.")),
       );
       return;
     }
 
-    // 🔢 Convertir réponses utilisateur en liste de double
     List<double> inputs = questions.map((q) {
-      print('userAnswered ${q.userAnswered}');
       switch (q.userAnswered) {
         case "Jamais":
           return 0.0;
@@ -80,7 +78,6 @@ class _QuestionPageState extends State<QuestionPage> {
     final token = await AuthService().getToken();
 
     if (userId == null || token == null) {
-      print("❌ Impossible de récupérer l’utilisateur ou le token");
       customFlushbar(
           '', 'Impossible de récupérer l’utilisateur ou le token', context,
           isError: true);
@@ -165,12 +162,13 @@ class _QuestionPageState extends State<QuestionPage> {
                           Expanded(
                             child: ListView.builder(
                               itemCount: question.options.length,
-                              itemBuilder: (context, index) => GestureDetector(
+                              itemBuilder: (context, optIndex) =>
+                                  GestureDetector(
                                 onTap: () {
                                   setState(() {
-                                    selectedOption = index;
+                                    selectedOptions[index] = optIndex;
                                     question.userAnswered =
-                                        question.options[index];
+                                        question.options[optIndex];
                                   });
                                 },
                                 child: Container(
@@ -179,13 +177,13 @@ class _QuestionPageState extends State<QuestionPage> {
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 16, vertical: 14),
                                   decoration: BoxDecoration(
-                                    color: selectedOption == index
+                                    color: selectedOptions[index] == optIndex
                                         ? AppColors.mypsyPrimary
                                             .withOpacity(0.2)
                                         : Colors.grey.shade200,
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
-                                      color: selectedOption == index
+                                      color: selectedOptions[index] == optIndex
                                           ? AppColors.mypsyPrimary
                                               .withOpacity(0.4)
                                           : Colors.transparent,
@@ -193,25 +191,13 @@ class _QuestionPageState extends State<QuestionPage> {
                                     ),
                                   ),
                                   child: Text(
-                                    question.options[index],
+                                    question.options[optIndex],
                                     style: const TextStyle(fontSize: 16),
                                   ),
                                 ),
                               ),
                             ),
                           ),
-                          /*  ...question.options.map((option) {
-                            return RadioListTile<String>(
-                              title: Text(option),
-                              value: option,
-                              groupValue: question.userAnswered,
-                              onChanged: (value) {
-                                setState(() {
-                                  question.userAnswered = value!;
-                                });
-                              },
-                            );
-                          }).toList(),*/
                         ],
                       );
                     },
@@ -220,23 +206,20 @@ class _QuestionPageState extends State<QuestionPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    if (currentQuestion < questions.length - 1)
+                    if ((currentQuestion != questions.length - 1))
                       SizedBox(
                         width: MediaQuery.of(context).size.width / 2 - 30,
                         child: mypsyButton(
-                            isFull: true,
-                            onPress: () {
-                              selectedOption = -1;
-                              if (currentQuestion < questions.length - 1) {
-                                _pageController.previousPage(
-                                  duration: const Duration(milliseconds: 300),
-                                  curve: Curves.easeInOut,
-                                );
-                              } else {
-                                submitQuiz();
-                              }
-                            },
-                            text: "Précédent"),
+                          isFull: true,
+                          onPress: () {
+                            _pageController.previousPage(
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
+                            );
+                          },
+                          bgColors: AppColors.mypsyPurple,
+                          text: "Précédent",
+                        ),
                       ),
                     SizedBox(
                       width: (currentQuestion == questions.length - 1)
@@ -244,10 +227,9 @@ class _QuestionPageState extends State<QuestionPage> {
                           : MediaQuery.of(context).size.width / 2 - 30,
                       child: mypsyButton(
                         isFull: true,
-                        onPress: selectedOption == -1
+                        onPress: selectedOptions[currentQuestion] == -1
                             ? null
                             : () {
-                                selectedOption = -1;
                                 if (currentQuestion < questions.length - 1) {
                                   _pageController.nextPage(
                                     duration: const Duration(milliseconds: 300),
