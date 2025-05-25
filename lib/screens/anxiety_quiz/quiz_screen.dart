@@ -217,24 +217,52 @@ class _QuestionPageState extends State<QuestionPage> {
                     },
                   ),
                 ),
-                SizedBox(
-                  width: double.infinity,
-                  child: mypsyButton(
-                    onPress: () {
-                      selectedOption = -1;
-                      if (currentQuestion < questions.length - 1) {
-                        _pageController.nextPage(
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
-                        );
-                      } else {
-                        submitQuiz();
-                      }
-                    },
-                    text: currentQuestion < questions.length - 1
-                        ? "Suivant"
-                        : "Terminer",
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    if (currentQuestion < questions.length - 1)
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width / 2 - 30,
+                        child: mypsyButton(
+                            isFull: true,
+                            onPress: () {
+                              selectedOption = -1;
+                              if (currentQuestion < questions.length - 1) {
+                                _pageController.previousPage(
+                                  duration: const Duration(milliseconds: 300),
+                                  curve: Curves.easeInOut,
+                                );
+                              } else {
+                                submitQuiz();
+                              }
+                            },
+                            text: "Précédent"),
+                      ),
+                    SizedBox(
+                      width: (currentQuestion == questions.length - 1)
+                          ? MediaQuery.of(context).size.width - 40
+                          : MediaQuery.of(context).size.width / 2 - 30,
+                      child: mypsyButton(
+                        isFull: true,
+                        onPress: selectedOption == -1
+                            ? null
+                            : () {
+                                selectedOption = -1;
+                                if (currentQuestion < questions.length - 1) {
+                                  _pageController.nextPage(
+                                    duration: const Duration(milliseconds: 300),
+                                    curve: Curves.easeInOut,
+                                  );
+                                } else {
+                                  submitQuiz();
+                                }
+                              },
+                        text: currentQuestion < questions.length - 1
+                            ? "Suivant"
+                            : "Terminer",
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
