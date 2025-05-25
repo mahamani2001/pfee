@@ -1,4 +1,5 @@
 import 'package:mypsy_app/resources/services/auth_service.dart';
+import 'package:mypsy_app/screens/anxiety_quiz/quiz_screen.dart';
 import 'package:mypsy_app/screens/authentification/otp_screen.dart';
 import 'package:mypsy_app/screens/authentification/widgets/footer_btn.dart';
 import 'package:mypsy_app/screens/layouts/main_layout.dart';
@@ -157,7 +158,12 @@ class _LoginState extends State<Login> {
               margin: const EdgeInsets.only(bottom: 35),
               child: Center(
                 child: InkWell(
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (_) => const QuestionPage()),
+                    );
+                  },
                   child: const Text(
                     'Mot de passe oublié ?',
                     style: AppThemes.questionInfo,
