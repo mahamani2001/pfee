@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:mypsy_app/screens/anxiety_quiz/quiz_screen.dart';
 import 'package:mypsy_app/screens/anxiety_quiz/history_page.dart';
+import 'package:mypsy_app/screens/layouts/top_bar_subpage.dart';
 import 'package:mypsy_app/shared/routes.dart';
+import 'package:mypsy_app/shared/themes/app_colors.dart';
+import 'package:mypsy_app/shared/themes/app_theme.dart';
+import 'package:mypsy_app/shared/ui/buttons/button.dart';
 
 class ResultPage extends StatelessWidget {
   final double score;
@@ -81,127 +85,122 @@ class ResultPage extends StatelessWidget {
     final bgColor = getBackgroundColor(category);
 
     return Scaffold(
-      backgroundColor: bgColor,
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF457B9D),
-        foregroundColor: Colors.black,
-        elevation: 0.5,
-        title: const Text("Résultat du quiz"),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pushNamedAndRemoveUntil(
-                context, '/home', (route) => false);
-          },
+        backgroundColor: AppColors.mypsyBgApp,
+        appBar: const TopBarSubPage(
+          title: 'Résultat du quiz',
         ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              "$emoji $category",
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            Text("Score global : $scoreText",
-                style: const TextStyle(fontSize: 16)),
-            const SizedBox(height: 1),
-            Padding(
-              padding: const EdgeInsets.only(top: 16.0, bottom: 8),
-              child: Text(
-                getMotivationalText(category),
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: getCategoryColor(category),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            LinearProgressIndicator(
-              value: score / 100,
-              backgroundColor: Colors.grey.shade300,
-              color: getCategoryColor(category),
-              minHeight: 8,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              "🙏 Merci d’avoir complété le quiz.\nCe résultat est indicatif et ne remplace pas un avis médical.",
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 13, color: Colors.black87),
-            ),
-            const SizedBox(height: 32),
-
-            // ✅ Bouton Historique
-            ElevatedButton.icon(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const HistoryPage()),
-                );
-              },
-              icon: const Icon(Icons.history),
-              label: const Text("Voir l’historique"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black87,
-                minimumSize: const Size.fromHeight(48),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            // ✅ Reprendre le quiz
-            ElevatedButton.icon(
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (_) => const QuestionPage()),
-                );
-              },
-              icon: const Icon(Icons.refresh),
-              label: const Text("Reprendre le quiz"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue.shade50,
-                foregroundColor: Colors.blue,
-                minimumSize: const Size.fromHeight(48),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
-                ),
-              ),
-            ),
-
-            if (shouldConsult) ...[
-              const SizedBox(height: 12),
-
-              // ✅ Bouton contact
-              ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.pushNamed(context, Routes.doctorliste);
-                },
-                icon: const Icon(Icons.handshake),
-                label: const Text("Un coup de pouce professionnel"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.pink.shade50,
-                  foregroundColor: Colors.pink.shade800,
-                  minimumSize: const Size.fromHeight(48),
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        "$emoji $category",
+                        style: const TextStyle(
+                            fontSize: 22, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text("Score global : ",
+                              style: AppThemes.getTextStyle(
+                                  size: 15, fontWeight: FontWeight.w500)),
+                          Text(scoreText,
+                              style: AppThemes.getTextStyle(
+                                  size: 15,
+                                  fontWeight: FontWeight.w700,
+                                  clr: AppColors.mypsyDarkBlue)),
+                        ],
+                      ),
+                      const SizedBox(height: 1),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 16.0, bottom: 8),
+                        child: Text(
+                          getMotivationalText(category),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: getCategoryColor(category),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      LinearProgressIndicator(
+                        value: score / 100,
+                        backgroundColor: Colors.grey.shade300,
+                        color: getCategoryColor(category),
+                        minHeight: 8,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      const SizedBox(height: 80),
+                      Text(
+                        "🙏 Merci d’avoir complété le quiz.\nCe résultat est indicatif et ne remplace pas un avis médical.",
+                        textAlign: TextAlign.center,
+                        style: AppThemes.getTextStyle(
+                            size: 15, fontWeight: FontWeight.w500),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
+                Column(
+                  children: [
+                    mypsyButton(
+                      isFull: true,
+                      onPress: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const HistoryPage()),
+                        );
+                      },
+                      bgColors: AppColors.mypsyPurple,
+                      text: "Voir l’historique",
+                    ),
+                    const SizedBox(height: 12),
+                    mypsyButton(
+                      isFull: true,
+                      onPress: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const QuestionPage()),
+                        );
+                      },
+                      bgColors: AppColors.mypsyDarkBlue,
+                      text: "Reprendre le quiz",
+                    ),
+                    if (shouldConsult) ...[
+                      const SizedBox(height: 12),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.pushNamed(context, Routes.doctorliste);
+                        },
+                        icon: const Icon(Icons.handshake),
+                        label: const Text("Un coup de pouce professionnel"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.pink.shade50,
+                          foregroundColor: Colors.pink.shade800,
+                          minimumSize: const Size.fromHeight(48),
+                          padding: const EdgeInsets.symmetric(vertical: 20),
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ));
   }
 }

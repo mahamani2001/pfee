@@ -109,7 +109,7 @@ class AppThemes {
   );
 
   static RoundedRectangleBorder shapeRadius = RoundedRectangleBorder(
-    borderRadius: BorderRadius.circular(5),
+    borderRadius: BorderRadius.circular(15),
   );
   static const EdgeInsets btnPadding =
       EdgeInsets.symmetric(horizontal: 15, vertical: 10);
