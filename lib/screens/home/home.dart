@@ -4,6 +4,8 @@ import 'package:mypsy_app/resources/services/NotificationService.dart';
 import 'package:mypsy_app/resources/services/auth_service.dart';
 import 'package:mypsy_app/resources/services/quiz_service.dart';
 import 'package:mypsy_app/screens/anxiety_quiz/history_page.dart';
+import 'package:mypsy_app/screens/anxiety_quiz/quiz_screen.dart';
+import 'package:mypsy_app/screens/layouts/main_screen.dart';
 import 'package:mypsy_app/shared/routes.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';
 import 'package:mypsy_app/shared/themes/app_theme.dart';
@@ -110,14 +112,28 @@ class _HomeState extends State<Home> {
             Expanded(
                 child: GestureDetector(
                     onTap: () {
-                      // Ton action ici
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const MainScreen(
+                            initialTabIndex: 1,
+                          ),
+                        ),
+                      );
                     },
                     child: blocInfo("Mes rendez-vous", Icons.calendar_today))),
             const SizedBox(width: 12),
             Expanded(
                 child: GestureDetector(
                     onTap: () {
-                      // Ton action ici
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const MainScreen(
+                            initialTabIndex: 3,
+                          ),
+                        ),
+                      );
                     },
                     child:
                         blocInfo("Trouver un psychiatre", Icons.psychology))),
@@ -295,7 +311,14 @@ class _HomeState extends State<Home> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const QuestionPage(),
+                    ),
+                  );
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.mypsyDarkBlue,
                   foregroundColor: Colors.white,
