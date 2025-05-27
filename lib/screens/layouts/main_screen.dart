@@ -92,7 +92,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
                 GestureDetector(
                   onTap: () => setState(() => _currentIndex = 3),
                   child: IconMenu(
-                    icon: 'assets/images/psy.svg',
+                    icon: 'assets/menu/user.svg',
                     isSelected: _currentIndex == 3,
                     title: 'Psy',
                   ),
