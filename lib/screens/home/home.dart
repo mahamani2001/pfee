@@ -315,7 +315,9 @@ class _HomeState extends State<Home> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const QuestionPage(),
+                      builder: (_) => const MainScreen(
+                        initialTabIndex: 2,
+                      ),
                     ),
                   );
                 },
