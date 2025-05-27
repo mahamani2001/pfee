@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:mypsy_app/screens/layouts/main_screen.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';
+import 'package:mypsy_app/shared/themes/app_theme.dart';
+import 'package:mypsy_app/shared/ui/buttons/button.dart';
 
 class AppointmentSuccessScreen extends StatefulWidget {
   const AppointmentSuccessScreen({super.key});
@@ -51,27 +53,22 @@ class _AppointmentSuccessScreenState extends State<AppointmentSuccessScreen> {
                 //Lottie.asset('assets/animations/success.json',
                 // width: 200, repeat: false),
                 const SizedBox(height: 32),
-                const Text(
+                Text(
                   'Rendez-vous réservé avec succès 🎉',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.mypsyDarkBlue),
+                  style: AppThemes.getTextStyle(
+                      clr: AppColors.mypsyDarkBlue, size: 20),
                 ),
                 const SizedBox(height: 20),
-                ElevatedButton.icon(
-                  onPressed: _navigateToAppointments,
-                  icon: const Icon(Icons.calendar_today),
-                  label: const Text('Voir mes rendez-vous'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.mypsyPrimary,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 24, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                  ),
+                mypsyButton(
+                  isFull: true,
+                  onPress: () {
+                    _navigateToAppointments;
+                  },
+                  bgColors: AppColors.mypsyDarkBlue,
+                  text: "Voir mes rendez-vous",
                 ),
+
                 const SizedBox(height: 16),
               ],
             ),
