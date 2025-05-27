@@ -196,7 +196,8 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
                                               doctor['specialty'] ??
                                                   'Psychiatre',
                                               style: AppThemes.getTextStyle(
-                                                  size: 12),
+                                                  size: 11,
+                                                  clr: AppColors.mypsyWhite),
                                             ),
                                             backgroundColor:
                                                 AppColors.mypsyDarkBlue,
