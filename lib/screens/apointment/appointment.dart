@@ -19,7 +19,10 @@ class Appointment extends StatelessWidget {
           backgroundColor: Colors.white,
           appBar: AppBar(
             centerTitle: false,
-            title: Text("Mes rendez-vous", style: AppThemes.appbarTitleStyle),
+            title: const Text(
+              "Mes rendez-vous",
+              style: AppThemes.appbarSubPageTitleStyle,
+            ),
             automaticallyImplyLeading: false,
             backgroundColor: Colors.white,
             elevation: 0,
@@ -28,9 +31,22 @@ class Appointment extends StatelessWidget {
               unselectedLabelColor: Colors.grey,
               indicatorColor: AppColors.mypsyDarkBlue,
               tabs: [
-                Tab(text: 'À venir'),
-                Tab(text: 'En attente'),
-                Tab(text: 'Annulé'),
+                Tab(
+                    child: Text(
+                  'À venir',
+                  style: AppThemes.appbarSubPageTitleStyle,
+                )),
+                Tab(
+                  child: Text(
+                    'En attente',
+                    style: AppThemes.appbarSubPageTitleStyle,
+                  ),
+                ),
+                Tab(
+                    child: Text(
+                  'Annulé',
+                  style: AppThemes.appbarSubPageTitleStyle,
+                )),
               ],
             ),
           ),
@@ -76,9 +92,9 @@ class _AppointmentListState extends State<AppointmentList> {
   @override
   Widget build(BuildContext context) {
     if (appointments.isEmpty) {
-      return const Center(
+      return Center(
         child: Text("Aucun rendez-vous",
-            style: TextStyle(color: Colors.grey, fontSize: 16)),
+            style: AppThemes.getTextStyle(clr: Colors.grey, size: 16)),
       );
     }
 
@@ -166,8 +182,8 @@ class _AppointmentCardState extends State<AppointmentCard> {
     final dateFr = formatDateFr(widget.date);
 
     return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      elevation: 1,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -175,21 +191,22 @@ class _AppointmentCardState extends State<AppointmentCard> {
           children: [
             Row(
               children: [
-                const Icon(Icons.person, size: 40),
+                const Icon(Icons.person, size: 30),
                 const SizedBox(width: 12),
                 Expanded(
                     child: Text(widget.name,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.w600, fontSize: 16))),
+                        style: AppThemes.getTextStyle(
+                            fontWeight: FontWeight.bold))),
               ],
             ),
             const SizedBox(height: 8),
             Row(
               children: [
-                const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
+                const Icon(Icons.calendar_today,
+                    size: 16, color: AppColors.mypsySecondary),
                 const SizedBox(width: 8),
                 Text("$dateFr à ${widget.time}",
-                    style: const TextStyle(color: Colors.grey)),
+                    style: AppThemes.getTextStyle(clr: Colors.grey)),
               ],
             ),
             const SizedBox(height: 16),
@@ -248,20 +265,22 @@ class _AppointmentCardState extends State<AppointmentCard> {
     return [];
   }
 
-  Widget _button(
-      BuildContext context, String text, Color color, VoidCallback onPressed) {
-    return Expanded(
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+  Widget _button(BuildContext context, String text, Color color,
+          VoidCallback onPressed) =>
+      Expanded(
+        child: ElevatedButton(
+          onPressed: onPressed,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: color,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          ),
+          child: Text(
+            text,
+            style: AppThemes.getTextStyle(clr: AppColors.mypsyWhite),
+          ),
         ),
-        child: Text(text, style: const TextStyle(color: Colors.white)),
-      ),
-    );
-  }
+      );
 
   Widget _buildJoinButton(BuildContext context) {
     if (widget.status == 'cancelled') {
