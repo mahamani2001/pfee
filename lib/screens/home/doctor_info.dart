@@ -145,7 +145,7 @@ class DoctorDetailScreen extends StatelessWidget {
       )),
       bottomNavigationBar: Padding(
         padding:
-            const EdgeInsets.fromLTRB(50, 0, 24, 24), // ⬅ remonte le bouton
+            const EdgeInsets.fromLTRB(24, 10, 24, 24), // ⬅ remonte le bouton
         child: mypsyButton(
           isFull: true,
           onPress: () {
