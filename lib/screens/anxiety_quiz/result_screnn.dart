@@ -88,6 +88,7 @@ class ResultPage extends StatelessWidget {
         backgroundColor: AppColors.mypsyBgApp,
         appBar: const TopBarSubPage(
           title: 'Résultat du quiz',
+          goHome: true,
         ),
         body: SafeArea(
           child: Padding(
