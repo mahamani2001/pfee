@@ -3,6 +3,7 @@ import 'package:mypsy_app/screens/anxiety_quiz/quiz_screen.dart';
 import 'package:mypsy_app/screens/anxiety_quiz/result_screnn.dart';
 import 'package:mypsy_app/screens/authentification/otp_screen.dart';
 import 'package:mypsy_app/screens/authentification/widgets/footer_btn.dart';
+import 'package:mypsy_app/screens/home/home.dart';
 import 'package:mypsy_app/screens/layouts/main_layout.dart';
 import 'package:mypsy_app/screens/profil/DoctorListScreen.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';
