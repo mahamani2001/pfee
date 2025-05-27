@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:mypsy_app/resources/services/quiz_service.dart';
+import 'package:mypsy_app/screens/layouts/top_bar_subpage.dart';
+import 'package:mypsy_app/shared/themes/app_theme.dart';
 
 class HistoryPage extends StatefulWidget {
   const HistoryPage({super.key});
@@ -84,14 +86,9 @@ class _HistoryPageState extends State<HistoryPage> {
   @override
   Widget build(BuildContext context) => Scaffold(
         backgroundColor: const Color(0xFFF5F5F5),
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.black,
-          elevation: 0.4,
-          title: const Text(
-            "Historique de mes résultats",
-            style: TextStyle(fontWeight: FontWeight.w600),
-          ),
+        appBar: const TopBarSubPage(
+          title: 'Historique de mes résultats',
+          goHome: true,
         ),
         body: isLoading
             ? const Center(child: CircularProgressIndicator())
@@ -108,12 +105,12 @@ class _HistoryPageState extends State<HistoryPage> {
                         margin: const EdgeInsets.only(bottom: 16),
                         decoration: BoxDecoration(
                           color: bgColor,
-                          borderRadius: const BorderRadius.only(
+                          /*borderRadius: const BorderRadius.only(
                             topLeft: Radius.circular(40),
                             topRight: Radius.circular(16),
                             bottomLeft: Radius.circular(16),
                             bottomRight: Radius.circular(40),
-                          ),
+                          ),*/
                         ),
                         child: Padding(
                           padding: const EdgeInsets.all(18),
@@ -122,21 +119,23 @@ class _HistoryPageState extends State<HistoryPage> {
                             children: [
                               Text(
                                 "${getEmoji(h['category'])}  ${h['category']}",
-                                style: const TextStyle(
-                                  fontSize: 20,
+                                style: AppThemes.getTextStyle(
+                                  size: 20,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                               const SizedBox(height: 8),
                               Text(
                                 "Score : ${(h['score'] as num).toDouble().toStringAsFixed(1)}%", // Conversion en double
-                                style: const TextStyle(fontSize: 16),
+                                style: AppThemes.getTextStyle(
+                                  size: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                               Text(
                                 "Date : ${formatDate(h['date'])}",
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.black54,
+                                style: AppThemes.getTextStyle(
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ],
