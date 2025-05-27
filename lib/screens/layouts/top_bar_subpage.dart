@@ -1,10 +1,12 @@
+import 'package:mypsy_app/screens/layouts/main_screen.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';
 import 'package:mypsy_app/shared/themes/app_theme.dart';
 import 'package:flutter/material.dart';
 
 class TopBarSubPage extends StatelessWidget implements PreferredSizeWidget {
   final String title;
-  const TopBarSubPage({super.key, required this.title});
+  final bool goHome;
+  const TopBarSubPage({super.key, required this.title, this.goHome = false});
 
   @override
   Widget build(BuildContext context) => AppBar(
@@ -21,7 +23,16 @@ class TopBarSubPage extends StatelessWidget implements PreferredSizeWidget {
             ),
           ),
           onPressed: () async {
-            Navigator.pop(context);
+            if (goHome) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const MainScreen(initialTabIndex: 0),
+                ),
+              );
+            } else {
+              Navigator.pop(context);
+            }
           },
         ),
         centerTitle: true,
