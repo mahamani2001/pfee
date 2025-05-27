@@ -13,7 +13,6 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:mypsy_app/env/dev.dart';
 
-
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
   print('🔕 [Background] Message: ${message.notification?.title}');
@@ -58,7 +57,7 @@ Future<void> main({String? env}) async {
     [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown],
   ).then((_) {
     FlutterError.onError = (FlutterErrorDetails details) {
-      FlutterError.presentError(details); // Logs the error in debug mode
+      FlutterError.presentError(details);
       runApp(
         MyApp(
           showError: true,

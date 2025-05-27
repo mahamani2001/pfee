@@ -230,7 +230,7 @@ class _SplashState extends State<SplashScreen> with TickerProviderStateMixin {
                         FadeTransition(
                           opacity: _animation,
                           child: Image.asset(
-                            'assets/logo.png',
+                            'assets/MYPsy.png',
                             width: 170.0,
                             height: 170.0,
                             color: AppColors.mypsyWhite,

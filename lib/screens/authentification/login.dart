@@ -1,4 +1,5 @@
 import 'package:mypsy_app/resources/services/auth_service.dart';
+import 'package:mypsy_app/screens/anxiety_quiz/quiz_screen.dart';
 import 'package:mypsy_app/screens/authentification/otp_screen.dart';
 import 'package:mypsy_app/screens/authentification/widgets/footer_btn.dart';
 import 'package:mypsy_app/screens/layouts/main_layout.dart';
@@ -6,6 +7,7 @@ import 'package:mypsy_app/shared/themes/app_colors.dart';
 import 'package:mypsy_app/shared/themes/app_theme.dart';
 import 'package:mypsy_app/shared/ui/buttons/button.dart';
 import 'package:mypsy_app/shared/ui/commun_widget.dart';
+import 'package:mypsy_app/shared/ui/flushbar.dart';
 import 'package:mypsy_app/shared/ui/input_field.dart';
 import 'package:mypsy_app/utils/constants.dart';
 import 'package:mypsy_app/utils/functions.dart';
@@ -51,44 +53,34 @@ class _LoginState extends State<Login> {
         title: '',
         child: Container(
           height: MediaQuery.of(context).size.height,
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Color.fromARGB(255, 255, 255, 255),
-                Color(0xFF0097E0),
-              ],
-              stops: [0.0, 0.2],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            ),
-          ),
+          decoration: mainDecoration,
           child: SafeArea(
             child: Stack(
               children: [
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                  child: Center(
-                    child: SingleChildScrollView(
-                      child: Column(
-                        children: [
-                          SizedBox(
-                            child: Image.asset(
-                              'assets/logo.png',
-                              height: 220,
-                              width: 300,
-                            ),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          child: Image.asset(
+                            'assets/MYPsy.png',
+                            height: 220,
+                            width: 300,
+                            color: AppColors.mypsyWhite,
                           ),
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 10.0),
-                            child: Text(
-                              'Bienvenue @ MYPsy',
-                              style: AppThemes.headerStyle,
-                              textAlign: TextAlign.center,
-                            ),
+                        ),
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 20.0),
+                          child: Text(
+                            'Bienvenue @ MyPsy',
+                            style: AppThemes.headerStyle,
+                            textAlign: TextAlign.center,
                           ),
-                          formUi(),
-                        ],
-                      ),
+                        ),
+                        formUi(),
+                      ],
                     ),
                   ),
                 ),
@@ -166,9 +158,7 @@ class _LoginState extends State<Login> {
               margin: const EdgeInsets.only(bottom: 35),
               child: Center(
                 child: InkWell(
-                  onTap: () {
-                    launchLink(urlResetPwd);
-                  },
+                  onTap: () {},
                   child: const Text(
                     'Mot de passe oublié ?',
                     style: AppThemes.questionInfo,
@@ -180,7 +170,7 @@ class _LoginState extends State<Login> {
               width: MediaQuery.of(context).size.width,
               child: mypsyButton(
                 onPress: _submitForm,
-                bgColors: AppColors.mypsyDarkBlue,
+                bgColors: AppColors.mypsyPurple,
                 text: 'Se connecter',
               ),
             ),
@@ -190,7 +180,7 @@ class _LoginState extends State<Login> {
             SizedBox(
               width: MediaQuery.of(context).size.width,
               child: mypsyButton(
-                colr: AppColors.mypsyDarkBlue,
+                colr: AppColors.mypsyPurple,
                 bgColors: AppColors.mypsyBgApp,
                 onPress: _submitForm,
                 text: 'Creer mon compte',
@@ -222,6 +212,12 @@ class _LoginState extends State<Login> {
       );
 
       setState(() => ispressed = false);
+    } else {
+      setState(() {
+        ispressed = false;
+      });
+      customFlushbar('', 'Email/Mot de passe incorrecte', context,
+          isError: true);
     }
   }
 }

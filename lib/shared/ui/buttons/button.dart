@@ -23,21 +23,22 @@ class mypsyButton extends StatelessWidget {
   final bool isSmallBtn;
   final bool isFull;
   final bool isLight;
+  final bool withLoader;
 
-  const mypsyButton({
-    super.key,
-    required this.text,
-    required this.onPress,
-    this.btnType = BtnType.filled,
-    this.padding = const EdgeInsets.symmetric(
-      vertical: 18,
-    ),
-    this.colr = AppColors.mypsyWhite,
-    this.bgColors = AppColors.mypsyPrimary,
-    this.isSmallBtn = false,
-    this.isFull = false,
-    this.isLight = false,
-  });
+  const mypsyButton(
+      {super.key,
+      required this.text,
+      required this.onPress,
+      this.btnType = BtnType.filled,
+      this.padding = const EdgeInsets.symmetric(
+        vertical: 18,
+      ),
+      this.colr = AppColors.mypsyWhite,
+      this.bgColors = AppColors.mypsyPrimary,
+      this.isSmallBtn = false,
+      this.isFull = false,
+      this.isLight = false,
+      this.withLoader = false});
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +53,23 @@ class mypsyButton extends StatelessWidget {
       ),
       textAlign: TextAlign.center,
     );
-
+    if (withLoader) {
+      textWidget = Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+            ),
+            const SizedBox(width: 10),
+            textWidget,
+          ]);
+    }
     switch (btnType) {
       case BtnType.filled:
         btn = ElevatedButton(
