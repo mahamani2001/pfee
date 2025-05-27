@@ -158,12 +158,7 @@ class _LoginState extends State<Login> {
               margin: const EdgeInsets.only(bottom: 35),
               child: Center(
                 child: InkWell(
-                  onTap: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (_) => const QuestionPage()),
-                    );
-                  },
+                  onTap: () {},
                   child: const Text(
                     'Mot de passe oublié ?',
                     style: AppThemes.questionInfo,
