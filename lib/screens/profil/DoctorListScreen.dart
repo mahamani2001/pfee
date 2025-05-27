@@ -3,6 +3,7 @@ import 'package:mypsy_app/resources/services/doctor_service.dart';
 import 'package:mypsy_app/screens/layouts/top_bar_subpage.dart';
 import 'package:mypsy_app/shared/routes.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';
+import 'package:mypsy_app/shared/themes/app_theme.dart';
 
 class DoctorListScreen extends StatefulWidget {
   const DoctorListScreen({super.key});
@@ -86,13 +87,8 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'Spécialité',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
+                            Text('Spécialité',
+                                style: AppThemes.getTextStyle(size: 16)),
                             const SizedBox(height: 8),
                             Container(
                               decoration: BoxDecoration(
@@ -119,12 +115,15 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
                                       const Color.fromARGB(255, 255, 255, 255),
                                   style: const TextStyle(
                                       fontSize: 15, color: Colors.black87),
-                                  hint: const Text('Toutes les spécialités'),
+                                  hint: Text('Toutes les spécialités',
+                                      style: AppThemes.getTextStyle(size: 16)),
                                   borderRadius: BorderRadius.circular(12),
                                   items: [
-                                    const DropdownMenuItem<String>(
+                                    DropdownMenuItem<String>(
                                       value: null,
-                                      child: Text('Toutes les spécialités'),
+                                      child: Text('Toutes les spécialités',
+                                          style:
+                                              AppThemes.getTextStyle(size: 16)),
                                     ),
                                     ...specialties
                                         .map((spec) => DropdownMenuItem<String>(
@@ -163,8 +162,7 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
                                     horizontal: 16, vertical: 8),
                                 padding: const EdgeInsets.all(16),
                                 decoration: BoxDecoration(
-                                  color:
-                                      const Color.fromARGB(255, 203, 221, 255),
+                                  color: AppColors.mypsyWhite,
                                   borderRadius: BorderRadius.circular(16),
                                   boxShadow: [
                                     BoxShadow(
@@ -188,24 +186,22 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            doctor['full_name'] ??
-                                                'Nom inconnu',
-                                            style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 16),
-                                          ),
+                                              doctor['full_name'] ??
+                                                  'Nom inconnu',
+                                              style: AppThemes.getTextStyle(
+                                                  fontWeight: FontWeight.bold)),
                                           const SizedBox(height: 4),
                                           Chip(
                                             label: Text(
                                               doctor['specialty'] ??
                                                   'Psychiatre',
-                                              style:
-                                                  const TextStyle(fontSize: 12),
+                                              style: AppThemes.getTextStyle(
+                                                  size: 12),
                                             ),
                                             backgroundColor:
-                                                const Color(0xFFDCEFFF),
+                                                AppColors.mypsyDarkBlue,
                                             labelStyle: const TextStyle(
-                                                color: Color(0xFF457B9D)),
+                                                color: AppColors.mypsyWhite),
                                           ),
                                           const SizedBox(height: 6),
                                           Row(
@@ -234,7 +230,7 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
                                       children: [
                                         Row(
                                           children: [
-                                            Icon(Icons.star,
+                                            const Icon(Icons.star,
                                                 size: 18, color: Colors.orange),
                                             const SizedBox(width: 3),
                                             Text(
