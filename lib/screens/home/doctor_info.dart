@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:mypsy_app/screens/layouts/top_bar_subpage.dart';
 import 'package:mypsy_app/shared/routes.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';
+import 'package:mypsy_app/shared/ui/buttons/button.dart';
 
 class DoctorDetailScreen extends StatelessWidget {
   const DoctorDetailScreen({super.key});
@@ -12,19 +14,19 @@ class DoctorDetailScreen extends StatelessWidget {
     final psychiatrist = args['psychiatrist'];
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7FAFC),
-      appBar: AppBar(
-        leading: const BackButton(color: Colors.black),
-        backgroundColor: Colors.white,
-        elevation: 0,
+      backgroundColor: AppColors.mypsyBgApp,
+      appBar: const TopBarSubPage(
+        title: 'Detail',
+        goHome: true,
       ),
-      body: SingleChildScrollView(
+      body: SafeArea(
+          child: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // ✅ Photo statique
-            CircleAvatar(
+            const CircleAvatar(
               radius: 50,
               backgroundImage: AssetImage("assets/images/psy.jpg"),
             ),
@@ -140,12 +142,13 @@ class DoctorDetailScreen extends StatelessWidget {
             const SizedBox(height: 100),
           ],
         ),
-      ),
+      )),
       bottomNavigationBar: Padding(
         padding:
             const EdgeInsets.fromLTRB(50, 0, 24, 24), // ⬅ remonte le bouton
-        child: ElevatedButton(
-          onPressed: () {
+        child: mypsyButton(
+          isFull: true,
+          onPress: () {
             Navigator.pushNamed(
               context,
               Routes.booking,
@@ -154,19 +157,8 @@ class DoctorDetailScreen extends StatelessWidget {
               },
             );
           },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF2EB5A3),
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            elevation: 4,
-            shadowColor: Colors.black12,
-          ),
-          child: const Text(
-            "Prendre rendez-vous",
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-          ),
+          bgColors: AppColors.mypsyDarkBlue,
+          text: "Prendre rendez-vous",
         ),
       ),
     );
