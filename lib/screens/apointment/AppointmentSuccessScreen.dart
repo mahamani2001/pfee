@@ -57,7 +57,7 @@ class _AppointmentSuccessScreenState extends State<AppointmentSuccessScreen> {
                   'Rendez-vous réservé avec succès 🎉',
                   textAlign: TextAlign.center,
                   style: AppThemes.getTextStyle(
-                      clr: AppColors.mypsyDarkBlue, size: 20),
+                      size: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 20),
                 mypsyButton(
