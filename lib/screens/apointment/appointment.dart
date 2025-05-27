@@ -18,7 +18,7 @@ class Appointment extends StatelessWidget {
         child: Scaffold(
           backgroundColor: Colors.white,
           appBar: AppBar(
-            centerTitle: false,
+            centerTitle: true,
             title: const Text(
               "Mes rendez-vous",
               style: AppThemes.appbarSubPageTitleStyle,
