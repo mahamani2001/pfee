@@ -5,6 +5,8 @@ import 'package:mypsy_app/resources/services/auth_service.dart';
 import 'package:mypsy_app/resources/services/quiz_service.dart';
 import 'package:mypsy_app/screens/anxiety_quiz/history_page.dart';
 import 'package:mypsy_app/shared/routes.dart';
+import 'package:mypsy_app/shared/themes/app_colors.dart';
+import 'package:mypsy_app/shared/themes/app_theme.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -40,6 +42,50 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
+        appBar: null,
+        backgroundColor: const Color(0xFFF5F8FF),
+        body: SingleChildScrollView(
+          child: Column(
+            // crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Stack(
+                children: [
+                  Positioned(right: 15, top: 50, child: notificationUI()),
+                  Container(
+                      padding: const EdgeInsets.only(top: 50),
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: AppColors.mypsyPrimary.withOpacity(0.3),
+                        borderRadius: const BorderRadius.only(
+                          bottomLeft: Radius.circular(40),
+                          bottomRight: Radius.circular(40),
+                        ),
+                      ),
+                      child: topHeader()),
+                ],
+              ),
+              const SizedBox(height: 44),
+
+              // Quiz Card
+              Transform.translate(
+                  offset: const Offset(0, -70),
+                  child: Column(
+                    children: [
+                      blocQuiz(),
+                      const SizedBox(height: 15),
+                      upcomingApointment(),
+                      const SizedBox(height: 15),
+                      menuCards()
+                    ],
+                  )),
+
+              // Bottom buttons
+            ],
+          ),
+        ),
+      );
+
+  /*Scaffold(
         backgroundColor: const Color(0xFFF5F9FA),
         body: SafeArea(
           child: Column(
@@ -54,6 +100,218 @@ class _HomeState extends State<Home> {
               _buildMotivationBanner(),
             ],
           ),
+        ),
+      );*/
+
+  Widget menuCards() => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+        child: Row(
+          children: [
+            Expanded(
+                child: GestureDetector(
+                    onTap: () {
+                      // Ton action ici
+                    },
+                    child: blocInfo("Mes rendez-vous", Icons.calendar_today))),
+            const SizedBox(width: 12),
+            Expanded(
+                child: GestureDetector(
+                    onTap: () {
+                      // Ton action ici
+                    },
+                    child:
+                        blocInfo("Trouver un psychiatre", Icons.psychology))),
+          ],
+        ),
+      );
+  Widget blocInfo(String title, IconData icon) => Container(
+        padding: const EdgeInsets.symmetric(vertical: 24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: AppColors.mypsyDarkBlue, width: 0.3),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 29, color: AppColors.mypsyDarkBlue),
+            const SizedBox(height: 10),
+            Text(title,
+                style: AppThemes.getTextStyle(
+                    size: 13,
+                    fontWeight: FontWeight.bold,
+                    clr: AppColors.mypsyDarkBlue)),
+          ],
+        ),
+      );
+
+  Widget upcomingApointment() => Container(
+        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.symmetric(horizontal: 20),
+        decoration: BoxDecoration(
+          color: AppColors.mypsyDarkBlue.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          children: [
+            const CircleAvatar(
+              backgroundImage: NetworkImage("https://i.pravatar.cc/100?img=12"),
+              radius: 28,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Dr. Jennifer Smith",
+                      style: AppThemes.getTextStyle(
+                          size: 16, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 2),
+                  Text("Orthopedic Consultation (Foot & Ankle)",
+                      style: AppThemes.getTextStyle(
+                          size: 12, fontWeight: FontWeight.w500)),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.calendar_today,
+                        size: 16,
+                        color: AppColors.mypsyPrimary,
+                      ),
+                      const SizedBox(width: 4),
+                      Text("Wed, 7 Sep 2024",
+                          style: AppThemes.getTextStyle(
+                              size: 11, fontWeight: FontWeight.bold)),
+                      const SizedBox(width: 12),
+                      const Icon(
+                        Icons.access_time,
+                        size: 16,
+                        color: AppColors.mypsyPrimary,
+                      ),
+                      const SizedBox(width: 4),
+                      Text("10:30 - 11:30 AM",
+                          style: AppThemes.getTextStyle(
+                              size: 11, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+
+  Widget notificationUI() => FutureBuilder<bool>(
+        future: NotificationService().hasUnread(),
+        builder: (context, snapshot) {
+          final hasUnread = snapshot.data == true;
+          return Stack(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.notifications_none, size: 30),
+                onPressed: () {
+                  Navigator.pushNamed(context, Routes.notificationsScreen);
+                },
+              ),
+              if (hasUnread)
+                Positioned(
+                  right: 6,
+                  top: 6,
+                  child: Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+            ],
+          );
+        },
+      );
+
+  Widget topHeader() => Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Bonjour,",
+                      style: AppThemes.getTextStyle(
+                          size: 20, fontWeight: FontWeight.w500)),
+                  const SizedBox(height: 4),
+                  Text("Mainul Islam",
+                      style: AppThemes.getTextStyle(
+                          size: 24, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 12),
+                  Text("Comment vous sentez-vous aujourd'hui ?",
+                      style: AppThemes.getTextStyle(size: 16)),
+                ],
+              ),
+            ),
+            const CircleAvatar(
+              radius: 40,
+              backgroundImage: const NetworkImage(
+                "https://i.pravatar.cc/100?img=8",
+              ),
+            )
+          ],
+        ),
+      ]));
+  Widget blocQuiz() => Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.check_circle_outline,
+                    size: 32, color: AppColors.mypsyDarkBlue),
+                const SizedBox(width: 12),
+                Text("Quiz d’anxiété",
+                    style: AppThemes.getTextStyle(
+                        size: 18, fontWeight: FontWeight.bold)),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Text("Score récent: ", style: AppThemes.getTextStyle(size: 13)),
+                Text("Modéré (65%)",
+                    style: AppThemes.getTextStyle(fontWeight: FontWeight.bold)),
+              ],
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {},
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.mypsyDarkBlue,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                child: Text("Commencer le test",
+                    style: AppThemes.getTextStyle(
+                        size: 15,
+                        fontWeight: FontWeight.w600,
+                        clr: AppColors.mypsyBgApp)),
+              ),
+            ),
+          ],
         ),
       );
 
@@ -194,4 +452,37 @@ class _HomeState extends State<Home> {
           ),
         ),
       );
+}
+
+class HeaderBackground extends StatelessWidget {
+  const HeaderBackground({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipPath(
+      clipper: WaveClipper(),
+      child: Container(
+        height: 200,
+        color: const Color(0xFFF5F8FF),
+      ),
+    );
+  }
+}
+
+class WaveClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    Path path = Path();
+    path.lineTo(0, size.height - 60);
+
+    path.quadraticBezierTo(
+        size.width / 2, size.height, size.width, size.height - 60);
+
+    path.lineTo(size.width, 0);
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
