@@ -136,7 +136,7 @@ class _OtpScreenState extends State<OtpScreen> {
                           width: MediaQuery.of(context).size.width,
                           child: mypsyButton(
                             onPress: isLoading ? null : verify,
-                            bgColors: AppColors.mypsyDarkBlue,
+                            bgColors: AppColors.mypsyPurple,
                             text: 'Valider',
                             withLoader: isLoading,
                           ),
