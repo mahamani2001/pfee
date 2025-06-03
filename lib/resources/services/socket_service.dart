@@ -50,7 +50,7 @@ class SocketService {
 
     print('📥 Token final utilisé pour le socket : $token');
 
-    _socket = IO.io('http://192.168.1.2:3001', {
+    _socket = IO.io('http:/192.168.100.139:3001', {
       'transports': ['websocket'],
       'auth': {'token': token},
       'autoConnect': true,

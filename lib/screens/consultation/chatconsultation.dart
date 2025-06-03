@@ -256,7 +256,6 @@ class _ChatScreenState extends State<ChatScreen> {
     _recorder = FlutterSoundRecorder();
     _initRecorder();
     _initPlayer();
-    
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       peerId = widget.peerId;

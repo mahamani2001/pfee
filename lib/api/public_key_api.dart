@@ -4,7 +4,7 @@ import 'dart:convert';
 class PublicKeyAPI {
   Future<String> getPublicKey(String userId) async {
     final response = await http.get(
-      Uri.parse('http://192.168.1.2:3001/api/public-key/$userId'),
+      Uri.parse('192.168.100.139:3001/api/public-key/$userId'),
     );
 
     if (response.statusCode == 200) {
