@@ -1,8 +1,9 @@
 import 'dart:convert';
+import 'package:mypsy_app/helpers/app_config.dart';
 import 'package:mypsy_app/resources/services/http_service.dart';
 
 class AppointmentService {
-  final String baseUrl = 'http://192.168.1.2:3001/api/appointments';
+  String baseUrl = '${AppConfig.instance()!.baseUrl!}appointments';
 
   // 1️⃣ Réserver un rendez-vous
   Future<Map<String, dynamic>> reserveAppointment({
@@ -46,7 +47,7 @@ class AppointmentService {
   // 3️⃣ Récupérer les rendez-vous par statut
   Future<List<dynamic>> getAppointmentsByStatus(String status) async {
     final response = await HttpService().request(
-      url: 'http://192.168.1.2:3001/api/appointments/me?status=$status',
+      url: '$baseUrl/me?status=$status',
       method: 'GET',
     );
 
@@ -148,7 +149,7 @@ class AppointmentService {
   Future<bool> confirmAppointment(int appointmentId) async {
     try {
       final response = await HttpService().request(
-        url: 'http://192.168.1.2:3001/api/appointments/$appointmentId/confirm',
+        url: '$baseUrl/$appointmentId/confirm',
         method: 'PUT',
         body: {}, // même vide c’est important pour éviter le JSON.parse null côté Node.js
       );
@@ -162,7 +163,7 @@ class AppointmentService {
 
   Future<bool> rejectAppointment(int appointmentId) async {
     final response = await HttpService().request(
-      url: 'http://192.168.1.2:3001/api/appointments/$appointmentId/reject',
+      url: '$baseUrl/$appointmentId/reject',
       method: 'PUT',
       body: {},
     );
@@ -178,7 +179,7 @@ class AppointmentService {
     required int extraMinutes,
   }) async {
     final response = await HttpService().request(
-      url: 'http://192.168.1.2:3001/api/appointments/$appointmentId/extend',
+      url: '$baseUrl/$appointmentId/extend',
       method: 'PUT',
       body: {'extraMinutes': extraMinutes},
     );
@@ -188,7 +189,7 @@ class AppointmentService {
 
   Future<Map<String, dynamic>?> getAppointmentById(int appointmentId) async {
     final response = await HttpService().request(
-      url: 'http://192.168.1.2:3001/api/appointments/$appointmentId',
+      url: '$baseUrl/$appointmentId',
       method: 'GET',
     );
 

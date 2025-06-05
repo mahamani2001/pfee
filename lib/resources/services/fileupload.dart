@@ -1,8 +1,11 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:mypsy_app/helpers/app_config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class FileUploadService {
+  String baseUrl = AppConfig.instance()!.baseUrl!;
+
   final Dio _dio = Dio();
 
   Future<String?> uploadMedicalFile(
@@ -19,7 +22,7 @@ class FileUploadService {
     });
 
     final response = await _dio.post(
-      'http://192.168.1.2:3001/uploads',
+      '$baseUrl/uploads',
       data: formData,
       options: Options(
         headers: {

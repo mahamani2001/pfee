@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mypsy_app/helpers/app_config.dart';
 import 'package:mypsy_app/resources/services/RatingService.dart';
 import 'package:mypsy_app/resources/services/auth_service.dart';
 import 'package:smooth_star_rating_null_safety/smooth_star_rating_null_safety.dart';
@@ -30,6 +31,7 @@ class _ConsultationEndedScreenState extends State<ConsultationEndedScreen> {
   double _rating = 4.0;
   bool _loading = false;
   bool isPsychiatrist = false;
+  String baseUrl = AppConfig.instance()!.baseUrl!;
 
   @override
   void initState() {
@@ -48,7 +50,7 @@ class _ConsultationEndedScreenState extends State<ConsultationEndedScreen> {
     setState(() => _loading = true);
     final token = await AuthService().getToken();
     final response = await http.post(
-      Uri.parse('http://192.168.1.2:3001/api/appointments/ratings'),
+      Uri.parse('$baseUrl/appointments/ratings'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token', // ✅ ajoute le token ici

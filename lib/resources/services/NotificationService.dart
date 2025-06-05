@@ -1,10 +1,11 @@
 // 📁 resources/services/notification_service.dart
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:mypsy_app/helpers/app_config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class NotificationService {
-  final String baseUrl = 'http://192.168.1.2:3001/api/notifications';
+  String baseUrl = '${AppConfig.instance()!.baseUrl!}notifications';
 
   Future<List<dynamic>> getMyNotifications() async {
     final prefs = await SharedPreferences.getInstance();
@@ -43,7 +44,7 @@ class NotificationService {
     final jwt = prefs.getString('jwt');
 
     final response = await http.put(
-      Uri.parse('$baseUrl/mark-all-read'),
+      Uri.parse('${baseUrl}mark-all-read'),
       headers: {'Authorization': 'Bearer $jwt'},
     );
 

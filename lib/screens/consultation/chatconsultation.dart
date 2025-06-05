@@ -2,6 +2,7 @@ import 'dart:async'; // ← important pour Timer
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:mypsy_app/helpers/app_config.dart';
 import 'package:mypsy_app/resources/services/appointment_service.dart';
 import 'package:mypsy_app/resources/services/http_service.dart';
 import 'package:mypsy_app/resources/services/socket_service.dart';
@@ -58,6 +59,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final FlutterSoundPlayer _audioPlayer = FlutterSoundPlayer();
   bool _isPlayerInitialized = false;
   String myFullName = '';
+  String baseUrl = AppConfig.instance()!.baseUrl!;
 
   final flutterSoundHelper = FlutterSoundHelper();
   Future<Duration?> getAudioDuration(String filePath) async {
@@ -565,7 +567,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     // Lecture confirmée
     await HttpService().request(
-      url: 'http://192.168.1.2:3001/api/messages/$appointmentId/read',
+      url: '$baseUrl/messages/$appointmentId/read',
       method: 'PUT',
       body: {},
     );
@@ -593,7 +595,7 @@ class _ChatScreenState extends State<ChatScreen> {
     final data = await ChatService().getMessages(appointmentId);
 
     await HttpService().request(
-      url: 'http://192.168.1.2:3001/api/messages/$appointmentId/read',
+      url: '$baseUrl/messages/$appointmentId/read',
       method: 'PUT',
       body: {},
     );

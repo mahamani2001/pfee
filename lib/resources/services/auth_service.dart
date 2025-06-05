@@ -1,12 +1,14 @@
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:mypsy_app/helpers/app_config.dart';
 import 'package:mypsy_app/resources/services/crypto_service.dart';
+import 'package:mypsy_app/resources/services/http_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
-  final String baseUrl = 'http://192.168.1.2:3001/api/auth';
-  final storage = FlutterSecureStorage();
+  String baseUrl = '${AppConfig.instance()!.baseUrl!}auth';
+  final storage = const FlutterSecureStorage();
   Future<String?> getJwtToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('jwt');
@@ -44,13 +46,13 @@ class AuthService {
     }
   }
 
-  static Future<String?> refreshToken() async {
+  Future<String?> refreshToken() async {
     final prefs = await SharedPreferences.getInstance();
     final refreshToken = prefs.getString('refresh_token');
     if (refreshToken == null) return null;
 
     final response = await http.post(
-      Uri.parse('http://192.168.1.2:3001/api/auth/refresh-token'),
+      Uri.parse('$baseUrl/refresh-token'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'refreshToken': refreshToken}),
     );
@@ -67,11 +69,13 @@ class AuthService {
   }
 
   Future<Map<String, dynamic>> login(String email, String password) async {
+    print(' Login call $baseUrl ');
     final response = await http.post(
       Uri.parse('$baseUrl/login'),
       body: jsonEncode({'email': email, 'password': password}),
       headers: {'Content-Type': 'application/json'},
     );
+    print(' Login call ${response} ');
     final data = jsonDecode(response.body);
     return {'status': response.statusCode, 'data': data};
   }
@@ -138,7 +142,7 @@ class AuthService {
     if (refreshToken == null) return null;
 
     final response = await http.post(
-      Uri.parse('http://192.168.1.2:3001/api/auth/refresh-token'),
+      Uri.parse('$baseUrl/refresh-token'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'refreshToken': refreshToken}),
     );
@@ -177,7 +181,7 @@ class AuthService {
     final token = prefs.getString('jwt');
 
     final response = await http.put(
-      Uri.parse('http://192.168.1.2:3001/api/auth/publicKey'),
+      Uri.parse('$baseUrl/publicKey'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -199,7 +203,7 @@ class AuthService {
     final token = prefs.getString('jwt');
 
     final response = await http.get(
-      Uri.parse('http://192.168.1.2:3001/api/auth/publicKey/$peerId'),
+      Uri.parse('$baseUrl/publicKey/$peerId'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',

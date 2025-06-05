@@ -3,14 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:http/http.dart' as http;
+import 'package:mypsy_app/helpers/app_config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class FCMService {
+  String baseUrl = AppConfig.instance()!.baseUrl!;
+
   static final FirebaseMessaging _messaging = FirebaseMessaging.instance;
   static final FlutterLocalNotificationsPlugin _localPlugin =
       FlutterLocalNotificationsPlugin();
 
-  static Future<void> initFCM(BuildContext context) async {
+  Future<void> initFCM(BuildContext context) async {
     print("🚀 Appel de initFCM");
 
     // 🔐 Demande les permissions
@@ -57,7 +60,7 @@ class FCMService {
         final prefs = await SharedPreferences.getInstance();
         final jwt = prefs.getString('jwt');
         final response = await http.put(
-          Uri.parse('http://192.168.1.2:3001/api/auth/fcm-token'),
+          Uri.parse('$baseUrl/auth/fcm-token'),
           headers: {
             'Authorization': 'Bearer $jwt',
             'Content-Type': 'application/json',

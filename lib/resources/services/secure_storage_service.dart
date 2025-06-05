@@ -1,8 +1,9 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:mypsy_app/helpers/app_config.dart';
 
 class QuizService {
-  final String baseUrl = "http://192.168.1.2:3001/api/quiz";
+  final String baseUrl = "${AppConfig.instance()!.baseUrl}quiz";
 
   Future<void> submitResult({
     required int userId,

@@ -1,6 +1,4 @@
 import 'dart:io';
-import 'package:mypsy_app/models/app_version.dart';
-import 'package:mypsy_app/provider/api_provider.dart';
 import 'package:mypsy_app/screens/authentification/login.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';
 import 'package:mypsy_app/shared/themes/app_theme.dart';
@@ -77,9 +75,8 @@ class _SplashState extends State<SplashScreen> with TickerProviderStateMixin {
       if (status == AnimationStatus.completed) {
         // redirect to home page
         _animationControllerFlare!.reverse();
-        Provider.of<ApiProvider>(context, listen: false).initializeApi();
         Future.delayed(const Duration(milliseconds: 1000), () {
-          endAndimation();
+          checkLogin();
         });
       } else if (status == AnimationStatus.reverse) {
         _animationControllerLogo!.reverse();
@@ -104,29 +101,6 @@ class _SplashState extends State<SplashScreen> with TickerProviderStateMixin {
     _animationControllerLogo!.forward();
 
     super.initState();
-  }
-
-  void endAndimation() {
-    checkForceUpdate(context).then((val) {
-      setState(() {
-        forceUpdate = val;
-      });
-      if (!val) {
-        checkOptionalUpdate(context).then((value) async {
-          setState(() {
-            optionalUpdate = value;
-            showUpdateMessage = optionalUpdate;
-          });
-          if (showUpdateMessage != null && showUpdateMessage == false) {
-            checkLogin();
-          }
-        });
-      } else {
-        setState(() {
-          showUpdateMessage = forceUpdate;
-        });
-      }
-    });
   }
 
   Future<void> checkLogin() async {

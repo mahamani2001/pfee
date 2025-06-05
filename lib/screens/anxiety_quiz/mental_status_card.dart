@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:http/http.dart' as http;
+import 'package:mypsy_app/helpers/app_config.dart';
 
 class MentalStatusCard extends StatefulWidget {
   final String userId;
@@ -16,6 +17,7 @@ class _MentalStatusCardState extends State<MentalStatusCard> {
   List<double> scores = [];
   List<String> dates = [];
   bool isLoading = true;
+  String baseUrl = AppConfig.instance()!.baseUrl!;
 
   @override
   void initState() {
@@ -26,7 +28,7 @@ class _MentalStatusCardState extends State<MentalStatusCard> {
   Future<void> fetchResults() async {
     try {
       final response = await http.get(
-        Uri.parse('http://192.168.1.2:3001/api/quiz/${widget.userId}'),
+        Uri.parse('$baseUrl/quiz/${widget.userId}'),
       );
 
       if (response.statusCode == 200) {

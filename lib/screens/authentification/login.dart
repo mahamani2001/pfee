@@ -28,8 +28,10 @@ class Login extends StatefulWidget {
 
 class _LoginState extends State<Login> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _emailController =
+      TextEditingController(text: "test@gmail.com");
+  final TextEditingController _passwordController =
+      TextEditingController(text: "MAHAmani180801");
   bool _obscurePwd = true, ispressed = false;
   String customerID = '';
   bool showError = false;
@@ -198,11 +200,13 @@ class _LoginState extends State<Login> {
 
     setState(() => ispressed = true);
     final authService = AuthService();
-
+    print('Submit form ');
     final result = await authService.login(
       _emailController.text.trim(),
       _passwordController.text.trim(),
     );
+
+    print('Submit form ');
 
     if (result['status'] == 200 && result['data']['twoFactorRequired']) {
       final tempToken = result['data']['tempToken'];

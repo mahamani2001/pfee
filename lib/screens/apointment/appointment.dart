@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:mypsy_app/resources/services/appointment_service.dart';
 import 'package:mypsy_app/resources/services/auth_service.dart';
 import 'package:mypsy_app/screens/consultation/ConsultationLauncherScreen.dart';
+import 'package:mypsy_app/screens/layouts/top_bar_subpage.dart';
 import 'package:mypsy_app/shared/routes.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';
 import 'package:mypsy_app/shared/themes/app_theme.dart';
@@ -18,6 +19,21 @@ class Appointment extends StatelessWidget {
         child: Scaffold(
           backgroundColor: Colors.white,
           appBar: AppBar(
+            leading: IconButton(
+              icon: Container(
+                color: Colors.transparent,
+                width: 100,
+                height: 40,
+                child: const Icon(
+                  Icons.arrow_back,
+                  color: AppColors.mypsyBlack,
+                  size: 15,
+                ),
+              ),
+              onPressed: () async {
+                Navigator.pop(context);
+              },
+            ),
             centerTitle: true,
             title: const Text(
               "Mes rendez-vous",
