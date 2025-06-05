@@ -62,7 +62,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     final nextAppointment =
         futureAppointments.isNotEmpty ? futureAppointments.first : null;
 
-    // ✅ Vérifie que le widget est toujours monté
     if (!mounted) return;
 
     setState(() {
@@ -157,41 +156,43 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
       );
 
   Widget notificationUI() => FutureBuilder<int>(
-        future: NotificationService().getUnreadCount(),
+        future: NotificationService().getUnreadCountFromApi(), // ✅ fixed!
         builder: (context, snapshot) {
           final unreadCount = snapshot.data ?? 0;
 
           return GestureDetector(
             onTap: () async {
               await Navigator.pushNamed(context, Routes.notificationsScreen);
-              setState(() {}); // ✅ Pour rafraîchir le badge après retour
+              setState(() {}); // refresh on return
             },
             child: Stack(
               clipBehavior: Clip.none,
-              alignment: Alignment.center,
+              alignment: Alignment.topRight,
               children: [
-                const Icon(Icons.notifications_none, size: 30),
+                Icon(
+                  Icons.notifications_none,
+                  size: 30,
+                  color: unreadCount > 0 ? Colors.red : Colors.black,
+                ),
                 if (unreadCount > 0)
-                  Positioned(
-                    right: -2,
-                    top: -2,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
-                        color: Colors.red,
-                        shape: BoxShape.circle,
+                  Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 16,
+                      minHeight: 16,
+                    ),
+                    child: Text(
+                      unreadCount > 9 ? '9+' : '$unreadCount',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
                       ),
-                      constraints:
-                          const BoxConstraints(minWidth: 18, minHeight: 18),
-                      child: Text(
-                        '$unreadCount',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
+                      textAlign: TextAlign.center,
                     ),
                   ),
               ],
