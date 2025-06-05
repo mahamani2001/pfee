@@ -44,7 +44,7 @@ class NotificationService {
     final jwt = prefs.getString('jwt');
 
     final response = await http.put(
-      Uri.parse('${baseUrl}mark-all-read'),
+      Uri.parse('${baseUrl}/mark-all-read'),
       headers: {'Authorization': 'Bearer $jwt'},
     );
 
