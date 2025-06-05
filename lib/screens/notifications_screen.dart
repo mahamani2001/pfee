@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:device_calendar/device_calendar.dart';
-import 'package:timezone/timezone.dart' as tz;
-import 'package:timezone/data/latest.dart' as tz;
 import 'package:mypsy_app/resources/services/NotificationService.dart';
 import 'package:mypsy_app/resources/services/appointment_service.dart';
+import 'package:mypsy_app/shared/themes/app_colors.dart';
+import 'package:mypsy_app/shared/themes/app_theme.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -17,46 +15,37 @@ class NotificationsScreen extends StatefulWidget {
 class _NotificationsScreenState extends State<NotificationsScreen> {
   List<dynamic> notifications = [];
   bool loading = true;
+  bool isGoogleAuthenticated = false;
 
   @override
   void initState() {
     super.initState();
-    // Initialize timezone database
-    tz.initializeTimeZones();
     _markAllAndFetch();
+    _checkGoogleAuthStatus();
   }
 
-  Future<bool> requestCalendarPermission() async {
-    var status = await Permission.calendarFullAccess.status;
-    if (!status.isGranted) {
-      status = await Permission.calendarFullAccess.request();
-    }
-    if (!status.isGranted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Accès au calendrier requis")),
-      );
-      return false;
-    }
-    return true;
+  Future<void> _checkGoogleAuthStatus() async {
+    /* final isSignedIn = await _googleCalendarHelper.isSignedIn();
+    setState(() {
+      isGoogleAuthenticated = isSignedIn;
+    });*/
   }
 
   Future<void> _markAllAndFetch() async {
     try {
+      setState(() => loading = true);
       await NotificationService().markAllAsRead();
       final notifList = await NotificationService().getMyNotifications();
 
       final futures = notifList.map((notif) async {
-        final isConfirmed =
-            (notif['title'] ?? '').toLowerCase().contains("confirm");
-        final appointmentId = notif['appointment_id'];
-
-        if (isConfirmed && appointmentId != null) {
+        if (notif['type'] == 'confirmed' && notif['appointment_id'] != null) {
           try {
-            final appointment =
-                await AppointmentService().getAppointmentById(appointmentId);
+            final appointment = await AppointmentService()
+                .getAppointmentById(notif['appointment_id']);
             notif['appointment_data'] = appointment;
           } catch (e) {
-            print("⚠️ Erreur chargement appointment ID $appointmentId : $e");
+            print(
+                "⚠️ Erreur chargement appointment ID ${notif['appointment_id']} : $e");
           }
         }
         return notif;
@@ -64,21 +53,142 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
       final enrichedNotifs = await Future.wait(futures);
 
+      // Filter out expired appointments for confirmed notifications
+      final now = DateTime.now();
+      final filteredNotifs = enrichedNotifs.where((notif) {
+        if (notif['type'] == 'confirmed' && notif['appointment_data'] != null) {
+          final appointment = notif['appointment_data'];
+          final dateStr = appointment['date'];
+          final timeStr = appointment['start_time'];
+          final start = parseAppointmentDateTime(dateStr, timeStr);
+          return start == null || start.isAfter(now);
+        }
+        return true; // Keep reminder and cancellation notifications
+      }).toList();
+
       setState(() {
-        notifications = enrichedNotifs;
+        notifications = filteredNotifs;
         loading = false;
       });
     } catch (e) {
       print("❌ Erreur chargement notifications : $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text("Erreur lors du chargement des notifications")),
+      );
+      setState(() => loading = false);
+    }
+  }
+
+  Future<void> _clearAllNotifications() async {
+    try {
+      setState(() => loading = true);
+      await NotificationService().clearAllNotifications();
       setState(() {
+        notifications = [];
         loading = false;
       });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text("Toutes les notifications ont été supprimées")),
+      );
+    } catch (e) {
+      print("❌ Erreur suppression notifications : $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text("Erreur lors de la suppression des notifications")),
+      );
+      setState(() => loading = false);
+    }
+  }
+
+  Future<void> _deleteNotification(String id) async {
+    try {
+      setState(() => loading = true);
+      await NotificationService().deleteNotification(id);
+      await _markAllAndFetch();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Notification supprimée")),
+      );
+    } catch (e) {
+      print("❌ Erreur suppression notification : $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Erreur lors de la suppression")),
+      );
+    } finally {
+      setState(() => loading = false);
+    }
+  }
+
+  DateTime? parseAppointmentDateTime(String? dateStr, String? timeStr) {
+    if (dateStr == null || timeStr == null) return null;
+    try {
+      return DateFormat('yyyy-MM-dd HH:mm').parse('$dateStr $timeStr');
+    } catch (e) {
+      print("⚠️ Erreur parsing date/heure: $e");
+      return null;
     }
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text("Mes notifications")),
+        appBar: AppBar(
+          title: const Text(
+            "Mes notifications",
+            style: AppThemes.appbarSubPageTitleStyle,
+          ),
+          leading: IconButton(
+            icon: Container(
+              color: Colors.transparent,
+              width: 100,
+              height: 40,
+              child: const Icon(
+                Icons.arrow_back,
+                color: AppColors.mypsyBlack,
+                size: 15,
+              ),
+            ),
+            onPressed: () async {
+              Navigator.pop(context);
+            },
+          ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: _markAllAndFetch,
+              tooltip: 'Rafraîchir',
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete_sweep),
+              onPressed: notifications.isEmpty
+                  ? null
+                  : () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text("Supprimer tout"),
+                          content: const Text(
+                              "Voulez-vous supprimer toutes les notifications ?"),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text("Annuler"),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                                _clearAllNotifications();
+                              },
+                              child: const Text("Supprimer"),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+              tooltip: 'Supprimer tout',
+            ),
+          ],
+        ),
         body: loading
             ? const Center(child: CircularProgressIndicator())
             : notifications.isEmpty
@@ -93,213 +203,278 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       ],
                     ),
                   )
-                : ListView.builder(
-                    itemCount: notifications.length,
-                    itemBuilder: (context, index) {
-                      final notif = notifications[index];
-                      final createdAt = DateTime.parse(notif['created_at']);
-                      final isConfirmed = (notif['title'] ?? '')
-                          .toLowerCase()
-                          .contains("confirm");
+                : RefreshIndicator(
+                    onRefresh: _markAllAndFetch,
+                    child: ListView.builder(
+                      itemCount: notifications.length,
+                      itemBuilder: (context, index) {
+                        final notif = notifications[index];
+                        final createdAt = DateTime.parse(notif['created_at']);
+                        final notificationType = notif['type'];
 
-                      DateTime? start;
-                      String? formattedDateTime;
-                      final appointment = notif['appointment_data'];
+                        DateTime? start;
+                        String? formattedDateTime;
+                        String? psychiatristName;
+                        final appointment = notif['appointment_data'];
 
-                      if (isConfirmed && appointment != null) {
-                        final dateStr = appointment['date'];
-                        final timeStr = appointment['start_time'];
-                        final int durationMinutes =
-                            appointment['duration_minutes'] ?? 30;
+                        if (notificationType == 'confirmed' &&
+                            appointment != null) {
+                          final dateStr = appointment['date'];
+                          final timeStr = appointment['start_time'];
+                          psychiatristName =
+                              "Dr. ${appointment['full_name'] ?? 'psychiatre'}";
 
-                        try {
-                          if (dateStr != null && timeStr != null) {
-                            start = DateFormat('yyyy-MM-dd HH:mm')
-                                .parse('$dateStr $timeStr');
+                          final int durationMinutes =
+                              appointment['duration_minutes'] ?? 30;
+                          start = parseAppointmentDateTime(dateStr, timeStr);
+                          if (start != null) {
                             formattedDateTime =
                                 DateFormat('dd/MM/yyyy à HH:mm').format(start);
-                          } else {
-                            throw const FormatException(
-                                "Date ou heure manquante");
                           }
-                        } catch (e) {
-                          print("⚠️ Erreur parsing date/heure: $e");
                         }
-                      }
 
-                      return Card(
-                        elevation: 2,
-                        margin: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
+                        return AnimatedOpacity(
+                          opacity: 1.0,
+                          duration: const Duration(milliseconds: 300),
+                          child: Card(
+                            elevation: 3,
+                            margin: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                            child: Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Icon(
-                                    Icons.notifications,
-                                    color: notif['status'] == 'unread'
-                                        ? Colors.red
-                                        : Colors.grey,
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        notificationType == 'confirmed'
+                                            ? Icons.check_circle
+                                            : notificationType == 'cancellation'
+                                                ? Icons.cancel
+                                                : Icons.alarm,
+                                        color: notif['status'] == 'unread'
+                                            ? Colors.red
+                                            : Colors.grey,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          notif['title'] ?? 'Notification',
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
+                                      Text(
+                                        DateFormat('dd/MM HH:mm')
+                                            .format(createdAt),
+                                        style: const TextStyle(
+                                            fontSize: 11, color: Colors.grey),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.delete,
+                                            color: Colors.red, size: 20),
+                                        onPressed: () {
+                                          showDialog(
+                                            context: context,
+                                            builder: (context) => AlertDialog(
+                                              title: const Text("Supprimer ?"),
+                                              content: const Text(
+                                                  "Voulez-vous supprimer cette notification ?"),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () =>
+                                                      Navigator.pop(context),
+                                                  child: const Text("Annuler"),
+                                                ),
+                                                TextButton(
+                                                  onPressed: () {
+                                                    Navigator.pop(context);
+                                                    _deleteNotification(
+                                                        notif['id'].toString());
+                                                  },
+                                                  child:
+                                                      const Text("Supprimer"),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      notif['title'] ?? 'Notification',
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                  Text(
-                                    DateFormat('dd/MM HH:mm').format(createdAt),
-                                    style: const TextStyle(
-                                        fontSize: 11, color: Colors.grey),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              if (isConfirmed) ...[
-                                Text(
-                                  "Super nouvelle ! ${notif['body']}",
-                                  style: const TextStyle(color: Colors.green),
-                                ),
-                                if (formattedDateTime != null &&
-                                    start != null) ...[
                                   const SizedBox(height: 8),
                                   Text(
-                                    "📅 Rendez-vous le $formattedDateTime",
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.w500),
-                                  ),
-                                  const SizedBox(height: 10),
-                                  Align(
-                                    alignment: Alignment.centerRight,
-                                    child: ElevatedButton(
-                                      onPressed: () async {
-                                        if (start == null) {
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(
-                                            const SnackBar(
-                                                content: Text(
-                                                    "Données de rendez-vous invalides")),
-                                          );
-                                          return;
-                                        }
-
-                                        if (!(await requestCalendarPermission())) {
-                                          return;
-                                        }
-
-                                        try {
-                                          final deviceCalendarPlugin =
-                                              DeviceCalendarPlugin();
-                                          final calendarsResult =
-                                              await deviceCalendarPlugin
-                                                  .retrieveCalendars();
-                                          if (!calendarsResult.isSuccess ||
-                                              calendarsResult.data == null) {
-                                            ScaffoldMessenger.of(context)
-                                                .showSnackBar(
-                                              const SnackBar(
-                                                  content: Text(
-                                                      "Erreur : impossible de récupérer les calendriers")),
-                                            );
-                                            return;
-                                          }
-
-                                          final calendar =
-                                              calendarsResult.data!.firstWhere(
-                                            (cal) => cal.isReadOnly == false,
-                                            orElse: () => throw Exception(
-                                                "Aucun calendrier inscriptible trouvé"),
-                                          );
-
-                                          final psychiatristName =
-                                              appointment['psychiatristName'] ??
-                                                  "votre psychiatre";
-                                          final int durationMinutes =
-                                              appointment['duration_minutes'] ??
-                                                  30;
-
-                                          final event = Event(
-                                            calendar.id,
-                                            title:
-                                                'Consultation avec $psychiatristName',
-                                            description:
-                                                'Consultation psychiatrique en ligne avec $psychiatristName via MyPsy',
-                                            location: 'En ligne - MyPsy',
-                                            start: tz.TZDateTime.from(
-                                                start, tz.local),
-                                            end: tz.TZDateTime.from(
-                                                start.add(Duration(
-                                                    minutes: durationMinutes)),
-                                                tz.local),
-                                            reminders: [Reminder(minutes: 15)],
-                                          );
-
-                                          final createEventResult =
-                                              await deviceCalendarPlugin
-                                                  .createOrUpdateEvent(event);
-                                          if (createEventResult?.isSuccess ??
-                                              false) {
-                                            setState(() {
-                                              notif['addedToCalendar'] = true;
-                                            });
-                                            ScaffoldMessenger.of(context)
-                                                .showSnackBar(
-                                              const SnackBar(
-                                                  content: Text(
-                                                      "✅ Ajouté au calendrier")),
-                                            );
-                                          } else {
-                                            ScaffoldMessenger.of(context)
-                                                .showSnackBar(
-                                              const SnackBar(
-                                                  content: Text(
-                                                      "Erreur : événement non ajouté. Vérifiez votre calendrier par défaut.")),
-                                            );
-                                          }
-                                        } catch (e) {
-                                          print("❌ Erreur calendrier : $e");
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(
-                                            const SnackBar(
-                                                content: Text(
-                                                    "Erreur ajout calendrier")),
-                                          );
-                                        }
-                                      },
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.green,
-                                        foregroundColor: Colors.white,
-                                        shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(8)),
-                                      ),
-                                      child: notif['addedToCalendar'] == true
-                                          ? const Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Icon(Icons.check, size: 16),
-                                                SizedBox(width: 4),
-                                                Text("Ajouté"),
-                                              ],
-                                            )
-                                          : const Text("Ajouter"),
+                                    notificationType == 'confirmed' &&
+                                            psychiatristName != null
+                                        ? 'Votre rendez-vous a été confirmé par le $psychiatristName.'
+                                        : notif['body'] ?? '',
+                                    style: TextStyle(
+                                      color: notificationType == 'confirmed'
+                                          ? Colors.green
+                                          : notificationType == 'cancellation'
+                                              ? Colors.red
+                                              : Colors.blue,
                                     ),
                                   ),
+                                  if (notificationType == 'confirmed' &&
+                                      appointment != null) ...[
+                                    if (psychiatristName != null)
+                                      Padding(
+                                        padding:
+                                            const EdgeInsets.only(top: 8.0),
+                                        child: Text(
+                                          "👨‍⚕️ Avec $psychiatristName",
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.w500),
+                                        ),
+                                      ),
+                                    if (formattedDateTime != null &&
+                                        start != null)
+                                      Padding(
+                                        padding:
+                                            const EdgeInsets.only(top: 8.0),
+                                        child: Text(
+                                          "📅 Rendez-vous le $formattedDateTime",
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.w500),
+                                        ),
+                                      ),
+                                    const SizedBox(height: 10),
+                                    Align(
+                                      alignment: Alignment.centerRight,
+                                      child: isGoogleAuthenticated
+                                          ? ElevatedButton(
+                                              onPressed: () async {
+                                                if (start == null) {
+                                                  ScaffoldMessenger.of(context)
+                                                      .showSnackBar(
+                                                    const SnackBar(
+                                                        content: Text(
+                                                            "Données de rendez-vous invalides")),
+                                                  );
+                                                  return;
+                                                }
+
+                                                try {
+                                                  final int durationMinutes =
+                                                      appointment[
+                                                              'duration_minutes'] ??
+                                                          30;
+
+                                                  /*final success =
+                                                      await _googleCalendarHelper
+                                                          .addEventToGoogleCalendar(
+                                                    title:
+                                                        'Consultation avec $psychiatristName',
+                                                    description:
+                                                        'Consultation psychiatrique en ligne via MyPsy',
+                                                    location: 'En ligne',
+                                                    start: start,
+                                                    end: start.add(Duration(
+                                                        minutes:
+                                                            durationMinutes)),
+                                                  );*/
+
+                                                  /* if (success) {
+                                                    setState(() {
+                                                      notif['addedToCalendar'] =
+                                                          true;
+                                                    });
+                                                    ScaffoldMessenger.of(
+                                                            context)
+                                                        .showSnackBar(
+                                                      const SnackBar(
+                                                          content: Text(
+                                                              "Événement ajouté à Google Agenda")),
+                                                    );
+                                                  }*/
+                                                } catch (e) {
+                                                  print(
+                                                      "❌ Erreur ajout Google Agenda : $e");
+                                                  ScaffoldMessenger.of(context)
+                                                      .showSnackBar(
+                                                    const SnackBar(
+                                                        content: Text(
+                                                            "Erreur lors de l'ajout à Google Agenda")),
+                                                  );
+                                                }
+                                              },
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: Colors.green,
+                                                foregroundColor: Colors.white,
+                                                shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            8)),
+                                              ),
+                                              child: notif['addedToCalendar'] ==
+                                                      true
+                                                  ? const Row(
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      children: [
+                                                        Icon(Icons.check,
+                                                            size: 16),
+                                                        SizedBox(width: 4),
+                                                        Text("Ajouté"),
+                                                      ],
+                                                    )
+                                                  : const Text(
+                                                      "Ajouter à Google Agenda"),
+                                            )
+                                          : ElevatedButton(
+                                              onPressed: () async {
+                                                try {
+                                                  /* final success =
+                                                      await _googleCalendarHelper
+                                                          .signIn();
+                                                  if (success) {
+                                                    setState(() {
+                                                      isGoogleAuthenticated =
+                                                          true;
+                                                    });
+                                                    ScaffoldMessenger.of(
+                                                            context)
+                                                        .showSnackBar(
+                                                      const SnackBar(
+                                                          content: Text(
+                                                              "Connexion à Google Agenda réussie")),
+                                                    );
+                                                  }*/
+                                                } catch (e) {
+                                                  print(
+                                                      "❌ Erreur connexion Google Agenda : $e");
+                                                  ScaffoldMessenger.of(context)
+                                                      .showSnackBar(
+                                                    const SnackBar(
+                                                        content: Text(
+                                                            "Erreur lors de la connexion à Google Agenda")),
+                                                  );
+                                                }
+                                              },
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: Colors.blue,
+                                                foregroundColor: Colors.white,
+                                                shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            8)),
+                                              ),
+                                              child: const Text(
+                                                  "Connecter Google Agenda"),
+                                            ),
+                                    ),
+                                  ],
                                 ],
-                              ] else
-                                Text(notif['body'] ?? ''),
-                            ],
+                              ),
+                            ),
                           ),
-                        ),
-                      );
-                    },
+                        );
+                      },
+                    ),
                   ),
       );
 }
