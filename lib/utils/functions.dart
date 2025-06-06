@@ -95,6 +95,14 @@ String formatDateFr(String date) {
   }
 }
 
+getDateFromApi(String originalDateStr) {
+  final inputFormat = DateFormat("yyyy-MM-dd");
+  DateTime dateTime = inputFormat.parse(originalDateStr);
+  final outputFormat = DateFormat("dd/MM/yyyy");
+  String formattedDateStr = outputFormat.format(dateTime);
+  return formattedDateStr;
+}
+
 String formatDateTimeFr(String date, String time) {
   try {
     final full = DateTime.parse('$date $time').toLocal();
@@ -103,3 +111,15 @@ String formatDateTimeFr(String date, String time) {
     return '$date $time';
   }
 }
+
+DateTime getCurrentDate() => DateTime.now();
+
+DateTime getFirstDateForAgeRange(int startAge) {
+  int currentYear = getCurrentDate().year;
+  int birthYear = currentYear - startAge;
+  return DateTime(birthYear, 1, 1);
+}
+
+DateTime initialDate = getFirstDateForAgeRange(27);
+DateTime firstDate = getFirstDateForAgeRange(27);
+DateTime lastDate = getFirstDateForAgeRange(13);

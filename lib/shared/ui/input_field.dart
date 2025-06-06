@@ -65,7 +65,9 @@ class InputField extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: AppThemes.labelInputStyle,
+                style: isLightTheme
+                    ? AppThemes.labelInputStyleDark
+                    : AppThemes.labelInputStyle,
               ),
               if (isRequired)
                 const Text(

@@ -26,6 +26,13 @@ class AppThemes {
     fontWeight: FontWeight.w400,
   );
 
+  static const TextStyle labelInputStyleDark = TextStyle(
+    color: AppColors.mypsyBlack,
+    fontSize: 13,
+    fontFamily: fontInter,
+    fontWeight: FontWeight.w400,
+  );
+
   static const TextStyle questionInfo = TextStyle(
     color: AppColors.mypsyWhite,
     fontSize: 13,

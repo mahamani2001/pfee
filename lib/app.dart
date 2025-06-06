@@ -3,7 +3,7 @@ import 'package:mypsy_app/screens/apointment/AppointmentSuccessScreen.dart';
 import 'package:mypsy_app/screens/calendar/calednar_info.dart';
 import 'package:mypsy_app/screens/home/doctor_info.dart';
 import 'package:mypsy_app/screens/home/home.dart';
-import 'package:mypsy_app/screens/menu/sub_pages/contact.dart';
+import 'package:mypsy_app/screens/profil/contact.dart';
 import 'package:mypsy_app/screens/notifications_screen.dart';
 import 'package:mypsy_app/screens/profil/DoctorListScreen.dart';
 import 'package:mypsy_app/screens/splash/splash.dart';

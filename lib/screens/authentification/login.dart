@@ -132,9 +132,11 @@ class _LoginState extends State<Login> {
                 //  _formKey.currentState!.validate();
               },
               fromAuthentification: true,
+              isLightTheme: false,
             ),
             spaceBetweenInput,
             InputField(
+              isLightTheme: false,
               _passwordController,
               'Mot de passe',
               (value) {

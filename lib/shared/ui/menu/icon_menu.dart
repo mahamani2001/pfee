@@ -20,7 +20,7 @@ class IconMenu extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         height: 75,
         color: Colors.transparent,
-        width: (MediaQuery.of(context).size.width / 4) - 10,
+        width: (MediaQuery.of(context).size.width / 5) - 10,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
