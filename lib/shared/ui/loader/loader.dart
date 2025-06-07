@@ -53,7 +53,7 @@ class _mypsyLoaderState extends State<mypsyLoader>
               color: widget.backgroundColor ?? AppColors.mypsyPrimary,
             ),
             child: Image.asset(
-              'assets/icons/logo-klub.png',
+              'assets/logo.png',
               height: 35,
               width: 35,
             ),

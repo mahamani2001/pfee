@@ -12,6 +12,7 @@ import 'package:mypsy_app/shared/ui/buttons/button.dart';
 import 'package:mypsy_app/shared/ui/commun_widget.dart';
 import 'package:mypsy_app/shared/ui/flushbar.dart';
 import 'package:mypsy_app/shared/ui/input_field.dart';
+import 'package:mypsy_app/shared/ui/loader/loader.dart';
 import 'package:mypsy_app/utils/constants.dart';
 import 'package:mypsy_app/utils/functions.dart';
 import 'package:flutter/material.dart';
@@ -176,9 +177,10 @@ class _LoginState extends State<Login> {
             SizedBox(
               width: MediaQuery.of(context).size.width,
               child: mypsyButton(
-                onPress: _submitForm,
+                onPress: ispressed ? null : _submitForm,
                 bgColors: AppColors.mypsyPurple,
                 text: 'Se connecter',
+                withLoader: ispressed,
               ),
             ),
             const SizedBox(
