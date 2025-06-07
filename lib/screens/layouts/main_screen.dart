@@ -2,8 +2,8 @@ import 'package:mypsy_app/resources/services/fcm_service.dart';
 import 'package:mypsy_app/screens/anxiety_quiz/quiz_screen.dart';
 import 'package:mypsy_app/screens/apointment/appointment.dart';
 import 'package:mypsy_app/screens/home/home.dart';
-import 'package:mypsy_app/screens/menu/menu_page.dart';
-import 'package:mypsy_app/screens/profil/DoctorListScreen.dart';
+import 'package:mypsy_app/screens/profil/settings.dart';
+import 'package:mypsy_app/screens/psys/doctors_list.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';
 import 'package:mypsy_app/shared/ui/device_types.dart';
 import 'package:mypsy_app/shared/ui/menu/icon_menu.dart';
@@ -27,15 +27,15 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   final List<Widget> _screens = [
     const Home(),
     const Appointment(),
-    const QuestionPage(), // ou un écran neutre temporaire
+    const QuestionPage(),
     const DoctorListScreen(),
-    const MenuPage()
+    const Settings()
   ];
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await FCMService().initFCM(context); // ou toute initialisation lourde
+      await FCMService().initFCM(context);
     });
 
     _currentIndex = widget.initialTabIndex;
@@ -50,7 +50,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
               EdgeInsets.only(bottom: Device.get().isIos! ? 17 : 8, top: 5),
           color: AppColors.mypsyWhite,
           child: Container(
-            margin: const EdgeInsets.only(left: 15, right: 15),
+            margin: const EdgeInsets.only(left: 10, right: 10),
             width: MediaQuery.of(context).size.width,
             color: AppColors.mypsyWhite,
             padding: const EdgeInsets.symmetric(vertical: 4),
@@ -70,7 +70,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
                   child: IconMenu(
                     icon: 'assets/menu/booking.svg',
                     isSelected: _currentIndex == 1,
-                    title: 'Appointment',
+                    title: 'Rdv',
                   ),
                 ),
                 GestureDetector(
@@ -81,20 +81,20 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
                     title: 'Quiz',
                   ),
                 ),
-                /*   GestureDetector(
-                  onTap: () => setState(() => _currentIndex = 3),
-                  child: IconMenu(
-                    icon: 'assets/menu/user.svg',
-                    isSelected: _currentIndex == 3,
-                    title: 'Profil',
-                  ),
-                ), */
                 GestureDetector(
                   onTap: () => setState(() => _currentIndex = 3),
                   child: IconMenu(
                     icon: 'assets/menu/doctors.svg',
                     isSelected: _currentIndex == 3,
                     title: 'Psy',
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () => setState(() => _currentIndex = 4),
+                  child: IconMenu(
+                    icon: 'assets/menu/user.svg',
+                    isSelected: _currentIndex == 4,
+                    title: 'Profil',
                   ),
                 ),
               ],

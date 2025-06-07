@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:mypsy_app/screens/layouts/top_bar_subpage.dart';
+import 'package:mypsy_app/screens/psys/item_doctor.dart';
 import 'package:mypsy_app/shared/routes.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';
+import 'package:mypsy_app/shared/themes/app_theme.dart';
 import 'package:mypsy_app/shared/ui/buttons/button.dart';
 
 class DoctorDetailScreen extends StatelessWidget {
@@ -17,34 +19,16 @@ class DoctorDetailScreen extends StatelessWidget {
       backgroundColor: AppColors.mypsyBgApp,
       appBar: const TopBarSubPage(
         title: 'Detail',
-        goHome: true,
       ),
       body: SafeArea(
           child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // ✅ Photo statique
-            const CircleAvatar(
-              radius: 50,
-              backgroundImage: AssetImage("assets/images/psy.jpg"),
+            DoctorCard(
+              doctor: psychiatrist,
             ),
-            const SizedBox(height: 16),
-
-            // ✅ Nom + spécialité + ville
-            Text(
-              psychiatrist['full_name'] ?? 'Nom inconnu',
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 4),
-
-            const SizedBox(height: 4),
-
-            const SizedBox(height: 24),
-
-            // ✅ Informations statiques
             Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
@@ -53,89 +37,22 @@ class DoctorDetailScreen extends StatelessWidget {
                       color: Colors.black12.withOpacity(0.05), blurRadius: 6),
                 ],
               ),
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
               child: Column(
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: const [
-                      InfoItem(icon: Icons.star, label: "4.8", sub: "Avis"),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(Icons.location_on,
-                          size: 20, color: Color(0xFF6B7280)), // gris foncé
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          psychiatrist['adresse'] ?? 'Adresse non renseignée',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Color(
-                                0xFF374151), // gris très foncé / quasi noir
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: const [
-                      Icon(Icons.info_outline,
-                          size: 18, color: Colors.blueGrey),
-                      SizedBox(width: 8),
-                      Text("À propos ",
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 16)),
-                    ],
+                  experienceUi(psychiatrist),
+                  const SizedBox(height: 20),
+                  iconTitle(
+                    "À propos",
+                    Icons.info_outline,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    psychiatrist['description'] ??
-                        "Je vous accompagne avec écoute et bienveillance.Chaque pas compte vers une vie plus apaisée.",
-                    style: const TextStyle(fontSize: 14, color: Colors.black87),
-                  ),
-                  const SizedBox(height: 16),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: const [
-                            Icon(Icons.medical_services,
-                                size: 20, color: Color(0xFF457B9D)),
-                            SizedBox(width: 8),
-                            Text(
-                              "Spécialités",
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black87,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Chip(
-                          label: Text(
-                            psychiatrist['specialty'] ?? 'Psychiatre',
-                            style: const TextStyle(fontSize: 12),
-                          ),
-                          backgroundColor: const Color(0xFFDCEFFF),
-                          labelStyle: const TextStyle(color: Color(0xFF457B9D)),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    children: const [],
-                  ),
+                      psychiatrist['description'] ??
+                          "Je vous accompagne avec écoute et bienveillance.Chaque pas compte vers une vie plus apaisée.",
+                      style: AppThemes.getTextStyle()),
+                  const SizedBox(height: 20),
+                  availiblityUi(),
                 ],
               ),
             ),
@@ -163,6 +80,105 @@ class DoctorDetailScreen extends StatelessWidget {
       ),
     );
   }
+
+  Widget experienceUi(psychiatrist) => Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // First column: Specialties
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                iconTitle(
+                  "Spécialités",
+                  Icons.medical_services_outlined,
+                ),
+                Chip(
+                  padding: const EdgeInsets.all(0),
+                  label: Text(
+                    psychiatrist['specialty'] ?? 'Psychiatre',
+                    style: AppThemes.getTextStyle(
+                        size: 11, fontWeight: FontWeight.bold),
+                  ),
+                  backgroundColor: AppColors.mypsyBgApp,
+                ),
+              ],
+            ),
+          ),
+          Container(
+            width: 1,
+            height: 50,
+            color: Colors.grey[300],
+            margin: const EdgeInsets.symmetric(horizontal: 12),
+          ),
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                iconTitle(
+                  "Expérience",
+                  Icons.work,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  "10+",
+                  style: AppThemes.getTextStyle(
+                      size: 16, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+
+  Widget availiblityUi() => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          iconTitle(
+            "Horaires de travail",
+            Icons.access_time,
+          ),
+          const SizedBox(height: 8),
+          Divider(
+            color: AppColors.mypsyDarkBlue.withOpacity(0.2),
+          ),
+          ...[
+            'Lundi',
+            'Mardi',
+            'Mercredi',
+            'Jeudi',
+            'Venredi',
+            'Samedi',
+          ].map((day) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(day, style: AppThemes.getTextStyle(size: 13)),
+                    Row(
+                      children: [
+                        Text("00:00", style: AppThemes.getTextStyle()),
+                        Text(" - ",
+                            style: AppThemes.getTextStyle(
+                                size: 15, clr: AppColors.mypsyDarkBlue)),
+                        Text("00:00", style: AppThemes.getTextStyle()),
+                      ],
+                    ),
+                  ],
+                ),
+              )),
+        ],
+      );
+
+  Widget iconTitle(String title, IconData icon) => Row(
+        children: [
+          Icon(icon, size: 18, color: AppColors.mypsyDarkBlue),
+          const SizedBox(width: 8),
+          Text(title,
+              style: AppThemes.getTextStyle(fontWeight: FontWeight.bold)),
+        ],
+      );
 }
 
 class InfoItem extends StatelessWidget {

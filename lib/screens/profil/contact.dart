@@ -32,7 +32,7 @@ class ContactPage extends StatelessWidget {
                   ),
                   spacerMedium,
                   Text(
-                    'Une assistance est dédiée à votre programme de fidélité.',
+                    'Une assistance est dédiée pour vous ',
                     style: AppThemes.getTextStyle(fontWeight: FontWeight.w600),
                   ),
                   spaceBetweenInput,
