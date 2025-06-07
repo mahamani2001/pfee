@@ -1,10 +1,14 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import 'package:mypsy_app/helpers/app_config.dart';
+
 class PublicKeyAPI {
+  String baseUrl = '${AppConfig.instance()!.baseUrl!}public-key';
+
   Future<String> getPublicKey(String userId) async {
     final response = await http.get(
-      Uri.parse('192.168.100.139:3001/api/public-key/$userId'),
+      Uri.parse('$baseUrl/$userId'),
     );
 
     if (response.statusCode == 200) {

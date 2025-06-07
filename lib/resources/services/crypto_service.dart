@@ -1,14 +1,15 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:cryptography/cryptography.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:mypsy_app/helpers/app_config.dart';
 
 class CryptoService {
   final algorithm = X25519();
   final aesGcm = AesGcm.with256bits();
-  final storage = FlutterSecureStorage();
-  final String baseUrl = 'http://192.168.1.2:3001/api/auth';
+  final storage = const FlutterSecureStorage();
+
+  String baseUrl = '${AppConfig.instance()!.baseUrl!}auth';
 
   // 🔐 Générer et stocker la paire de clés X25519 si non existante
   Future<void> generateAndStoreKeyPair() async {

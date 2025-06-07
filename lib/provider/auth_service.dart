@@ -1,10 +1,11 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:mypsy_app/helpers/app_config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
-  final String baseUrl = 'http://192.168.1.2:3001/api/auth';
+  String baseUrl = '${AppConfig.instance()!.baseUrl!}auth';
 
   Future<Map<String, dynamic>> login(String email, String password) async {
     final response = await http.post(
@@ -32,12 +33,12 @@ class AuthService {
     await prefs.setString('refresh_token', refreshToken);
   }
 
-  static Future<String> fetchPublicKey(int userId) async {
+  Future<String> fetchPublicKey(int userId) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('jwt');
 
     final response = await http.get(
-      Uri.parse('http://192.168.1.2:3001/api/auth/$userId/x25519-public-key'),
+      Uri.parse('$baseUrl/$userId/x25519-public-key'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',

@@ -35,7 +35,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await FCMService.initFCM(context); // ou toute initialisation lourde
+      await FCMService().initFCM(context); // ou toute initialisation lourde
     });
 
     _currentIndex = widget.initialTabIndex;

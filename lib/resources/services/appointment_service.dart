@@ -1,36 +1,39 @@
 import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:mypsy_app/helpers/app_config.dart';
+import 'package:mypsy_app/resources/services/auth_service.dart';
 import 'package:mypsy_app/resources/services/http_service.dart';
 
 class AppointmentService {
-  final String baseUrl = 'http://192.168.1.2:3001/api/appointments';
+  String baseUrl = '${AppConfig.instance()!.baseUrl!}appointments';
 
   // 1️⃣ Réserver un rendez-vous
   Future<Map<String, dynamic>> reserveAppointment({
     required int psychiatristId,
     required String date,
     required String startTime,
-    required int durationMinutes,
+    int durationMinutes = 30,
     int? availabilityId,
   }) async {
-    final Map<String, dynamic> body = {
-      'psychiatristId': psychiatristId,
-      'date': date,
-      'startTime': startTime,
-      'duration_minutes': durationMinutes,
-    };
-    if (availabilityId != null) {
-      body['availabilityId'] = availabilityId;
-    }
-
-    final response = await HttpService().request(
-      url: baseUrl,
-      method: 'POST',
-      body: body,
+    final token = await AuthService().getToken();
+    final response = await http.post(
+      Uri.parse('$baseUrl/appointments'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'psychiatristId': psychiatristId,
+        'date': date,
+        'startTime': startTime,
+        'duration_minutes': durationMinutes,
+        'availabilityId': availabilityId,
+      }),
     );
 
     return {
       'status': response.statusCode,
-      'data': jsonDecode(response.body),
+      'body': jsonDecode(response.body),
     };
   }
 
@@ -46,7 +49,7 @@ class AppointmentService {
   // 3️⃣ Récupérer les rendez-vous par statut
   Future<List<dynamic>> getAppointmentsByStatus(String status) async {
     final response = await HttpService().request(
-      url: 'http://192.168.1.2:3001/api/appointments/me?status=$status',
+      url: '$baseUrl/me?status=$status',
       method: 'GET',
     );
 
@@ -148,7 +151,7 @@ class AppointmentService {
   Future<bool> confirmAppointment(int appointmentId) async {
     try {
       final response = await HttpService().request(
-        url: 'http://192.168.1.2:3001/api/appointments/$appointmentId/confirm',
+        url: '$baseUrl/$appointmentId/confirm',
         method: 'PUT',
         body: {}, // même vide c’est important pour éviter le JSON.parse null côté Node.js
       );
@@ -162,7 +165,7 @@ class AppointmentService {
 
   Future<bool> rejectAppointment(int appointmentId) async {
     final response = await HttpService().request(
-      url: 'http://192.168.1.2:3001/api/appointments/$appointmentId/reject',
+      url: '$baseUrl/$appointmentId/reject',
       method: 'PUT',
       body: {},
     );
@@ -178,7 +181,7 @@ class AppointmentService {
     required int extraMinutes,
   }) async {
     final response = await HttpService().request(
-      url: 'http://192.168.1.2:3001/api/appointments/$appointmentId/extend',
+      url: '$baseUrl/$appointmentId/extend',
       method: 'PUT',
       body: {'extraMinutes': extraMinutes},
     );
@@ -188,7 +191,7 @@ class AppointmentService {
 
   Future<Map<String, dynamic>?> getAppointmentById(int appointmentId) async {
     final response = await HttpService().request(
-      url: 'http://192.168.1.2:3001/api/appointments/$appointmentId',
+      url: '$baseUrl/$appointmentId',
       method: 'GET',
     );
 

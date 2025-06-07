@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:mypsy_app/helpers/app_config.dart';
 import 'package:mypsy_app/resources/services/auth_service.dart';
 
 class QuizService {
-  final String baseUrl = 'http://192.168.1.2:3001/api/quiz';
+  String baseUrl = '${AppConfig.instance()!.baseUrl!}quiz';
 
   // 🔹 Enregistrer un résultat de quiz
   Future<bool> submitResult({
@@ -13,7 +14,7 @@ class QuizService {
     required String token,
   }) async {
     final response = await http.post(
-      Uri.parse('http://192.168.1.2:3001/api/quiz/submit'),
+      Uri.parse('$baseUrl/submit'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token', // ✅ Obligatoire

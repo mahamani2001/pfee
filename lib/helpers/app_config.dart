@@ -3,7 +3,7 @@ class AppConfig {
   final bool? production;
   final String? baseUrl;
 
-  final String? websiteUrl;
+  final String? socketUrl;
   final String? appName;
   static AppConfig? _singleton;
 
@@ -11,7 +11,7 @@ class AppConfig {
     this.env,
     this.production,
     this.baseUrl,
-    this.websiteUrl,
+    this.socketUrl,
     this.appName,
   });
 
@@ -20,7 +20,7 @@ class AppConfig {
       env: config['env'],
       production: config['production'],
       baseUrl: config['baseUrl'],
-      websiteUrl: config['websiteUrl'],
+      socketUrl: config['socketUrl'],
       appName: config['appName'],
     );
   }

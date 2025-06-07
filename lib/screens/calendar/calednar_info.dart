@@ -23,6 +23,7 @@ class _BookingPageState extends State<BookingPage> {
   late int psychiatristId;
   int? appointmentId;
   Map<String, int> timeToAvailabilityId = {};
+
   @override
   void initState() {
     super.initState();
@@ -107,48 +108,106 @@ class _BookingPageState extends State<BookingPage> {
     if (_selectedDay == null || _selectedTime == null) return;
 
     final dateStr = DateFormat('yyyy-MM-dd').format(_selectedDay!);
-
-    // On convertit le time formaté Flutter → format HH:mm
-    final timeOfDay = TimeOfDay(
-      hour: int.parse(_selectedTime!.split(":")[0]),
-      minute: int.parse(_selectedTime!.split(":")[1]),
-    );
-    final startTime = timeOfDay.format(context); // e.g. 14:30
-    final hourStr = timeOfDay.hour.toString().padLeft(2, '0');
-    final minuteStr = timeOfDay.minute.toString().padLeft(2, '0');
+    final hourStr = _selectedTime!.split(":")[0].padLeft(2, '0');
+    final minuteStr = _selectedTime!.split(":")[1].padLeft(2, '0');
     final formattedStartTime = "$hourStr:$minuteStr";
 
     bool success = false;
 
-    // Cas 1 : Reprogrammation
     if (appointmentId != null) {
       success = await AppointmentService().rescheduleAppointment(
         appointmentId: appointmentId!,
         date: dateStr,
         startTime: formattedStartTime,
       );
-    }
-
-    // Cas 2 : Créneau proposé par le psychiatre
-    else if (availableTimes.contains(formattedStartTime)) {
+    } else if (availableTimes.contains(formattedStartTime)) {
       final result = await AppointmentService().reserveAppointment(
         psychiatristId: psychiatristId,
         date: dateStr,
         startTime: formattedStartTime,
         durationMinutes: 30,
-        availabilityId: timeToAvailabilityId[formattedStartTime], // 👈
+        availabilityId: timeToAvailabilityId[formattedStartTime],
       );
-      success = result['status'] == 201;
-    }
 
-    // Cas 3 : Heure personnalisée (non dans les créneaux)
-    else {
-      success = await AppointmentService().proposeCustomAppointment(
+      if (result['status'] == 201) {
+        success = true;
+      } else if (result['status'] == 409) {
+        final errorBody = result['body'];
+        if (errorBody['message'] ==
+            "Tu as déjà un autre rendez-vous à ce moment.") {
+          final conflictingTime = errorBody['conflictingTime'];
+          await showDialog(
+            context: context,
+            builder: (_) => AlertDialog(
+              title: const Text("Conflit de rendez-vous"),
+              content:
+                  Text("Tu as déjà un autre rendez-vous à $conflictingTime."),
+              actions: [
+                TextButton(
+                  child: const Text("OK"),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+          );
+          return;
+        } else {
+          await showDialog(
+            context: context,
+            builder: (_) => AlertDialog(
+              title: const Text("Créneau déjà pris"),
+              content: const Text(
+                  "Ce créneau vient d’être réservé. Veuillez en choisir un autre."),
+              actions: [
+                TextButton(
+                  child: const Text("OK"),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+          );
+          return;
+        }
+      }
+    } else {
+      final result = await AppointmentService().proposeCustomAppointment(
         psychiatristId: psychiatristId,
         date: dateStr,
         startTime: formattedStartTime,
         durationMinutes: 30,
       );
+
+      if (result == true) {
+        success = true;
+      } else {
+        // Vérifier si l'échec est dû à un chevauchement
+        final resultCheck = await AppointmentService().reserveAppointment(
+          psychiatristId: psychiatristId,
+          date: dateStr,
+          startTime: formattedStartTime,
+          durationMinutes: 30,
+        );
+        if (resultCheck['status'] == 409 &&
+            resultCheck['body']['message'] ==
+                "Tu as déjà un autre rendez-vous à ce moment.") {
+          final conflictingTime = resultCheck['body']['conflictingTime'];
+          await showDialog(
+            context: context,
+            builder: (_) => AlertDialog(
+              title: const Text("Conflit de rendez-vous"),
+              content:
+                  Text("Tu as déjà un autre rendez-vous à $conflictingTime."),
+              actions: [
+                TextButton(
+                  child: const Text("OK"),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+          );
+          return;
+        }
+      }
     }
 
     if (success) {
@@ -191,10 +250,10 @@ class _BookingPageState extends State<BookingPage> {
                   _selectedDay = selected;
                   _focusedDay = focused;
                   _selectedTime = null;
-                  availableTimes = []; // ✅ Reset pour forcer la reconstruction
+                  availableTimes = []; // Reset pour forcer la reconstruction
                 });
 
-                await loadTimesForDate(); // ✅ après setState
+                await loadTimesForDate(); // Après setState
               },
               calendarStyle: CalendarStyle(
                 todayDecoration: BoxDecoration(

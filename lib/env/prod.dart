@@ -2,6 +2,6 @@ const config = {
   'env': 'PROD',
   'production': true,
   'baseUrl': '',
-  'websiteUrl': '',
+  'socketUrl': '',
   'appName': 'mypsy',
 };

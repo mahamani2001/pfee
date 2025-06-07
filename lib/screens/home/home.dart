@@ -385,7 +385,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
                 ),
                 child: Text(
                   "Commencer le test",

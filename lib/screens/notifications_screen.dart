@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:mypsy_app/resources/services/NotificationService.dart';
 import 'package:mypsy_app/resources/services/appointment_service.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:mypsy_app/screens/calendar/GoogleCalendarHelper.dart';
+import 'package:mypsy_app/shared/themes/app_colors.dart';
+import 'package:mypsy_app/shared/themes/app_theme.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -16,7 +16,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   List<dynamic> notifications = [];
   bool loading = true;
   bool isGoogleAuthenticated = false;
-  final GoogleCalendarHelper _googleCalendarHelper = GoogleCalendarHelper();
 
   @override
   void initState() {
@@ -26,10 +25,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   Future<void> _checkGoogleAuthStatus() async {
-    final isSignedIn = await _googleCalendarHelper.isSignedIn();
+    /* final isSignedIn = await _googleCalendarHelper.isSignedIn();
     setState(() {
       isGoogleAuthenticated = isSignedIn;
-    });
+    });*/
   }
 
   Future<void> _markAllAndFetch() async {
@@ -80,6 +79,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       setState(() => loading = false);
     }
   }
+
   Future<void> _clearAllNotifications() async {
     try {
       setState(() => loading = true);
@@ -133,7 +133,25 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(
-          title: const Text("Mes notifications"),
+          title: const Text(
+            "Mes notifications",
+            style: AppThemes.appbarSubPageTitleStyle,
+          ),
+          leading: IconButton(
+            icon: Container(
+              color: Colors.transparent,
+              width: 100,
+              height: 40,
+              child: const Icon(
+                Icons.arrow_back,
+                color: AppColors.mypsyBlack,
+                size: 15,
+              ),
+            ),
+            onPressed: () async {
+              Navigator.pop(context);
+            },
+          ),
           actions: [
             IconButton(
               icon: const Icon(Icons.refresh),
@@ -346,7 +364,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                                               'duration_minutes'] ??
                                                           30;
 
-                                                  final success =
+                                                  /*final success =
                                                       await _googleCalendarHelper
                                                           .addEventToGoogleCalendar(
                                                     title:
@@ -358,9 +376,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                                     end: start.add(Duration(
                                                         minutes:
                                                             durationMinutes)),
-                                                  );
+                                                  );*/
 
-                                                  if (success) {
+                                                  /* if (success) {
                                                     setState(() {
                                                       notif['addedToCalendar'] =
                                                           true;
@@ -372,7 +390,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                                           content: Text(
                                                               "Événement ajouté à Google Agenda")),
                                                     );
-                                                  }
+                                                  }*/
                                                 } catch (e) {
                                                   print(
                                                       "❌ Erreur ajout Google Agenda : $e");
@@ -410,7 +428,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                           : ElevatedButton(
                                               onPressed: () async {
                                                 try {
-                                                  final success =
+                                                  /* final success =
                                                       await _googleCalendarHelper
                                                           .signIn();
                                                   if (success) {
@@ -425,7 +443,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                                           content: Text(
                                                               "Connexion à Google Agenda réussie")),
                                                     );
-                                                  }
+                                                  }*/
                                                 } catch (e) {
                                                   print(
                                                       "❌ Erreur connexion Google Agenda : $e");

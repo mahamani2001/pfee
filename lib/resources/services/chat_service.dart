@@ -1,13 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:mypsy_app/helpers/app_config.dart';
 import 'package:mypsy_app/resources/services/auth_service.dart';
 import 'package:mypsy_app/resources/services/http_service.dart';
 
 class ChatService {
-  final String baseUrl = 'http://192.168.1.2:3001/api/messages';
+  String baseUrl = '${AppConfig.instance()!.baseUrl!}messages';
 
-  // 🔁 Récupérer les messages chiffrés depuis le backend
   Future<List<dynamic>> getMessages(int appointmentId) async {
     final response = await HttpService().request(
       url: '$baseUrl/$appointmentId',
@@ -54,7 +54,7 @@ class ChatService {
     required int appointmentId,
     required int receiverId,
   }) async {
-    final uri = Uri.parse('http://192.168.1.2:3001/api/messages/upload');
+    final uri = Uri.parse('$baseUrl/upload');
     final token = await AuthService().getToken(); // 🔑 récupère token JWT
 
     final request = http.MultipartRequest('POST', uri)

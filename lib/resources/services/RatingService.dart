@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:mypsy_app/helpers/app_config.dart';
 import 'package:mypsy_app/resources/services/auth_service.dart';
 
 class RatingService {
@@ -9,10 +10,12 @@ class RatingService {
     required double rating,
   }) async {
     try {
+      String baseUrl = AppConfig.instance()!.baseUrl!;
+
       final token = await AuthService().getToken();
       print('🪪 TOKEN UTILISÉ : $token');
       final response = await http.post(
-        Uri.parse('http://192.168.1.2:3001/api/appointments/ratings'),
+        Uri.parse('$baseUrl/appointments/ratings'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token', // ✅ ajoute le token ici

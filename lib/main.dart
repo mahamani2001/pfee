@@ -48,11 +48,10 @@ Future<void> main({String? env}) async {
     directory = await getExternalStorageDirectory();
   }
   Hive.init(directory!.path);
-  if (env == null) {
-    AppConfig.fromJson(config);
-    env = 'dev';
-  }
 
+  AppConfig.fromJson(config);
+  env = 'dev';
+  print('Base Url ${AppConfig.instance()!.baseUrl}');
   SystemChrome.setPreferredOrientations(
     [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown],
   ).then((_) {

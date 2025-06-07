@@ -1,12 +1,14 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:mypsy_app/helpers/app_config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mypsy_app/resources/services/auth_service.dart';
 
 class HttpService {
   static final HttpService _instance = HttpService._internal();
   factory HttpService() => _instance;
+
   HttpService._internal();
 
   Future<String?> _getAccessToken() async {
@@ -14,14 +16,14 @@ class HttpService {
     return prefs.getString('jwt');
   }
 
-  Future<String?> _getRefreshToken() async {
+  Future<String?> getRefreshToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('refresh_token');
   }
 
   /// 🔁 Essaie de rafraîchir le token si nécessaire
   Future<bool> _tryRefreshToken() async {
-    final newToken = await AuthService.refreshToken();
+    final newToken = await AuthService().refreshToken();
     return newToken != null;
   }
 

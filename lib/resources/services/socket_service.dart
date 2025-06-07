@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mypsy_app/screens/consultation/ConsultationLauncherScreen.dart';
+import 'package:mypsy_app/helpers/app_config.dart';
 import 'package:mypsy_app/screens/consultation/chatconsultation.dart';
 import 'package:mypsy_app/screens/consultation/video_call_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -26,6 +26,8 @@ class SocketService {
   Function(String userId)? onUserStopTyping;
   Function(int messageId)? onMessageRead;
   Function(Map<String, dynamic> data)? onPatientJoined;
+  String socketUrl = AppConfig.instance()!.socketUrl!;
+
   Future<void> connectSocket({OnMessageReceived? onMessageCallback}) async {
     if (_socket != null && _socket!.connected) {
       print('🟢 Socket déjà connecté.');
@@ -36,7 +38,7 @@ class SocketService {
 
     if (token == null || AuthService.isTokenExpired(token)) {
       print('🔁 Token expiré. Tentative de refresh...');
-      final refreshedToken = await AuthService.refreshToken();
+      final refreshedToken = await AuthService().refreshToken();
       if (refreshedToken != null) {
         token = refreshedToken;
         final prefs = await SharedPreferences.getInstance();
@@ -50,7 +52,7 @@ class SocketService {
 
     print('📥 Token final utilisé pour le socket : $token');
 
-    _socket = IO.io('http:/192.168.100.139:3001', {
+    _socket = IO.io(socketUrl, {
       'transports': ['websocket'],
       'auth': {'token': token},
       'autoConnect': true,
