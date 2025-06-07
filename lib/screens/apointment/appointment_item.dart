@@ -67,176 +67,94 @@ class _AppointmentCardState extends State<AppointmentCard> {
   @override
   Widget build(BuildContext context) {
     final dateFr = formatDateFr(widget.date);
-    print(dateFr);
-    return cardUi(dateFr);
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      elevation: 1,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(Icons.person, size: 30),
-                const SizedBox(width: 12),
-                Expanded(
-                    child: Text(widget.name,
-                        style: AppThemes.getTextStyle(
-                            fontWeight: FontWeight.bold))),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                const Icon(Icons.calendar_today,
-                    size: 16, color: AppColors.mypsySecondary),
-                const SizedBox(width: 8),
-                Text("$dateFr à ${widget.time}",
-                    style: AppThemes.getTextStyle(clr: Colors.grey)),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(children: _buildActionButtons(context)),
-            const SizedBox(height: 12),
-            _buildJoinButton(context),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget cardUi(dateFr) => Container(
-        padding: const EdgeInsets.all(12),
-        margin: const EdgeInsets.symmetric(vertical: 8),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            const BoxShadow(
-              color: Colors.black12,
-              blurRadius: 6,
-              offset: Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                const SizedBox(width: 12),
-
-                // Main info section
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            width: 80,
-                            height: 80,
-                            decoration: BoxDecoration(
-                              image: const DecorationImage(
-                                  image: AssetImage("assets/images/psy.jpg")),
-                              color: AppColors.mypsyPrimary.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(5),
-                              border: Border.all(
-                                color: AppColors.mypsyPrimary.withOpacity(0.2),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(
-                            width: 10,
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(widget.name,
-                                  style: AppThemes.getTextStyle(
-                                      fontWeight: FontWeight.bold)),
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  const Icon(Icons.medical_services_outlined,
-                                      size: 14,
-                                      color: AppColors.mypsySecondary),
-                                  const SizedBox(width: 5),
-                                  Text(
-                                    "specilaite",
-                                    style: AppThemes.getTextStyle(
-                                      size: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  const Icon(Icons.calendar_today,
-                                      size: 14,
-                                      color: AppColors.mypsySecondary),
-                                  const SizedBox(width: 5),
-                                  Text(
-                                    "$dateFr à ${widget.time}",
-                                    style: AppThemes.getTextStyle(
-                                        size: 11, fontWeight: FontWeight.bold),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Divider(
-              color: AppColors.mypsyDarkBlue.withOpacity(0.2),
-            ),
-            Row(children: _buildActionButtons(context)),
-          ],
-        ),
-      );
-
-  Widget dateInfo() {
-    final dateFr = formatDateFr(widget.date);
-    String day = "";
-    String month = "";
-    if (dateFr.isNotEmpty) {
-      List<String> parts = dateFr.split(" ");
-      day = parts[1];
-      month = parts[2];
-    }
-
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 20),
+      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.blue,
-        borderRadius: BorderRadius.circular(8),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          const BoxShadow(
+            color: Colors.black12,
+            blurRadius: 6,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            month,
-            style: AppThemes.getTextStyle(clr: AppColors.mypsyWhite, size: 15),
+          Row(
+            children: [
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            image: const DecorationImage(
+                                image: AssetImage("assets/images/psy.jpg")),
+                            color: AppColors.mypsyPrimary.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(5),
+                            border: Border.all(
+                              color: AppColors.mypsyPrimary.withOpacity(0.2),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 10,
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(widget.name,
+                                style: AppThemes.getTextStyle(
+                                    fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                const Icon(Icons.medical_services_outlined,
+                                    size: 14, color: AppColors.mypsySecondary),
+                                const SizedBox(width: 5),
+                                Text(
+                                  "specilaite",
+                                  style: AppThemes.getTextStyle(
+                                    size: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                const Icon(Icons.calendar_today,
+                                    size: 14, color: AppColors.mypsySecondary),
+                                const SizedBox(width: 5),
+                                Text(
+                                  "$dateFr à ${widget.time}",
+                                  style: AppThemes.getTextStyle(
+                                      size: 11, fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          Text(
-            day,
-            style: AppThemes.getTextStyle(
-                size: 20,
-                clr: AppColors.mypsyWhite,
-                fontWeight: FontWeight.bold),
+          const SizedBox(height: 8),
+          Divider(
+            color: AppColors.mypsyDarkBlue.withOpacity(0.2),
           ),
-          Text(
-            widget.time,
-            style: AppThemes.getTextStyle(clr: AppColors.mypsyWhite),
-          ),
+          Row(children: _buildActionButtons(context)),
         ],
       ),
     );
