@@ -1,0 +1,460 @@
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:mypsy_app/screens/layouts/main_layout.dart';
+import 'package:mypsy_app/screens/layouts/top_bar_subpage.dart';
+import 'package:mypsy_app/shared/themes/app_colors.dart';
+import 'package:mypsy_app/shared/themes/app_theme.dart';
+import 'package:mypsy_app/shared/ui/buttons/button.dart';
+import 'package:mypsy_app/shared/ui/commun_widget.dart';
+import 'package:mypsy_app/shared/ui/flushbar.dart';
+import 'package:mypsy_app/shared/ui/input_field.dart';
+import 'package:mypsy_app/shared/ui/loader/loader.dart';
+import 'package:mypsy_app/utils/functions.dart';
+
+class Signup extends StatefulWidget {
+  const Signup({
+    super.key,
+  });
+
+  @override
+  State<Signup> createState() => _SignupState();
+}
+
+class _SignupState extends State<Signup> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  TextEditingController? _emailController = TextEditingController();
+  TextEditingController? _firstNameController = TextEditingController();
+  TextEditingController? _lastNameController = TextEditingController();
+  TextEditingController? _phoneController = TextEditingController();
+  TextEditingController? _dobController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  bool _obscurePwd = true, ispressed = false;
+  String? _selectedValue;
+  bool hiddenPassword1 = true,
+      clickedBtn = false,
+      hiddenPassword2 = true,
+      pwdLengthchk = true,
+      pwdUppercheck = true,
+      pwdSpclchk = true,
+      pwdNumberCheck = true,
+      pwdMatch = true,
+      btnPressed = false,
+      showPartTwo = false;
+  Color color1 = AppColors.mypsyBgApp,
+      color2 = AppColors.mypsyBgApp,
+      color3 = AppColors.mypsyBgApp;
+  final List<String> _options = [
+    'Lycéen(ne)',
+    'Étudiant(e)',
+    'Employee',
+    "En recherche d'emploi",
+  ];
+
+  final inputDateFormat = DateFormat('dd/MM/yyyy');
+
+  @override
+  void initState() {
+    ispressed = false;
+
+    _passwordController.addListener(() {
+      if (_passwordController.text.isEmpty) {
+        setState(() {
+          pwdLengthchk = false;
+          pwdUppercheck = false;
+          pwdSpclchk = false;
+          pwdNumberCheck = false;
+        });
+      } else {
+        //length check
+        if (_passwordController.text.length >= 8) {
+          setState(() {
+            pwdLengthchk = true;
+            color1 = AppColors.mypsyGreen;
+          });
+        } else if (_passwordController.text.isEmpty ||
+            (_passwordController.text.isNotEmpty &&
+                _passwordController.text.length < 8)) {
+          setState(() {
+            pwdLengthchk = false;
+            color1 = AppColors.mypsyAlertRed;
+          });
+        }
+//alteast one uppercase
+        String patternUpper = '[A-Z]+';
+        RegExp regExpUpper = new RegExp(patternUpper);
+        if (regExpUpper.hasMatch(_passwordController.text) &&
+            _passwordController.text.isNotEmpty) {
+          setState(() {
+            pwdUppercheck = true;
+            color2 = AppColors.mypsyGreen;
+          });
+        } else {
+          setState(() {
+            pwdUppercheck = false;
+            color2 = AppColors.mypsyAlertRed;
+          });
+        }
+        //atleast one number, character or space
+
+        //false means grey, true means green
+        if (_passwordController.text.isNotEmpty) {
+          if (regNum.hasMatch(_passwordController.text)) {
+            setState(() {
+              pwdNumberCheck = true;
+              color3 = AppColors.mypsyGreen;
+            });
+          } else {
+            setState(() {
+              pwdNumberCheck = false;
+              color3 = AppColors.mypsyAlertRed;
+            });
+          }
+          if (pwdNumberCheck && regspcl.hasMatch(_passwordController.text)) {
+            setState(() {
+              pwdSpclchk = true;
+              color3 = AppColors.mypsyGreen;
+            });
+          } else if (pwdNumberCheck &
+              regSpace.hasMatch(_passwordController.text)) {
+            setState(() {
+              pwdSpclchk = true;
+              color3 = AppColors.mypsyGreen;
+            });
+          } else {
+            setState(() {
+              pwdSpclchk = false;
+              pwdNumberCheck = false;
+              color3 = AppColors.mypsyAlertRed;
+            });
+          }
+        }
+      }
+      if (pwdUppercheck) {
+        setState(() {
+          color2 = AppColors.mypsyGreen;
+        });
+      }
+      if (pwdLengthchk) {
+        setState(() {
+          color1 = AppColors.mypsyGreen;
+        });
+      }
+      if (pwdSpclchk && pwdNumberCheck) {
+        setState(() {
+          color3 = AppColors.mypsyGreen;
+        });
+      }
+    });
+
+    _firstNameController = TextEditingController();
+    _lastNameController = TextEditingController();
+    _emailController = TextEditingController();
+    _phoneController = TextEditingController();
+
+    _dobController = TextEditingController(text: "");
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _firstNameController!.dispose();
+    _lastNameController!.dispose();
+    _emailController!.dispose();
+    _phoneController!.dispose();
+    _dobController!.dispose();
+    super.dispose();
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: firstDate,
+      lastDate: lastDate,
+    );
+    if (picked != null) {
+      String formattedDate = inputDateFormat.format(picked);
+      setState(() {
+        //  _dobController.text = "${picked.toLocal()}".split(' ')[0];
+        _dobController!.text = formattedDate;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => MainLayout(
+      title: '',
+      withBack: true,
+      child: Container(
+        height: MediaQuery.of(context).size.height,
+        decoration: mainDecoration,
+        child: Stack(
+          children: [
+            SafeArea(
+              child: SingleChildScrollView(
+                child: Column(children: [
+                  Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Positioned(
+                        left: 0,
+                        top: 0,
+                        child: IconButton(
+                          icon: const Icon(
+                            Icons.arrow_back,
+                            color: AppColors.mypsyBgApp,
+                            size: 22,
+                          ),
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                        ),
+                      ),
+                      Center(
+                        child: Image.asset(
+                          'assets/MYPsy.png',
+                          height: 160,
+                          color: AppColors.mypsyWhite,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: formUi(),
+                  ),
+                ]),
+              ),
+            ),
+            if (ispressed)
+              Positioned(
+                child: Container(
+                    color: AppColors.mypsyBlack.withOpacity(0.2),
+                    child: const Center(child: mypsyLoader())),
+              ),
+          ],
+        ),
+      ));
+
+  Widget formUi() => Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            InputField(
+              _lastNameController,
+              "Prénom",
+              (value) {
+                return null;
+              },
+              TextInputAction.done,
+              onChanged: (_) {
+                _formKey.currentState!.validate();
+              },
+              isRequired: false,
+              isLightTheme: false,
+            ),
+            const SizedBox(
+              height: 11,
+            ),
+            InputField(
+              _firstNameController,
+              "Nom",
+              (value) {
+                return null;
+              },
+              TextInputAction.done,
+              onChanged: (_) {
+                _formKey.currentState!.validate();
+              },
+              isLightTheme: false,
+            ),
+            const SizedBox(
+              height: 11,
+            ),
+            InputField(
+              isLightTheme: false,
+              _emailController,
+              "E-mail",
+              (value) {
+                if (value!.isEmpty) {
+                  return "Renseignez votre email";
+                }
+                String emailPattern = r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$';
+                RegExp regExp = RegExp(emailPattern);
+                if (!regExp.hasMatch(value)) {
+                  return "Entrez une adresse mail valide";
+                }
+                return null;
+              },
+              TextInputAction.done,
+              onChanged: (_) {
+                _formKey.currentState!.validate();
+              },
+            ),
+            const SizedBox(
+              height: 11,
+            ),
+            InputField(
+              isLightTheme: false,
+              _phoneController,
+              "Téléphone",
+              (value) {
+                if (value!.isEmpty) {
+                  return "Renseignez votre numéro de téléphone";
+                }
+                return null;
+              },
+              TextInputAction.done,
+              onChanged: (_) {
+                _formKey.currentState!.validate();
+              },
+            ),
+            const SizedBox(
+              height: 11,
+            ),
+            InputField(
+              isLightTheme: false,
+              isReadOnly: true,
+              onTap: () => _selectDate(context),
+              hideTopLabel: false,
+              _dobController,
+              "Date de naissance",
+              (value) {
+                return null;
+              },
+              TextInputAction.done,
+              onChanged: (_) {
+                _formKey.currentState!.validate();
+              },
+              isRequired: false,
+              fromAuthentification: true,
+            ),
+            const SizedBox(
+              height: 11,
+            ),
+            InputField(
+              hideTopLabel: false,
+              _passwordController,
+              showEyes: true,
+              "Mot de passe",
+              (value) {
+                if (value!.isEmpty) {
+                  return "Mot de passe requis";
+                }
+                return null;
+              },
+              TextInputAction.done,
+              onChanged: (_) {
+                _formKey.currentState!.validate();
+              },
+              fromAuthentification: true,
+              hidePwd: _obscurePwd,
+              withHideIcon: false,
+              pressedIcon: () {
+                setState(() {
+                  _obscurePwd = !_obscurePwd;
+                });
+              },
+            ),
+            const SizedBox(
+              height: 11,
+            ),
+            Container(
+              margin: const EdgeInsets.only(left: 5),
+              alignment: Alignment.centerLeft,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  infoUI('8 caractères', pwdLengthchk, color1),
+                  infoUI("Une majuscule", pwdUppercheck, color2),
+                  infoUI(listSpecialCarc, pwdSpclchk && pwdNumberCheck, color3),
+                ],
+              ),
+            ),
+            const SizedBox(
+              height: 11,
+            ),
+            Text(
+              "Dans la vie tu es ?",
+              style: AppThemes.getTextStyle(clr: AppColors.mypsyWhite),
+            ),
+            DropdownButton<String>(
+              hint: Text(
+                "Dans la vie tu es ?",
+                style: AppThemes.getTextStyle(clr: AppColors.mypsyWhite),
+              ),
+              isExpanded: true,
+              value: _selectedValue != null
+                  ? _selectedValue!.isNotEmpty
+                      ? _selectedValue
+                      : null
+                  : null,
+              onChanged: (newValue) {
+                setState(() {
+                  _selectedValue = newValue;
+                });
+              },
+              items: _options
+                  .map((option) => DropdownMenuItem<String>(
+                        value: option,
+                        child: Text(
+                          option,
+                          style: AppThemes.getTextStyle(),
+                        ),
+                      ))
+                  .toList(),
+            ),
+            const SizedBox(
+              height: 15,
+            ),
+            SizedBox(
+              width: MediaQuery.of(context).size.width,
+              child: mypsyButton(
+                onPress: () async {
+                  if (_dobController!.text.isEmpty) {
+                    customFlushbar("",
+                        "Merci de renseigner votre date de naissance", context,
+                        isError: true);
+                  }
+                  if (_formKey.currentState!.validate() &&
+                      _dobController!.text.isNotEmpty) {
+                    _formKey.currentState!.save();
+                    setState(() {
+                      ispressed = true;
+                    });
+                    // save USER
+                    setState(() {
+                      ispressed = false;
+                    });
+                    customFlushbar(
+                      "",
+                      "Mise à jour réussie",
+                      context,
+                    );
+                  } else {
+                    setState(() {
+                      ispressed = false;
+                    });
+                    customFlushbar("", 'Erreur', context, isError: true);
+                  }
+                },
+                text: "Valider",
+              ),
+            ),
+          ],
+        ),
+      );
+}
+
+Widget infoUI(String title, bool isOk, Color color) => Text(
+      title,
+      style: TextStyle(
+        color: color,
+        fontSize: 10,
+        fontWeight: FontWeight.w400,
+        height: 1.3,
+      ),
+      textAlign: TextAlign.left,
+    );

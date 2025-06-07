@@ -1,5 +1,6 @@
 import 'package:mypsy_app/resources/services/auth_service.dart';
 import 'package:mypsy_app/screens/authentification/otp_screen.dart';
+import 'package:mypsy_app/screens/authentification/signup.dart';
 import 'package:mypsy_app/screens/authentification/widgets/footer_btn.dart';
 import 'package:mypsy_app/screens/layouts/main_layout.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';
@@ -57,7 +58,9 @@ class _LoginState extends State<Login> {
             child: Stack(
               children: [
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 30.0,
+                  ),
                   child: SingleChildScrollView(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -184,7 +187,14 @@ class _LoginState extends State<Login> {
               child: mypsyButton(
                 colr: AppColors.mypsyPurple,
                 bgColors: AppColors.mypsyBgApp,
-                onPress: _submitForm,
+                onPress: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const Signup(),
+                    ),
+                  );
+                },
                 text: 'Creer mon compte',
               ),
             ),
@@ -197,13 +207,10 @@ class _LoginState extends State<Login> {
 
     setState(() => ispressed = true);
     final authService = AuthService();
-    print('Submit form ');
     final result = await authService.login(
       _emailController.text.trim(),
       _passwordController.text.trim(),
     );
-
-    print('Submit form ');
 
     if (result['status'] == 200 && result['data']['twoFactorRequired']) {
       final tempToken = result['data']['tempToken'];
