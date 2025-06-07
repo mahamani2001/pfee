@@ -356,6 +356,7 @@ class _SignupState extends State<Signup> {
                   _obscurePwd = !_obscurePwd;
                 });
               },
+              isLightTheme: false,
             ),
             const SizedBox(
               height: 11,
