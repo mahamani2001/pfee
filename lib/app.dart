@@ -1,5 +1,5 @@
 import 'package:mypsy_app/resources/services/socket_service.dart';
-import 'package:mypsy_app/screens/apointment/AppointmentSuccessScreen.dart';
+import 'package:mypsy_app/screens/apointment/appointment_success.dart';
 import 'package:mypsy_app/screens/calendar/calednar_info.dart';
 import 'package:mypsy_app/screens/home/doctor_info.dart';
 import 'package:mypsy_app/screens/home/home.dart';

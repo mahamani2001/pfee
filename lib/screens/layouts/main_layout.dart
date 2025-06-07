@@ -44,7 +44,7 @@ class MainLayout extends StatelessWidget {
       child: Scaffold(
         extendBodyBehindAppBar: true,
         resizeToAvoidBottomInset: false,
-        backgroundColor: AppColors.mypsyDarkBlue,
+        backgroundColor: AppColors.mypsyPrimary,
         body: SizedBox(
           height: size.height,
           width: size.width,

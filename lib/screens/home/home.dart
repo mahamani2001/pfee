@@ -100,9 +100,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         duration: const Duration(milliseconds: 500),
                         padding: const EdgeInsets.only(top: 50),
                         width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: AppColors.mypsyPrimary.withOpacity(0.3),
-                          borderRadius: const BorderRadius.only(
+                        decoration: const BoxDecoration(
+                          color: AppColors.mypsyPrimary,
+                          borderRadius: BorderRadius.only(
                             bottomLeft: Radius.circular(40),
                             bottomRight: Radius.circular(40),
                           ),
@@ -139,14 +139,21 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 children: [
                   Text("Bonjour,",
                       style: AppThemes.getTextStyle(
-                          size: 20, fontWeight: FontWeight.w500)),
+                          size: 18,
+                          fontWeight: FontWeight.w500,
+                          clr: AppColors.mypsyWhite)),
                   const SizedBox(height: 4),
                   Text(userName,
                       style: AppThemes.getTextStyle(
-                          size: 24, fontWeight: FontWeight.bold)),
+                          clr: AppColors.mypsyWhite,
+                          size: 25,
+                          fontWeight: FontWeight.bold)),
                   const SizedBox(height: 12),
                   Text("Comment vous sentez-vous aujourd'hui ?",
-                      style: AppThemes.getTextStyle(size: 16)),
+                      style: AppThemes.getTextStyle(
+                          size: 16,
+                          clr: AppColors.mypsyWhite,
+                          fontWeight: FontWeight.w600)),
                 ],
               ),
             ),

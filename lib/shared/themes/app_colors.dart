@@ -3,9 +3,9 @@ import 'dart:ui';
 class AppColors {
   AppColors._();
   static const mypsyBgApp = Color(0xFFF5F5F5);
-  static const mypsyPrimary = Color(0xFF0097E0);
+  static const mypsyPrimary = Color(0xFF20bdb9);
   static const mypsySecondary = Color(0xFF139DC0);
-  static const mypsyDarkBlue = Color(0xFF139DC0);
+  static const mypsyDarkBlue = Color(0xFF20bdb9);
   static const mypsyBlack = Color(0xFF000000);
   static const mypsyWhite = Color(0xFFFFFFFF);
   static const mypsyRed = Color(0xFFD30808);

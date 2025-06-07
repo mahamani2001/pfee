@@ -152,7 +152,9 @@ class _QuestionPageState extends State<QuestionPage> {
                           Container(
                             width: double.infinity,
                             padding: const EdgeInsets.all(16),
-                            decoration: mainDecorationBorder,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                color: AppColors.mypsyPrimary),
                             child: Text(question.question,
                                 style: AppThemes.getTextStyle(
                                     clr: AppColors.mypsyWhite,

@@ -3,147 +3,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:mypsy_app/resources/services/appointment_service.dart';
 import 'package:mypsy_app/resources/services/auth_service.dart';
-import 'package:mypsy_app/screens/apointment/appointment_list.dart';
 import 'package:mypsy_app/screens/consultation/ConsultationLauncherScreen.dart';
-import 'package:mypsy_app/screens/layouts/main_screen.dart';
 import 'package:mypsy_app/shared/routes.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';
 import 'package:mypsy_app/shared/themes/app_theme.dart';
+import 'package:mypsy_app/shared/ui/buttons/button.dart';
 import 'package:mypsy_app/utils/functions.dart';
-
-class Appointment extends StatelessWidget {
-  const Appointment({super.key});
-
-  @override
-  Widget build(BuildContext context) => DefaultTabController(
-        length: 3,
-        child: Scaffold(
-          backgroundColor: Colors.white,
-          appBar: AppBar(
-            leading: IconButton(
-              icon: Container(
-                color: Colors.transparent,
-                width: 100,
-                height: 40,
-                child: const Icon(
-                  Icons.arrow_back,
-                  color: AppColors.mypsyBlack,
-                  size: 15,
-                ),
-              ),
-              onPressed: () async {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const MainScreen(initialTabIndex: 0),
-                  ),
-                );
-              },
-            ),
-            centerTitle: true,
-            title: const Text(
-              "Mes rendez-vous",
-              style: AppThemes.appbarSubPageTitleStyle,
-            ),
-            automaticallyImplyLeading: false,
-            backgroundColor: Colors.white,
-            elevation: 0,
-            bottom: const TabBar(
-              labelColor: AppColors.mypsyDarkBlue,
-              unselectedLabelColor: Colors.grey,
-              indicatorColor: AppColors.mypsyDarkBlue,
-              tabs: [
-                Tab(
-                    child: Text(
-                  'À venir',
-                  style: AppThemes.appbarSubPageTitleStyle,
-                )),
-                Tab(
-                  child: Text(
-                    'En attente',
-                    style: AppThemes.appbarSubPageTitleStyle,
-                  ),
-                ),
-                Tab(
-                    child: Text(
-                  'Annulé',
-                  style: AppThemes.appbarSubPageTitleStyle,
-                )),
-              ],
-            ),
-          ),
-          body: const TabBarView(
-            children: [
-              AppointmentList(status: 'confirmed'),
-              AppointmentList(status: 'pending'),
-              AppointmentList(status: 'cancelled'),
-            ],
-          ),
-        ),
-      );
-}
-
-class AppointmentList extends StatefulWidget {
-  final String status;
-  const AppointmentList({super.key, required this.status});
-
-  @override
-  State<AppointmentList> createState() => _AppointmentListState();
-}
-
-class _AppointmentListState extends State<AppointmentList> {
-  List<dynamic> appointments = [];
-  String? userRole;
-
-  @override
-  void initState() {
-    super.initState();
-    loadAppointments();
-  }
-
-  Future<void> loadAppointments() async {
-    final data =
-        await AppointmentService().getAppointmentsByStatus(widget.status);
-    final role = await AuthService().getUserRole();
-    setState(() {
-      appointments = data;
-      userRole = role;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (appointments.isEmpty) {
-      return Center(
-        child: Text("Aucun rendez-vous",
-            style: AppThemes.getTextStyle(clr: Colors.grey, size: 16)),
-      );
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: appointments.length,
-      itemBuilder: (context, index) {
-        final appt = appointments[index];
-        final displayName = userRole == 'psychiatrist'
-            ? appt['patient_name'] ?? 'Patient inconnu'
-            : "Dr. ${appt['psychiatrist_name'] ?? 'Inconnu'}";
-
-        return AppointmentCard(
-          id: appt['id'],
-          psychiatristId: appt['psychiatrist_id'],
-          patientId: appt['patient_id'],
-          name: displayName,
-          time: appt['start_time'].toString().substring(0, 5),
-          date: appt['date'],
-          status: widget.status,
-          userRole: userRole ?? '',
-          onReload: loadAppointments,
-        );
-      },
-    );
-  }
-}
 
 class AppointmentCard extends StatefulWidget {
   final int id;
@@ -202,7 +67,8 @@ class _AppointmentCardState extends State<AppointmentCard> {
   @override
   Widget build(BuildContext context) {
     final dateFr = formatDateFr(widget.date);
-
+    print(dateFr);
+    return cardUi(dateFr);
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       elevation: 1,
@@ -241,6 +107,141 @@ class _AppointmentCardState extends State<AppointmentCard> {
     );
   }
 
+  Widget cardUi(dateFr) => Container(
+        padding: const EdgeInsets.all(12),
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            const BoxShadow(
+              color: Colors.black12,
+              blurRadius: 6,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                const SizedBox(width: 12),
+
+                // Main info section
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 80,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              image: const DecorationImage(
+                                  image: AssetImage("assets/images/psy.jpg")),
+                              color: AppColors.mypsyPrimary.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(5),
+                              border: Border.all(
+                                color: AppColors.mypsyPrimary.withOpacity(0.2),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 10,
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(widget.name,
+                                  style: AppThemes.getTextStyle(
+                                      fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  const Icon(Icons.medical_services_outlined,
+                                      size: 14,
+                                      color: AppColors.mypsySecondary),
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    "specilaite",
+                                    style: AppThemes.getTextStyle(
+                                      size: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  const Icon(Icons.calendar_today,
+                                      size: 14,
+                                      color: AppColors.mypsySecondary),
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    "$dateFr à ${widget.time}",
+                                    style: AppThemes.getTextStyle(
+                                        size: 11, fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Divider(
+              color: AppColors.mypsyDarkBlue.withOpacity(0.2),
+            ),
+            Row(children: _buildActionButtons(context)),
+          ],
+        ),
+      );
+
+  Widget dateInfo() {
+    final dateFr = formatDateFr(widget.date);
+    String day = "";
+    String month = "";
+    if (dateFr.isNotEmpty) {
+      List<String> parts = dateFr.split(" ");
+      day = parts[1];
+      month = parts[2];
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 20),
+      decoration: BoxDecoration(
+        color: Colors.blue,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            month,
+            style: AppThemes.getTextStyle(clr: AppColors.mypsyWhite, size: 15),
+          ),
+          Text(
+            day,
+            style: AppThemes.getTextStyle(
+                size: 20,
+                clr: AppColors.mypsyWhite,
+                fontWeight: FontWeight.bold),
+          ),
+          Text(
+            widget.time,
+            style: AppThemes.getTextStyle(clr: AppColors.mypsyWhite),
+          ),
+        ],
+      ),
+    );
+  }
+
   List<Widget> _buildActionButtons(BuildContext context) {
     if (widget.userRole == 'psychiatrist' && widget.status == 'pending') {
       return [
@@ -264,43 +265,26 @@ class _AppointmentCardState extends State<AppointmentCard> {
           widget.onReload();
         }),
         const SizedBox(width: 8),
-        _button(context, 'Annuler', Colors.red, () async {
+        _button(context, 'Annuler', Colors.red, isOutline: true, () async {
           await AppointmentService().cancelAppointment(widget.id);
           widget.onReload();
         }),
       ];
-    } else if (widget.status == 'cancelled') {
-      if (widget.userRole == 'patient') {
-        return [
-          _button(context, 'Reprogrammer', AppColors.mypsyDarkBlue, () async {
-            await Navigator.pushNamed(context, Routes.booking, arguments: {
-              'psychiatristId': widget.psychiatristId,
-              'appointmentId': widget.id,
-            });
-            widget.onReload();
-          }),
-        ];
-      } else {
-        return [];
-      }
     }
     return [];
   }
 
   Widget _button(BuildContext context, String text, Color color,
-          VoidCallback onPressed) =>
+          VoidCallback onPressed,
+          {bool isOutline = false}) =>
       Expanded(
-        child: ElevatedButton(
-          onPressed: onPressed,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: color,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          ),
-          child: Text(
-            text,
-            style: AppThemes.getTextStyle(clr: AppColors.mypsyWhite),
-          ),
+        child: mypsyButton(
+          text: text,
+          onPress: onPressed,
+          bgColors: color,
+          isFull: true,
+          btnType: isOutline ? BtnType.outline : BtnType.filled,
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
         ),
       );
 
