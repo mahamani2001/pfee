@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:intl/intl.dart';
 import 'package:mypsy_app/screens/layouts/main_layout.dart';
 import 'package:mypsy_app/screens/layouts/top_bar_subpage.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';
 import 'package:mypsy_app/shared/themes/app_theme.dart';
+import 'package:mypsy_app/shared/themes/top_ui.dart';
 import 'package:mypsy_app/shared/ui/buttons/button.dart';
 import 'package:mypsy_app/shared/ui/commun_widget.dart';
 import 'package:mypsy_app/shared/ui/flushbar.dart';
@@ -182,59 +184,78 @@ class _SignupState extends State<Signup> {
   }
 
   @override
-  Widget build(BuildContext context) => MainLayout(
-      title: '',
-      withBack: true,
-      child: Container(
-        height: MediaQuery.of(context).size.height,
-        decoration: mainDecoration,
-        child: Stack(
+  Widget build(BuildContext context) => Scaffold(
+        backgroundColor: Colors.white,
+        body: Stack(
           children: [
-            SafeArea(
-              child: SingleChildScrollView(
-                child: Column(children: [
-                  Stack(
-                    alignment: Alignment.center,
+            // Top Curve
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: ClipPath(
+                clipper: TopWaveClipper(),
+                child: Container(
+                  height: 180,
+                  color: AppColors.mypsyPrimary,
+                  child: Stack(
                     children: [
                       Positioned(
-                        left: 0,
-                        top: 0,
+                        top: 40,
+                        left: 16,
                         child: IconButton(
-                          icon: const Icon(
-                            Icons.arrow_back,
-                            color: AppColors.mypsyBgApp,
-                            size: 22,
-                          ),
+                          icon: const Icon(Icons.arrow_back,
+                              color: AppColors.mypsyWhite),
                           onPressed: () {
-                            Navigator.pop(context);
+                            Navigator.of(context).pop();
                           },
                         ),
                       ),
-                      Center(
-                        child: Image.asset(
-                          'assets/MYPsy.png',
-                          height: 160,
-                          color: AppColors.mypsyWhite,
+                      Align(
+                        alignment: Alignment.center,
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 40),
+                          child: Image.asset(
+                            'assets/MYPsy.png',
+                            height: 120,
+                            width: 160,
+                            color: AppColors.mypsyWhite,
+                          ),
                         ),
                       ),
                     ],
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: formUi(),
-                  ),
-                ]),
+                ),
               ),
             ),
-            if (ispressed)
-              Positioned(
-                child: Container(
-                    color: AppColors.mypsyBlack.withOpacity(0.2),
-                    child: const Center(child: mypsyLoader())),
+            Positioned(
+              bottom: 40,
+              left: 0,
+              right: 0,
+              child: InkWell(
+                onTap: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text(
+                  "Vous avez déjà un compte ? Connectez-vous",
+                  style: AppThemes.getTextStyle(
+                      size: 13, clr: AppColors.mypsyBlack),
+                  textAlign: TextAlign.center,
+                ),
               ),
+            ),
+
+            Positioned.fill(
+              top: 170,
+              bottom: 80,
+              child: SingleChildScrollView(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                  child: formUi()),
+            ),
           ],
         ),
-      ));
+      );
 
   Widget formUi() => Form(
         key: _formKey,
@@ -252,7 +273,6 @@ class _SignupState extends State<Signup> {
                 _formKey.currentState!.validate();
               },
               isRequired: false,
-              isLightTheme: false,
             ),
             const SizedBox(
               height: 11,
@@ -267,13 +287,11 @@ class _SignupState extends State<Signup> {
               onChanged: (_) {
                 _formKey.currentState!.validate();
               },
-              isLightTheme: false,
             ),
             const SizedBox(
               height: 11,
             ),
             InputField(
-              isLightTheme: false,
               _emailController,
               "E-mail",
               (value) {
@@ -296,7 +314,6 @@ class _SignupState extends State<Signup> {
               height: 11,
             ),
             InputField(
-              isLightTheme: false,
               _phoneController,
               "Téléphone",
               (value) {
@@ -314,7 +331,6 @@ class _SignupState extends State<Signup> {
               height: 11,
             ),
             InputField(
-              isLightTheme: false,
               isReadOnly: true,
               onTap: () => _selectDate(context),
               hideTopLabel: false,
@@ -356,35 +372,14 @@ class _SignupState extends State<Signup> {
                   _obscurePwd = !_obscurePwd;
                 });
               },
-              isLightTheme: false,
             ),
             const SizedBox(
               height: 11,
-            ),
-            Container(
-              margin: const EdgeInsets.only(left: 5),
-              alignment: Alignment.centerLeft,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  infoUI('8 caractères', pwdLengthchk, color1),
-                  infoUI("Une majuscule", pwdUppercheck, color2),
-                  infoUI(listSpecialCarc, pwdSpclchk && pwdNumberCheck, color3),
-                ],
-              ),
-            ),
-            const SizedBox(
-              height: 11,
-            ),
-            Text(
-              "Dans la vie tu es ?",
-              style: AppThemes.getTextStyle(clr: AppColors.mypsyWhite),
             ),
             DropdownButton<String>(
               hint: Text(
                 "Dans la vie tu es ?",
-                style: AppThemes.getTextStyle(clr: AppColors.mypsyWhite),
+                style: AppThemes.getTextStyle(),
               ),
               isExpanded: true,
               value: _selectedValue != null
@@ -448,14 +443,3 @@ class _SignupState extends State<Signup> {
         ),
       );
 }
-
-Widget infoUI(String title, bool isOk, Color color) => Text(
-      title,
-      style: TextStyle(
-        color: color,
-        fontSize: 10,
-        fontWeight: FontWeight.w400,
-        height: 1.3,
-      ),
-      textAlign: TextAlign.left,
-    );

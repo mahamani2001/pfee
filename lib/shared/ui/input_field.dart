@@ -128,9 +128,9 @@ class InputField extends StatelessWidget {
                   hintStyle: AppThemes.hintInputStyle,
                   floatingLabelBehavior: FloatingLabelBehavior.never,
                   labelStyle: AppThemes.placeholderStyle,
-                  enabledBorder: outlineBorder(0),
-                  border: outlineBorder(0),
-                  focusedBorder: outlineBorder(0),
+                  enabledBorder: outlineBorder(1),
+                  border: outlineBorder(1),
+                  focusedBorder: outlineBorder(1),
                   filled: true,
                   fillColor:
                       disableInput ? Colors.grey[300] : AppColors.mypsyWhite,
