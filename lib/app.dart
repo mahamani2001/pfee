@@ -5,7 +5,7 @@ import 'package:mypsy_app/screens/home/doctor_info.dart';
 import 'package:mypsy_app/screens/home/home.dart';
 import 'package:mypsy_app/screens/profil/contact.dart';
 import 'package:mypsy_app/screens/notifications_screen.dart';
-import 'package:mypsy_app/screens/profil/DoctorListScreen.dart';
+import 'package:mypsy_app/screens/psys/doctors_list.dart';
 import 'package:mypsy_app/screens/splash/splash.dart';
 import 'package:mypsy_app/shared/routes.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';

@@ -1,20 +1,13 @@
 import 'package:mypsy_app/resources/services/auth_service.dart';
-import 'package:mypsy_app/screens/anxiety_quiz/quiz_screen.dart';
-import 'package:mypsy_app/screens/anxiety_quiz/result_screnn.dart';
 import 'package:mypsy_app/screens/authentification/otp_screen.dart';
 import 'package:mypsy_app/screens/authentification/widgets/footer_btn.dart';
-import 'package:mypsy_app/screens/home/home.dart';
 import 'package:mypsy_app/screens/layouts/main_layout.dart';
-import 'package:mypsy_app/screens/profil/DoctorListScreen.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';
 import 'package:mypsy_app/shared/themes/app_theme.dart';
 import 'package:mypsy_app/shared/ui/buttons/button.dart';
 import 'package:mypsy_app/shared/ui/commun_widget.dart';
 import 'package:mypsy_app/shared/ui/flushbar.dart';
 import 'package:mypsy_app/shared/ui/input_field.dart';
-import 'package:mypsy_app/shared/ui/loader/loader.dart';
-import 'package:mypsy_app/utils/constants.dart';
-import 'package:mypsy_app/utils/functions.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

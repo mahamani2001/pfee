@@ -3,7 +3,7 @@ import 'package:mypsy_app/screens/anxiety_quiz/quiz_screen.dart';
 import 'package:mypsy_app/screens/apointment/appointment.dart';
 import 'package:mypsy_app/screens/home/home.dart';
 import 'package:mypsy_app/screens/profil/settings.dart';
-import 'package:mypsy_app/screens/profil/DoctorListScreen.dart';
+import 'package:mypsy_app/screens/psys/doctors_list.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';
 import 'package:mypsy_app/shared/ui/device_types.dart';
 import 'package:mypsy_app/shared/ui/menu/icon_menu.dart';
@@ -27,7 +27,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   final List<Widget> _screens = [
     const Home(),
     const Appointment(),
-    const QuestionPage(), // ou un écran neutre temporaire
+    const QuestionPage(),
     const DoctorListScreen(),
     const Settings()
   ];
@@ -35,7 +35,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await FCMService().initFCM(context); // ou toute initialisation lourde
+      await FCMService().initFCM(context);
     });
 
     _currentIndex = widget.initialTabIndex;
