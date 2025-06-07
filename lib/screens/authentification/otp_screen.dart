@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mypsy_app/resources/services/auth_service.dart';
 import 'package:mypsy_app/resources/services/crypto_service.dart';
 import 'package:mypsy_app/screens/layouts/main_screen.dart';
+import 'package:mypsy_app/screens/layouts/main_screen_psy.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';
 import 'package:mypsy_app/shared/themes/app_theme.dart';
 import 'package:mypsy_app/shared/ui/buttons/button.dart';
@@ -38,14 +39,23 @@ class _OtpScreenState extends State<OtpScreen> {
           result['token'],
           result['refreshToken'],
         );
-
+        print(result.toString());
         if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const MainScreen(initialTabIndex: 0),
-            ),
-          );
+          if (result['user']['role'] == 'psychiatrist') {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const MainScreenPsy(initialTabIndex: 0),
+              ),
+            );
+          } else {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const MainScreen(initialTabIndex: 0),
+              ),
+            );
+          }
         }
       } else {
         customFlushbar('', result['error'] ?? 'Erreur inconnue', context,
