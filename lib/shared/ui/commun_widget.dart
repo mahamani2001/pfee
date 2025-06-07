@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mypsy_app/shared/themes/app_colors.dart';
 
 SizedBox spaceBetween = const SizedBox(
   height: 11,
@@ -26,8 +27,8 @@ BoxDecoration mainDecorationBorder = BoxDecoration(
   borderRadius: BorderRadius.circular(12),
   gradient: const LinearGradient(
     colors: [
-      Color(0xFF0097E0),
-      Color(0xFF139DC0),
+      AppColors.mypsyPrimary,
+      AppColors.mypsyPrimary,
     ],
     stops: [0.1, 0.6],
     begin: Alignment.topLeft,
@@ -39,7 +40,7 @@ BoxDecoration mainDecoration = BoxDecoration(
   borderRadius: BorderRadius.circular(12),
   gradient: const LinearGradient(
     colors: [
-      Color(0xFF0097E0),
+      AppColors.mypsyPrimary,
       Color.fromARGB(255, 19, 157, 192),
     ],
     stops: [0.1, 0.6],

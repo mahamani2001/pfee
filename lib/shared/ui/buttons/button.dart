@@ -46,8 +46,8 @@ class mypsyButton extends StatelessWidget {
     Widget textWidget = Text(
       text,
       style: TextStyle(
-        color: colr,
-        fontSize: Device.get().isTablet! ? 18 : 16,
+        color: btnType == BtnType.outline ? AppColors.mypsyAlertRed : colr,
+        fontSize: Device.get().isTablet! ? 15 : 13,
         fontFamily: AppThemes.fontInter,
         fontWeight: isLight ? FontWeight.w300 : FontWeight.w600,
       ),
@@ -86,14 +86,31 @@ class mypsyButton extends StatelessWidget {
           child: textWidget,
         );
         break;
+      case BtnType.outline:
+        btn = ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            elevation: 0,
+            backgroundColor: AppColors.mypsyWhite,
+            padding: padding,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
+              side: const BorderSide(
+                color: AppColors.mypsyAlertRed,
+              ),
+            ),
+          ),
+          onPressed: onPress as void Function()?,
+          child: textWidget,
+        );
+        break;
       case BtnType.filledWhite:
         btn = ElevatedButton(
           style: ElevatedButton.styleFrom(
             elevation: 0,
             side: const BorderSide(width: 0.5),
-            shadowColor: Colors.transparent,
+            shadowColor: bgColors,
             foregroundColor: bgColors,
-            backgroundColor: bgColors,
+            backgroundColor: Colors.transparent,
             padding: padding,
             shape: AppThemes.shapeRadius,
           ),
