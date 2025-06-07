@@ -5,6 +5,14 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+String listSpecialCarc = "Un chiffre, Un symbole (!@#<>?:._;[]|=+)(*&%-)";
+
+const listSymbole = "(!@#<>?:_;[]|=+)(*&%-)";
+RegExp regNum = RegExp("^(?=.*[0-9])");
+RegExp regspcl = RegExp(r'[.!@#<>?:._;[\]|=+)(*&%-]');
+RegExp regSpace = RegExp("^(?=.*[!*s])");
+String patternUpper = '[A-Z]+';
+RegExp regExpUpper = RegExp(patternUpper);
 //Save the user credentials
 Future<dynamic> loginUser(String? usernameEncoded, String? pwdEncoded) async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -120,6 +128,6 @@ DateTime getFirstDateForAgeRange(int startAge) {
   return DateTime(birthYear, 1, 1);
 }
 
-DateTime initialDate = getFirstDateForAgeRange(27);
-DateTime firstDate = getFirstDateForAgeRange(27);
+DateTime initialDate = getFirstDateForAgeRange(80);
+DateTime firstDate = getFirstDateForAgeRange(80);
 DateTime lastDate = getFirstDateForAgeRange(13);

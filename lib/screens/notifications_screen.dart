@@ -4,6 +4,7 @@ import 'package:mypsy_app/resources/services/NotificationService.dart';
 import 'package:mypsy_app/resources/services/appointment_service.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';
 import 'package:mypsy_app/shared/themes/app_theme.dart';
+import 'package:mypsy_app/shared/ui/alert.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -164,26 +165,20 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   ? null
                   : () {
                       showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text("Supprimer tout"),
-                          content: const Text(
-                              "Voulez-vous supprimer toutes les notifications ?"),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: const Text("Annuler"),
-                            ),
-                            TextButton(
-                              onPressed: () {
+                          context: context,
+                          builder: (context) => AlertYesNo(
+                              title: "Supprimer tout? ",
+                              description:
+                                  "Voulez-vous supprimer toutes les notifications ?",
+                              btnTitle: "Supprimer",
+                              btnNoTitle: "Annuler",
+                              onPressYes: () {
                                 Navigator.pop(context);
                                 _clearAllNotifications();
                               },
-                              child: const Text("Supprimer"),
-                            ),
-                          ],
-                        ),
-                      );
+                              onClosePopup: () {
+                                Navigator.pop(context);
+                              }));
                     },
               tooltip: 'Supprimer tout',
             ),
@@ -197,9 +192,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(Icons.notifications_off,
-                            size: 64, color: Colors.grey),
+                            size: 50, color: Colors.grey),
                         SizedBox(height: 10),
-                        Text("Aucune notification"),
+                        Text(
+                          "Aucune notification",
+                          style: AppThemes.appbarSubPageTitleStyle,
+                        ),
                       ],
                     ),
                   )
@@ -237,7 +235,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           opacity: 1.0,
                           duration: const Duration(milliseconds: 300),
                           child: Card(
-                            elevation: 3,
+                            elevation: 1,
                             margin: const EdgeInsets.symmetric(
                                 horizontal: 12, vertical: 6),
                             shape: RoundedRectangleBorder(
@@ -258,62 +256,58 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                         color: notif['status'] == 'unread'
                                             ? Colors.red
                                             : Colors.grey,
+                                        size: 15,
                                       ),
-                                      const SizedBox(width: 8),
+                                      const SizedBox(width: 4),
                                       Expanded(
                                         child: Text(
                                           notif['title'] ?? 'Notification',
-                                          style: const TextStyle(
+                                          style: AppThemes.getTextStyle(
+                                              size: 12,
                                               fontWeight: FontWeight.bold),
                                         ),
                                       ),
                                       Text(
                                         DateFormat('dd/MM HH:mm')
                                             .format(createdAt),
-                                        style: const TextStyle(
-                                            fontSize: 11, color: Colors.grey),
+                                        style: AppThemes.getTextStyle(
+                                            size: 11,
+                                            fontWeight: FontWeight.w500),
                                       ),
                                       IconButton(
                                         icon: const Icon(Icons.delete,
                                             color: Colors.red, size: 20),
                                         onPressed: () {
                                           showDialog(
-                                            context: context,
-                                            builder: (context) => AlertDialog(
-                                              title: const Text("Supprimer ?"),
-                                              content: const Text(
-                                                  "Voulez-vous supprimer cette notification ?"),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: () =>
-                                                      Navigator.pop(context),
-                                                  child: const Text("Annuler"),
-                                                ),
-                                                TextButton(
-                                                  onPressed: () {
+                                              context: context,
+                                              builder: (context) => AlertYesNo(
+                                                  title: "Supprimer ?",
+                                                  description:
+                                                      "Voulez-vous supprimer cette notification ?",
+                                                  btnTitle: "Supprimer",
+                                                  btnNoTitle: "Annuler",
+                                                  onPressYes: () {
                                                     Navigator.pop(context);
                                                     _deleteNotification(
                                                         notif['id'].toString());
                                                   },
-                                                  child:
-                                                      const Text("Supprimer"),
-                                                ),
-                                              ],
-                                            ),
-                                          );
+                                                  onClosePopup: () {
+                                                    Navigator.pop(context);
+                                                  }));
                                         },
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(height: 8),
                                   Text(
                                     notificationType == 'confirmed' &&
                                             psychiatristName != null
                                         ? 'Votre rendez-vous a été confirmé par le $psychiatristName.'
                                         : notif['body'] ?? '',
-                                    style: TextStyle(
-                                      color: notificationType == 'confirmed'
-                                          ? Colors.green
+                                    style: AppThemes.getTextStyle(
+                                      size: 13,
+                                      fontWeight: FontWeight.w500,
+                                      clr: notificationType == 'confirmed'
+                                          ? AppColors.mypsyDarkGreen
                                           : notificationType == 'cancellation'
                                               ? Colors.red
                                               : Colors.blue,
@@ -327,8 +321,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                             const EdgeInsets.only(top: 8.0),
                                         child: Text(
                                           "👨‍⚕️ Avec $psychiatristName",
-                                          style: const TextStyle(
-                                              fontWeight: FontWeight.w500),
+                                          style: AppThemes.getTextStyle(
+                                            size: 13,
+                                          ),
                                         ),
                                       ),
                                     if (formattedDateTime != null &&
@@ -338,8 +333,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                             const EdgeInsets.only(top: 8.0),
                                         child: Text(
                                           "📅 Rendez-vous le $formattedDateTime",
-                                          style: const TextStyle(
-                                              fontWeight: FontWeight.w500),
+                                          style: AppThemes.getTextStyle(
+                                              size: 13,
+                                              fontWeight: FontWeight.w600),
                                         ),
                                       ),
                                     const SizedBox(height: 10),
@@ -422,8 +418,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                                         Text("Ajouté"),
                                                       ],
                                                     )
-                                                  : const Text(
-                                                      "Ajouter à Google Agenda"),
+                                                  : Text(
+                                                      "Ajouter à Google Agenda",
+                                                      style: AppThemes
+                                                          .getTextStyle(
+                                                              size: 13,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600),
+                                                    ),
                                             )
                                           : ElevatedButton(
                                               onPressed: () async {
@@ -461,10 +464,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                                 shape: RoundedRectangleBorder(
                                                     borderRadius:
                                                         BorderRadius.circular(
-                                                            8)),
+                                                            10)),
                                               ),
-                                              child: const Text(
-                                                  "Connecter Google Agenda"),
+                                              child: Text(
+                                                "Connecter Google Agenda",
+                                                style: AppThemes.getTextStyle(
+                                                    size: 13,
+                                                    fontWeight: FontWeight.w600,
+                                                    clr: AppColors.mypsyBgApp),
+                                              ),
                                             ),
                                     ),
                                   ],
