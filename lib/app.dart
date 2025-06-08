@@ -1,5 +1,6 @@
 import 'package:mypsy_app/resources/services/socket_service.dart';
 import 'package:mypsy_app/screens/apointment/appointment_success.dart';
+import 'package:mypsy_app/screens/apointment/patient_info.dart';
 import 'package:mypsy_app/screens/calendar/calednar_info.dart';
 import 'package:mypsy_app/screens/home/doctor_info.dart';
 import 'package:mypsy_app/screens/home/home.dart';
@@ -59,6 +60,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           '/home': (context) => const Home(),
           Routes.contact: (context) => const ContactPage(),
           Routes.doctorInfo: (context) => const DoctorDetailScreen(),
+          Routes.patientInfo: (context) => const PatientDetailScreen(),
           Routes.booking: (context) => const BookingPage(),
           Routes.appointmentSuccess: (context) =>
               const AppointmentSuccessScreen(),

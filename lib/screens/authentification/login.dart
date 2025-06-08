@@ -23,10 +23,10 @@ class Login extends StatefulWidget {
 
 class _LoginState extends State<Login> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final TextEditingController _emailController =
-      TextEditingController(text: "slimen@example.com");
-  final TextEditingController _passwordController =
-      TextEditingController(text: "nouveauMotDePasse1234");
+  final TextEditingController _emailController = TextEditingController(
+      text: "test@gmail.com"); //test@gmail.com slimen@example.com
+  final TextEditingController _passwordController = TextEditingController(
+      text: "MAHAmani180801"); //MAHAmani180801 nouveauMotDePasse1234
   bool _obscurePwd = true, ispressed = false;
   String customerID = '';
   bool showError = false;

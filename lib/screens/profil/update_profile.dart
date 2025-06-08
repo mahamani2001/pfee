@@ -9,7 +9,6 @@ import 'package:mypsy_app/shared/ui/buttons/button.dart';
 import 'package:mypsy_app/shared/ui/flushbar.dart';
 import 'package:mypsy_app/shared/ui/input_field.dart';
 import 'package:mypsy_app/shared/ui/loader/loader.dart';
-import 'package:mypsy_app/utils/functions.dart';
 import 'package:mypsy_app/helpers/app_config.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -89,11 +88,10 @@ class _UpdateProfileState extends State<UpdateProfile> {
                 .format(backendDateFormat.parse(data['date_of_birth']))
             : '';
 
-        // Extraire prénom et nom si besoin
         final fullName = (data['full_name'] ?? '').trim().split(' ');
         if (fullName.length >= 2) {
-          _lastNameController?.text = fullName[0]; // prénom
-          _firstNameController?.text = fullName.sublist(1).join(' '); // nom
+          _lastNameController?.text = fullName[0];
+          _firstNameController?.text = fullName.sublist(1).join(' ');
         } else if (fullName.length == 1) {
           _lastNameController?.text = fullName[0];
         }

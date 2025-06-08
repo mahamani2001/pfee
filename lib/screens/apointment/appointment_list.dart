@@ -51,16 +51,16 @@ class _AppointmentListState extends State<AppointmentList> {
             : "Dr. ${appt['psychiatrist_name'] ?? 'Inconnu'}";
 
         return AppointmentCard(
-          id: appt['id'],
-          psychiatristId: appt['psychiatrist_id'],
-          patientId: appt['patient_id'],
-          name: displayName,
-          time: appt['start_time'].toString().substring(0, 5),
-          date: appt['date'],
-          status: widget.status,
-          userRole: userRole ?? '',
-          onReload: loadAppointments,
-        );
+            id: appt['id'],
+            psychiatristId: appt['psychiatrist_id'],
+            patientId: appt['patient_id'],
+            name: displayName,
+            time: appt['start_time'].toString().substring(0, 5),
+            date: appt['date'],
+            status: widget.status,
+            userRole: userRole ?? '',
+            onReload: loadAppointments,
+            appt: appt);
       },
     );
   }
