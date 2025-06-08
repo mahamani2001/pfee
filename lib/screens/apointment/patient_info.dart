@@ -109,23 +109,25 @@ class PatientDetailScreen extends StatelessWidget {
           ],
         ),
       )),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 10, 24, 24),
-        child: mypsyButton(
-          isFull: true,
-          onPress: () {
-            Navigator.pushNamed(
-              context,
-              Routes.booking,
-              arguments: {
-                'patientId': patient['id'],
-              },
-            );
-          },
-          bgColors: AppColors.mypsyDarkBlue,
-          text: "Commence on ....",
-        ),
-      ),
+      bottomNavigationBar: (patient["status"] == "cancelled")
+          ? null
+          : Padding(
+              padding: const EdgeInsets.fromLTRB(24, 10, 24, 24),
+              child: mypsyButton(
+                isFull: true,
+                onPress: () {
+                  Navigator.pushNamed(
+                    context,
+                    Routes.booking,
+                    arguments: {
+                      'patientId': patient['id'],
+                    },
+                  );
+                },
+                bgColors: AppColors.mypsyDarkBlue,
+                text: "Commence on ....",
+              ),
+            ),
     );
   }
 
