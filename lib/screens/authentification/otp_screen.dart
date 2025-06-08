@@ -9,6 +9,7 @@ import 'package:mypsy_app/shared/ui/buttons/button.dart';
 import 'package:mypsy_app/shared/ui/commun_widget.dart';
 import 'package:mypsy_app/shared/ui/flushbar.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class OtpScreen extends StatefulWidget {
   final String tempToken;
@@ -41,6 +42,8 @@ class _OtpScreenState extends State<OtpScreen> {
         );
         print(result.toString());
         if (mounted) {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('user_role', result['user']['role']);
           if (result['user']['role'] == 'psychiatrist') {
             Navigator.pushReplacement(
               context,
