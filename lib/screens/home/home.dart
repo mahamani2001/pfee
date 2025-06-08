@@ -179,7 +179,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 Icon(
                   Icons.notifications_none,
                   size: 30,
-                  color: unreadCount > 0 ? Colors.red : Colors.black,
+                  color: unreadCount > 0 ? Colors.red : Colors.white,
                 ),
                 if (unreadCount > 0)
                   Container(
