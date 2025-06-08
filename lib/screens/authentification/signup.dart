@@ -409,48 +409,54 @@ class _SignupState extends State<Signup> {
             SizedBox(
               width: MediaQuery.of(context).size.width,
               child: mypsyButton(
-                onPress: () async {
-                  if (_dobController!.text.isEmpty) {
-                    customFlushbar("",
-                        "Merci de renseigner votre date de naissance", context,
-                        isError: true);
-                    return;
-                  }
+                onPress: ispressed
+                    ? null
+                    : () async {
+                        if (_dobController!.text.isEmpty) {
+                          customFlushbar(
+                              "",
+                              "Merci de renseigner votre date de naissance",
+                              context,
+                              isError: true);
+                          return;
+                        }
 
-                  if (_formKey.currentState!.validate()) {
-                    _formKey.currentState!.save();
-                    setState(() => ispressed = true);
+                        if (_formKey.currentState!.validate()) {
+                          _formKey.currentState!.save();
+                          setState(() => ispressed = true);
 
-                    final response = await AuthService().register(
-                      "${_lastNameController!.text.trim()} ${_firstNameController!.text.trim()}",
-                      _emailController!.text.trim(),
-                      _passwordController.text.trim(),
-                      _phoneController!.text.trim(),
-                      _dobController!.text.trim(), // format: "2024-01-01"
-                      _selectedValue ?? "",
-                    );
+                          final response = await AuthService().register(
+                            "${_lastNameController!.text.trim()} ${_firstNameController!.text.trim()}",
+                            _emailController!.text.trim(),
+                            _passwordController.text.trim(),
+                            _phoneController!.text.trim(),
+                            _dobController!.text.trim(),
+                            _selectedValue ?? "",
+                          );
 
-                    setState(() => ispressed = false);
+                          setState(() => ispressed = false);
 
-                    if (response['status'] == 201) {
-                      customFlushbar("✅", "Inscription réussie", context);
-                      // Tu peux ajouter une redirection ici si tu veux :
-                      // Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => Login()));
-                    } else {
-                      customFlushbar(
-                        "❌",
-                        response['data']['message'] ?? 'Erreur serveur',
-                        context,
-                        isError: true,
-                      );
-                    }
-                  } else {
-                    setState(() => ispressed = false);
-                    customFlushbar("", 'Erreur dans le formulaire', context,
-                        isError: true);
-                  }
-                },
+                          if (response['status'] == 201) {
+                            customFlushbar("✅", "Inscription réussie", context);
+                            // Tu peux ajouter une redirection ici si tu veux :
+                            // Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => Login()));
+                          } else {
+                            customFlushbar(
+                              "❌",
+                              response['data']['message'] ?? 'Erreur serveur',
+                              context,
+                              isError: true,
+                            );
+                          }
+                        } else {
+                          setState(() => ispressed = false);
+                          customFlushbar(
+                              "", 'Erreur dans le formulaire', context,
+                              isError: true);
+                        }
+                      },
                 text: "Valider",
+                withLoader: ispressed,
               ),
             ),
           ],

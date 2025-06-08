@@ -21,19 +21,21 @@ class AppointmentCard extends StatefulWidget {
   final String userRole;
   final VoidCallback onReload;
   final dynamic appt;
-
-  const AppointmentCard(
-      {super.key,
-      required this.id,
-      required this.psychiatristId,
-      required this.patientId,
-      required this.name,
-      required this.time,
-      required this.date,
-      required this.status,
-      required this.userRole,
-      required this.onReload,
-      required this.appt});
+  final bool canJoin;
+  const AppointmentCard({
+    super.key,
+    required this.id,
+    required this.psychiatristId,
+    required this.patientId,
+    required this.name,
+    required this.time,
+    required this.date,
+    required this.status,
+    required this.userRole,
+    required this.onReload,
+    required this.appt,
+    required this.canJoin,
+  });
 
   @override
   State<AppointmentCard> createState() => _AppointmentCardState();
@@ -203,7 +205,14 @@ class _AppointmentCardState extends State<AppointmentCard> {
           Divider(
             color: AppColors.mypsyDarkBlue.withOpacity(0.2),
           ),
-          Row(children: _buildActionButtons(context)),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(children: _buildActionButtons(context)),
+              const SizedBox(height: 10),
+              _buildJoinButton(context),
+            ],
+          ),
         ],
       ),
     );
@@ -222,6 +231,9 @@ class _AppointmentCardState extends State<AppointmentCard> {
           widget.onReload();
         }),
       ];
+    } else if (widget.status == 'confirmed' && canAccess) {
+      // ✅ Si l'accès est dispo → ne pas afficher d'autres boutons
+      return [];
     } else if (widget.status == 'pending' || widget.status == 'confirmed') {
       return [
         _button(context, 'Reprogrammer', AppColors.mypsyDarkBlue, () async {

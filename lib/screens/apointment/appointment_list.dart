@@ -7,7 +7,7 @@ import 'package:mypsy_app/shared/themes/app_theme.dart';
 class AppointmentList extends StatefulWidget {
   final String status;
   const AppointmentList({super.key, required this.status});
-
+   
   @override
   State<AppointmentList> createState() => _AppointmentListState();
 }
@@ -15,6 +15,26 @@ class AppointmentList extends StatefulWidget {
 class _AppointmentListState extends State<AppointmentList> {
   List<dynamic> appointments = [];
   String? userRole;
+  bool canAccessAppointment(Map<String, dynamic> appt) {
+    final date = DateTime.parse(appt['date']); // ex: 2025-06-09
+    final startTime = appt['start_time']; // ex: "14:30"
+    final startParts = startTime.split(':');
+    final startDateTime = DateTime(
+      date.year,
+      date.month,
+      date.day,
+      int.parse(startParts[0]),
+      int.parse(startParts[1]),
+      
+    );
+
+    final endDateTime = startDateTime.add(Duration(
+      minutes: appt['duration_minutes'] ?? 30,
+    ));
+
+    final now = DateTime.now();
+    return now.isAfter(startDateTime) && now.isBefore(endDateTime);
+  }
 
   @override
   void initState() {
@@ -50,17 +70,21 @@ class _AppointmentListState extends State<AppointmentList> {
             ? appt['patient_name'] ?? 'Patient inconnu'
             : "Dr. ${appt['psychiatrist_name'] ?? 'Inconnu'}";
 
-        return AppointmentCard(
-            id: appt['id'],
-            psychiatristId: appt['psychiatrist_id'],
-            patientId: appt['patient_id'],
-            name: displayName,
-            time: appt['start_time'].toString().substring(0, 5),
-            date: appt['date'],
-            status: widget.status,
-            userRole: userRole ?? '',
-            onReload: loadAppointments,
-            appt: appt);
+       return AppointmentCard(
+  id: appt['id'],
+  psychiatristId: appt['psychiatrist_id'],
+  patientId: appt['patient_id'],
+  name: displayName,
+  time: appt['start_time'].toString().substring(0, 5),
+  date: appt['date'],
+  status: widget.status,
+  userRole: userRole ?? '',
+  onReload: loadAppointments,
+  appt: appt,
+  canJoin: canAccessAppointment(appt), // ✅ ← AJOUT ICI
+);
+
+           
       },
     );
   }
