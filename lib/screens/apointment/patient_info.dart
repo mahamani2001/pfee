@@ -55,6 +55,30 @@ class PatientDetailScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 100),
+            _buildSectionTitle("Appointment Schedule"),
+            _buildInfoRow("Date", "23 September 2023"),
+            _buildInfoRow("Time", "05 : 30 PM"),
+            Divider(height: 32),
+            _buildSectionTitle("Patient Details"),
+            _buildInfoRow("Name", "Akash basak"),
+            _buildInfoRow("Age", "26 years"),
+            _buildInfoRow("Gender", "Male"),
+            _buildInfoRow(
+              "Problem",
+              "Lorem ipsum dolor sit amet consectetur. Donec duis faucibus vitae",
+              isMultiline: true,
+              trailingWidget: Text(
+                "See more",
+                style: TextStyle(color: Colors.teal),
+              ),
+            ),
+            Divider(height: 32),
+            _buildSectionTitle("General Instructions"),
+            _buildInstruction(
+                "Start meeting with a stable internet connection"),
+            _buildInstruction("Avoid low light rooms for better observation"),
+            _buildInstruction("Talk to Doctor loud and clear"),
+            _buildInstruction("Ensure a quiet environment during the session"),
           ],
         ),
       )),
@@ -73,8 +97,71 @@ class PatientDetailScreen extends StatelessWidget {
             );
           },
           bgColors: AppColors.mypsyDarkBlue,
-          text: "Prendre rendez-vous",
+          text: "Commence on ....",
         ),
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: TextStyle(
+        fontWeight: FontWeight.bold,
+        fontSize: 16,
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value,
+      {bool isMultiline = false, Widget? trailingWidget}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        crossAxisAlignment:
+            isMultiline ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 90,
+            child: Text(
+              "$label :",
+              style: TextStyle(fontWeight: FontWeight.w500),
+            ),
+          ),
+          Expanded(
+            child: Wrap(
+              children: [
+                Text(
+                  value,
+                  style: TextStyle(color: Colors.black87),
+                ),
+                if (trailingWidget != null) ...[
+                  SizedBox(width: 6),
+                  trailingWidget,
+                ]
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInstruction(String text) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.check_circle, color: Colors.green, size: 18),
+          SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(color: Colors.black87),
+            ),
+          ),
+        ],
       ),
     );
   }
