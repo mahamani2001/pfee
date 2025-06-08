@@ -304,10 +304,8 @@ class _AppointmentCardState extends State<AppointmentCard> {
         ),
       );
     } else {
-      return const Text(
-        "Disponible à l'heure du rendez-vous",
-        style: TextStyle(color: Colors.grey),
-      );
+      return Text("Disponible à l'heure du rendez-vous",
+          style: AppThemes.getTextStyle(clr: AppColors.mypsyGrey));
     }
   }
 }
