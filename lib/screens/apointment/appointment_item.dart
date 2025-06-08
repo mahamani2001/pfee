@@ -7,6 +7,7 @@ import 'package:mypsy_app/screens/consultation/ConsultationLauncherScreen.dart';
 import 'package:mypsy_app/shared/routes.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';
 import 'package:mypsy_app/shared/themes/app_theme.dart';
+import 'package:mypsy_app/shared/ui/alert.dart';
 import 'package:mypsy_app/shared/ui/buttons/button.dart';
 import 'package:mypsy_app/utils/functions.dart';
 
@@ -218,17 +219,53 @@ class _AppointmentCardState extends State<AppointmentCard> {
     );
   }
 
+  void confirmRdv() {
+    final dateFr = formatDateFr(widget.date);
+    showDialog(
+        context: context,
+        builder: (context) => AlertYesNo(
+            title: "Confirmation? ",
+            description:
+                "Voulez-vous confirmer ce RDV\n[$dateFr à ${widget.time}]?",
+            btnTitle: "Oui",
+            btnNoTitle: "Annuler",
+            onPressYes: () async {
+              await AppointmentService().confirmAppointment(widget.id);
+              widget.onReload();
+            },
+            onClosePopup: () {
+              Navigator.pop(context);
+            }));
+  }
+
+  void alertRejct() {
+    final dateFr = formatDateFr(widget.date);
+    showDialog(
+        context: context,
+        builder: (context) => AlertYesNo(
+            title: "Rejeter? ",
+            description:
+                "Voulez-vous rejeter ce RDV \n $dateFr à ${widget.time}?",
+            btnTitle: "Oui",
+            btnNoTitle: "Non",
+            onPressYes: () async {
+              await AppointmentService().rejectAppointment(widget.id);
+              widget.onReload();
+            },
+            onClosePopup: () {
+              Navigator.pop(context);
+            }));
+  }
+
   List<Widget> _buildActionButtons(BuildContext context) {
     if (widget.userRole == 'psychiatrist' && widget.status == 'pending') {
       return [
         _button(context, 'Confirmer', Colors.green, () async {
-          await AppointmentService().confirmAppointment(widget.id);
-          widget.onReload();
+          confirmRdv();
         }),
         const SizedBox(width: 8),
         _button(context, 'Rejeter', Colors.red, () async {
-          await AppointmentService().rejectAppointment(widget.id);
-          widget.onReload();
+          alertRejct();
         }),
       ];
     } else if (widget.status == 'confirmed' && canAccess) {
