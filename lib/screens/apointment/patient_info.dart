@@ -33,7 +33,7 @@ class PatientDetailScreen extends StatelessWidget {
                   color: AppColors.mypsyAlertRed,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
-                    BoxShadow(color: AppColors.mypsyBgApp, blurRadius: 6),
+                    const BoxShadow(color: AppColors.mypsyBgApp, blurRadius: 6),
                   ],
                 ),
                 padding:
