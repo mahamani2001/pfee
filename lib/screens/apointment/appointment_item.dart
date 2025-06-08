@@ -20,19 +20,20 @@ class AppointmentCard extends StatefulWidget {
   final String status;
   final String userRole;
   final VoidCallback onReload;
+  final dynamic appt;
 
-  const AppointmentCard({
-    super.key,
-    required this.id,
-    required this.psychiatristId,
-    required this.patientId,
-    required this.name,
-    required this.time,
-    required this.date,
-    required this.status,
-    required this.userRole,
-    required this.onReload,
-  });
+  const AppointmentCard(
+      {super.key,
+      required this.id,
+      required this.psychiatristId,
+      required this.patientId,
+      required this.name,
+      required this.time,
+      required this.date,
+      required this.status,
+      required this.userRole,
+      required this.onReload,
+      required this.appt});
 
   @override
   State<AppointmentCard> createState() => _AppointmentCardState();
@@ -65,7 +66,19 @@ class _AppointmentCardState extends State<AppointmentCard> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => widget.userRole == 'psychiatrist'
+      ? GestureDetector(
+          onTap: () {
+            Navigator.pushNamed(
+              context,
+              Routes.patientInfo,
+              arguments: {'patient': widget.appt},
+            );
+          },
+          child: cardInfo())
+      : cardInfo();
+
+  Widget cardInfo() {
     final dateFr = formatDateFr(widget.date);
     return Container(
       padding: const EdgeInsets.all(12),
@@ -141,40 +154,42 @@ class _AppointmentCardState extends State<AppointmentCard> {
                                 ),
                               ],
                             ),
-                            const SizedBox(
-                              height: 5,
-                            ),
-                            Row(
-                              children: [
-                                const Icon(Icons.hourglass_top,
-                                    size: 14, color: AppColors.mypsyOrange),
-                                const SizedBox(width: 5),
-                                Text(
-                                  "En attente de confirmation",
-                                  style: AppThemes.getTextStyle(
-                                      size: 11,
-                                      clr: AppColors.mypsyOrange,
-                                      fontWeight: FontWeight.bold),
+                            if (widget.status == 'pending')
+                              Container(
+                                margin: const EdgeInsets.only(top: 5),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.hourglass_top,
+                                        size: 14, color: AppColors.mypsyOrange),
+                                    const SizedBox(width: 5),
+                                    Text(
+                                      "En attente de confirmation",
+                                      style: AppThemes.getTextStyle(
+                                          size: 11,
+                                          clr: AppColors.mypsyOrange,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                            const SizedBox(
-                              height: 5,
-                            ),
-                            Row(
-                              children: [
-                                const Icon(Icons.check_circle,
-                                    size: 14, color: AppColors.mypsyGreen),
-                                const SizedBox(width: 5),
-                                Text(
-                                  "Confirmer",
-                                  style: AppThemes.getTextStyle(
-                                      size: 11,
-                                      clr: AppColors.mypsyGreen,
-                                      fontWeight: FontWeight.bold),
+                              ),
+                            if (widget.status == 'confirmed')
+                              Container(
+                                margin: const EdgeInsets.only(top: 5),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.check_circle,
+                                        size: 14, color: AppColors.mypsyGreen),
+                                    const SizedBox(width: 5),
+                                    Text(
+                                      "Confirmer",
+                                      style: AppThemes.getTextStyle(
+                                          size: 11,
+                                          clr: AppColors.mypsyGreen,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                              )
                           ],
                         ),
                       ],
