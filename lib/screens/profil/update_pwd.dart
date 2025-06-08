@@ -1,5 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:http/http.dart' as http;
+import 'package:mypsy_app/helpers/app_config.dart';
+import 'package:mypsy_app/resources/services/auth_service.dart';
 import 'package:mypsy_app/screens/layouts/top_bar_subpage.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';
 import 'package:mypsy_app/shared/themes/app_theme.dart';
@@ -198,16 +203,36 @@ class _UpdatePwdState extends State<UpdatePwd> {
 
   _submitForm() async {
     if (_formKeyPwd.currentState!.validate()) {
-      _formKeyPwd.currentState!.save();
+      setState(() => ispressed = true);
+      final token = await AuthService().getJwtToken();
 
-      customFlushbar(
-        "",
-        "Mot de passe changé avec succès",
-        context,
+      final url =
+          Uri.parse('${AppConfig.instance()!.baseUrl!}auth/updatePassword');
+
+      final response = await http.put(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          "currentPassword": _currentPwd.text.trim(),
+          "newPassword": _passwordController.text.trim(),
+          "confirmPassword": _confirmPasswordController.text.trim(),
+        }),
       );
-      clearForm();
+
+      setState(() => ispressed = false);
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        customFlushbar("", data['message'], context);
+        clearForm();
+      } else {
+        customFlushbar("", data['message'], context, isError: true);
+      }
     } else {
-      customFlushbar("", "Erreur lors de l'envoie", context, isError: true);
+      customFlushbar("", "Erreur lors de l'envoi", context, isError: true);
     }
   }
 
