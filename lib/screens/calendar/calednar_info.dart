@@ -4,6 +4,9 @@ import 'package:mypsy_app/resources/services/appointment_service.dart';
 import 'package:mypsy_app/screens/layouts/top_bar_subpage.dart';
 import 'package:mypsy_app/shared/routes.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';
+import 'package:mypsy_app/shared/themes/app_theme.dart';
+import 'package:mypsy_app/shared/ui/alert.dart';
+import 'package:mypsy_app/shared/ui/buttons/button.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class BookingPage extends StatefulWidget {
@@ -15,6 +18,7 @@ class BookingPage extends StatefulWidget {
 
 class _BookingPageState extends State<BookingPage> {
   DateTime _focusedDay = DateTime.now();
+
   DateTime? _selectedDay;
   String? _selectedTime;
   List<String> availableTimes = [];
@@ -102,6 +106,28 @@ class _BookingPageState extends State<BookingPage> {
     } catch (e) {
       print("❌ Erreur chargement créneaux: $e");
     }
+  }
+
+  Widget verifyBeforeConfirm() {
+    String date = '';
+    if (_selectedDay != null) {
+      date = DateFormat('dd/MM/yyyy').format(_selectedDay!);
+    }
+    return AlertYesNo(
+      title: "Confirmer le rendez-vous",
+      description:
+          "Souhaitez-vous confirmer le rendez-vous le [$date à $_selectedTime] ",
+      btnTitle: "Oui",
+      btnNoTitle: "Non",
+      onClosePopup: () {
+        setState(() {
+          Navigator.pop(context);
+        });
+      },
+      onPressYes: () {
+        confirmAppointment();
+      },
+    );
   }
 
   Future<void> confirmAppointment() async {
@@ -241,6 +267,7 @@ class _BookingPageState extends State<BookingPage> {
           padding: const EdgeInsets.all(16),
           children: [
             TableCalendar(
+              locale: 'fr_FR',
               firstDay: DateTime.now(),
               lastDay: DateTime.now().add(const Duration(days: 60)),
               focusedDay: _focusedDay,
@@ -250,12 +277,13 @@ class _BookingPageState extends State<BookingPage> {
                   _selectedDay = selected;
                   _focusedDay = focused;
                   _selectedTime = null;
-                  availableTimes = []; // Reset pour forcer la reconstruction
+                  availableTimes = [];
                 });
 
-                await loadTimesForDate(); // Après setState
+                await loadTimesForDate();
               },
               calendarStyle: CalendarStyle(
+                defaultTextStyle: AppThemes.getTextStyle(),
                 todayDecoration: BoxDecoration(
                   color: Colors.grey.shade300,
                   shape: BoxShape.circle,
@@ -268,32 +296,25 @@ class _BookingPageState extends State<BookingPage> {
             ),
             const SizedBox(height: 24),
             if (_selectedDay != null) ...[
-              const Text(
+              Text(
                 "Choisir une heure disponible :",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                style: AppThemes.getTextStyle(fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               if (availableTimes.isNotEmpty)
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: availableTimes.map((time) {
-                    final isSelected = _selectedTime == time;
-                    return ChoiceChip(
-                      label: Text(time),
-                      selected: isSelected,
-                      selectedColor: AppColors.mypsyDarkBlue,
-                      onSelected: (_) => setState(() => _selectedTime = time),
-                    );
-                  }).toList(),
-                )
+                selectTimingUI()
               else
-                const Text(
-                    "Aucune disponibilité. Proposez une heure personnalisée."),
-              const SizedBox(height: 12),
+                Text(
+                  "Aucune disponibilité, proposez une heure personnalisée.",
+                  style: AppThemes.getTextStyle(),
+                ),
+              const SizedBox(height: 5),
               OutlinedButton.icon(
                 icon: const Icon(Icons.access_time),
-                label: const Text("Proposer une heure personnalisée"),
+                label: Text(
+                  "Proposer une heure personnalisée",
+                  style: AppThemes.getTextStyle(),
+                ),
                 onPressed: () async {
                   final pickedTime = await showTimePicker(
                     context: context,
@@ -306,26 +327,55 @@ class _BookingPageState extends State<BookingPage> {
                   }
                 },
               ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed:
-                    _selectedTime == null ? null : () => confirmAppointment(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.mypsyPrimary,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: Text(
-                  appointmentId != null
-                      ? "Reprogrammer le rendez-vous"
-                      : "Prendre un rendez-vous",
-                  style: const TextStyle(fontSize: 16, color: Colors.white),
-                ),
+              const SizedBox(height: 10),
+              mypsyButton(
+                onPress: _selectedTime == null
+                    ? null
+                    : () {
+                        showDialog(
+                            context: context,
+                            builder: (context) => verifyBeforeConfirm());
+                      },
+                text: appointmentId != null
+                    ? "Reprogrammer le rendez-vous"
+                    : "Prendre un rendez-vous",
               ),
             ]
           ],
         ),
       ));
+  Widget selectTimingUI() => GridView.count(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        crossAxisCount: 3,
+        mainAxisSpacing: 6,
+        crossAxisSpacing: 6,
+        childAspectRatio: 2.2,
+        children: availableTimes.map((time) {
+          final isSelected = _selectedTime == time;
+          return GestureDetector(
+            onTap: () {
+              setState(() {
+                _selectedTime = time;
+              });
+            },
+            child: Container(
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color:
+                    isSelected ? AppColors.mypsyPrimary : AppColors.mypsyWhite,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: isSelected ? AppColors.mypsyPrimary : Colors.black26,
+                  width: 0.5,
+                ),
+              ),
+              child: Text(time,
+                  style: AppThemes.getTextStyle(
+                    clr: isSelected ? Colors.white : Colors.black,
+                  )),
+            ),
+          );
+        }).toList(),
+      );
 }
