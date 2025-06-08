@@ -269,7 +269,7 @@ class _BookingPageState extends State<BookingPage> {
             TableCalendar(
               locale: 'fr_FR',
               firstDay: DateTime.now(),
-              lastDay: DateTime.now().add(const Duration(days: 60)),
+              lastDay: DateTime.now().add(const Duration(days: 600)),
               focusedDay: _focusedDay,
               selectedDayPredicate: (day) => isSameDay(day, _selectedDay),
               onDaySelected: (selected, focused) async {
