@@ -141,6 +141,40 @@ class _AppointmentCardState extends State<AppointmentCard> {
                                 ),
                               ],
                             ),
+                            const SizedBox(
+                              height: 5,
+                            ),
+                            Row(
+                              children: [
+                                const Icon(Icons.hourglass_top,
+                                    size: 14, color: AppColors.mypsyOrange),
+                                const SizedBox(width: 5),
+                                Text(
+                                  "En attente de confirmation",
+                                  style: AppThemes.getTextStyle(
+                                      size: 11,
+                                      clr: AppColors.mypsyOrange,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(
+                              height: 5,
+                            ),
+                            Row(
+                              children: [
+                                const Icon(Icons.check_circle,
+                                    size: 14, color: AppColors.mypsyGreen),
+                                const SizedBox(width: 5),
+                                Text(
+                                  "Confirmer",
+                                  style: AppThemes.getTextStyle(
+                                      size: 11,
+                                      clr: AppColors.mypsyGreen,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
                           ],
                         ),
                       ],
