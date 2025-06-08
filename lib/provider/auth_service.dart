@@ -68,4 +68,22 @@ class AuthService {
 
     return payloadMap['userId']; // ou 'id' selon ce que tu mets dans le JWT
   }
+
+  Future<Map<String, dynamic>> register(
+      String fullName, String email, String password) async {
+    final url = Uri.parse('$baseUrl/register');
+
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        "full_name": fullName,
+        "email": email,
+        "password": password,
+      }),
+    );
+
+    final data = jsonDecode(response.body);
+    return {'status': response.statusCode, 'data': data};
+  }
 }

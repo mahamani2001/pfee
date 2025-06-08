@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:intl/intl.dart';
+import 'package:mypsy_app/resources/services/auth_service.dart';
 import 'package:mypsy_app/screens/layouts/main_layout.dart';
 import 'package:mypsy_app/screens/layouts/top_bar_subpage.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';
@@ -413,27 +414,40 @@ class _SignupState extends State<Signup> {
                     customFlushbar("",
                         "Merci de renseigner votre date de naissance", context,
                         isError: true);
+                    return;
                   }
-                  if (_formKey.currentState!.validate() &&
-                      _dobController!.text.isNotEmpty) {
+
+                  if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
-                    setState(() {
-                      ispressed = true;
-                    });
-                    // save USER
-                    setState(() {
-                      ispressed = false;
-                    });
-                    customFlushbar(
-                      "",
-                      "Mise à jour réussie",
-                      context,
+                    setState(() => ispressed = true);
+
+                    final response = await AuthService().register(
+                      "${_lastNameController!.text.trim()} ${_firstNameController!.text.trim()}",
+                      _emailController!.text.trim(),
+                      _passwordController.text.trim(),
+                      _phoneController!.text.trim(),
+                      _dobController!.text.trim(), // format: "2024-01-01"
+                      _selectedValue ?? "",
                     );
+
+                    setState(() => ispressed = false);
+
+                    if (response['status'] == 201) {
+                      customFlushbar("✅", "Inscription réussie", context);
+                      // Tu peux ajouter une redirection ici si tu veux :
+                      // Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => Login()));
+                    } else {
+                      customFlushbar(
+                        "❌",
+                        response['data']['message'] ?? 'Erreur serveur',
+                        context,
+                        isError: true,
+                      );
+                    }
                   } else {
-                    setState(() {
-                      ispressed = false;
-                    });
-                    customFlushbar("", 'Erreur', context, isError: true);
+                    setState(() => ispressed = false);
+                    customFlushbar("", 'Erreur dans le formulaire', context,
+                        isError: true);
                   }
                 },
                 text: "Valider",

@@ -257,4 +257,31 @@ class AuthService {
       print('❌ Erreur lors du logout: $e');
     }
   }
+
+  Future<Map<String, dynamic>> register(
+    String fullName,
+    String email,
+    String password,
+    String telephone,
+    String dateNaissance,
+    String categorie,
+  ) async {
+    final url = Uri.parse('$baseUrl/register');
+
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        "full_name": fullName,
+        "email": email,
+        "password": password,
+        "telephone": telephone,
+        "date_de_naissance": dateNaissance, // format yyyy-MM-dd
+        "dans_la_vie_tu_es": categorie,
+      }),
+    );
+
+    final data = jsonDecode(response.body);
+    return {'status': response.statusCode, 'data': data};
+  }
 }
