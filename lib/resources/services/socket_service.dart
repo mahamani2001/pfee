@@ -17,6 +17,8 @@ class SocketService {
   SocketService._internal();
 
   IO.Socket? _socket;
+  bool _isConnected = false;
+  String socketUrl = AppConfig.instance()!.socketUrl!;
 
   // Callbacks
   OnMessageReceived? onMessage;
@@ -26,7 +28,6 @@ class SocketService {
   Function(String userId)? onUserStopTyping;
   Function(int messageId)? onMessageRead;
   Function(Map<String, dynamic> data)? onPatientJoined;
-  String socketUrl = AppConfig.instance()!.socketUrl!;
 
   Future<void> connectSocket({OnMessageReceived? onMessageCallback}) async {
     if (_socket != null && _socket!.connected) {
@@ -60,6 +61,7 @@ class SocketService {
       'reconnectionAttempts': 5,
       'reconnectionDelay': 1000,
     });
+    _isConnected = true;
     onMessage = onMessageCallback;
 
     _socket!.on('connect', (_) async {
@@ -70,7 +72,7 @@ class SocketService {
         print('📡 Emit "online" avec userId : $userId');
       }
     });
-    // 🔔 ÉCOUTE de l'appel entrant juste après connexion
+
     _socket!.on('incoming_call', (data) {
       final roomId = 'room-${data['appointmentId']}';
       final callerName = data['callerName'];
@@ -88,16 +90,16 @@ class SocketService {
 
     _socket!.on('connect_error', (err) async {
       print('🔴 Erreur de connexion socket : $err');
+      _isConnected = false;
 
       if (err.toString().contains('jwt expired') ||
           err.toString().contains('Unauthorized')) {
         navigatorKey.currentState
             ?.pushNamedAndRemoveUntil('/login', (route) => false);
-        disconnect(); // ferme le socket
+        disconnect();
       }
     });
 
-    // 🔥 Ici la nouvelle version améliorée
     _socket!.on('consultation_started', (data) {
       final context = navigatorKey.currentContext;
       if (context == null) return;
@@ -108,10 +110,6 @@ class SocketService {
       final appointmentId = data['appointmentId'];
 
       if (mode == 'chat') {
-        // 🔔 1. Joue un son discret
-        //   FlutterRingtonePlayer.playNotification();
-
-        // 📢 2. Affiche une SnackBar personnalisée
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             duration: const Duration(seconds: 2),
@@ -132,8 +130,23 @@ class SocketService {
             ),
           ),
         );
+        _socket!.on('patient_joined_consultation', (data) {
+          final appointmentId = data['appointmentId'];
+          final mode = data['mode'];
 
-        // ⏳ 3. Après 2 secondes ➔ navigation automatique
+          final context = navigatorKey.currentContext;
+          if (context != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text("👤 Le patient a rejoint en mode $mode"),
+                backgroundColor: Colors.indigo,
+              ),
+            );
+          }
+
+          print("📢 Patient a rejoint ($mode) pour RDV $appointmentId");
+        });
+
         Future.delayed(const Duration(seconds: 2), () {
           Navigator.push(
             context,
@@ -188,6 +201,15 @@ class SocketService {
     });
   }
 
+  void joinRoom(String roomId) {
+    if (_isConnected && _socket != null) {
+      _socket!.emit('joinRoom', {'roomId': roomId});
+      print('Rejoint la salle: $roomId');
+    } else {
+      print('Socket non connecté, impossible de rejoindre la salle: $roomId');
+    }
+  }
+
   void sendMessage(Map<String, dynamic> payload) {
     _socket?.emit('send_message', payload);
   }
@@ -197,7 +219,11 @@ class SocketService {
   }
 
   void emit(String event, Map<String, dynamic> data) {
-    _socket?.emit(event, data);
+    if (_isConnected && _socket != null) {
+      _socket!.emit(event, data);
+    } else {
+      print('Socket non connecté, impossible d\'émettre l\'événement: $event');
+    }
   }
 
   void emitTyping({required int toUserId, required bool isTyping}) {
@@ -232,8 +258,12 @@ class SocketService {
   }
 
   void disconnect() {
-    _socket?.disconnect();
-    _socket = null;
+    if (_isConnected && _socket != null) {
+      _socket!.disconnect();
+      _socket = null;
+      _isConnected = false;
+      print('Socket déconnecté');
+    }
   }
 
   bool get isConnected => _socket?.connected ?? false;

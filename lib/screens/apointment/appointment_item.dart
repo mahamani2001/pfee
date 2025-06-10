@@ -1,9 +1,8 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:mypsy_app/resources/services/appointment_service.dart';
 import 'package:mypsy_app/resources/services/auth_service.dart';
-import 'package:mypsy_app/screens/consultation/ConsultationLauncherScreen.dart';
+import 'package:mypsy_app/screens/consultation/modeselection.dart';
 import 'package:mypsy_app/shared/routes.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';
 import 'package:mypsy_app/shared/themes/app_theme.dart';
@@ -22,6 +21,7 @@ class AppointmentCard extends StatefulWidget {
   final VoidCallback onReload;
   final dynamic appt;
   final bool canJoin;
+
   const AppointmentCard({
     super.key,
     required this.id,
@@ -120,9 +120,7 @@ class _AppointmentCardState extends State<AppointmentCard> {
                             ),
                           ),
                         ),
-                        const SizedBox(
-                          width: 10,
-                        ),
+                        const SizedBox(width: 10),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -135,12 +133,8 @@ class _AppointmentCardState extends State<AppointmentCard> {
                                 const Icon(Icons.medical_services_outlined,
                                     size: 14, color: AppColors.mypsySecondary),
                                 const SizedBox(width: 5),
-                                Text(
-                                  "specilaite",
-                                  style: AppThemes.getTextStyle(
-                                    size: 12,
-                                  ),
-                                ),
+                                Text("spécialité",
+                                    style: AppThemes.getTextStyle(size: 12)),
                               ],
                             ),
                             const SizedBox(height: 4),
@@ -157,41 +151,11 @@ class _AppointmentCardState extends State<AppointmentCard> {
                               ],
                             ),
                             if (widget.status == 'pending')
-                              Container(
-                                margin: const EdgeInsets.only(top: 5),
-                                child: Row(
-                                  children: [
-                                    const Icon(Icons.hourglass_top,
-                                        size: 14, color: AppColors.mypsyOrange),
-                                    const SizedBox(width: 5),
-                                    Text(
-                                      "En attente de confirmation",
-                                      style: AppThemes.getTextStyle(
-                                          size: 11,
-                                          clr: AppColors.mypsyOrange,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                  ],
-                                ),
-                              ),
+                              _statusRow("En attente de confirmation",
+                                  AppColors.mypsyOrange, Icons.hourglass_top),
                             if (widget.status == 'confirmed')
-                              Container(
-                                margin: const EdgeInsets.only(top: 5),
-                                child: Row(
-                                  children: [
-                                    const Icon(Icons.check_circle,
-                                        size: 14, color: AppColors.mypsyGreen),
-                                    const SizedBox(width: 5),
-                                    Text(
-                                      "Confirmer",
-                                      style: AppThemes.getTextStyle(
-                                          size: 11,
-                                          clr: AppColors.mypsyGreen,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                  ],
-                                ),
-                              )
+                              _statusRow("Confirmé", AppColors.mypsyGreen,
+                                  Icons.check_circle),
                           ],
                         ),
                       ],
@@ -202,9 +166,7 @@ class _AppointmentCardState extends State<AppointmentCard> {
             ],
           ),
           const SizedBox(height: 8),
-          Divider(
-            color: AppColors.mypsyDarkBlue.withOpacity(0.2),
-          ),
+          Divider(color: AppColors.mypsyDarkBlue.withOpacity(0.2)),
           Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -213,6 +175,21 @@ class _AppointmentCardState extends State<AppointmentCard> {
               _buildJoinButton(context),
             ],
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _statusRow(String text, Color color, IconData icon) {
+    return Container(
+      margin: const EdgeInsets.only(top: 5),
+      child: Row(
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 5),
+          Text(text,
+              style: AppThemes.getTextStyle(
+                  size: 11, clr: color, fontWeight: FontWeight.bold)),
         ],
       ),
     );
@@ -232,7 +209,6 @@ class _AppointmentCardState extends State<AppointmentCard> {
         }),
       ];
     } else if (widget.status == 'confirmed' && canAccess) {
-      // ✅ Si l'accès est dispo → ne pas afficher d'autres boutons
       return [];
     } else if (widget.status == 'pending' || widget.status == 'confirmed') {
       return [
@@ -279,23 +255,21 @@ class _AppointmentCardState extends State<AppointmentCard> {
           final receiverId = userRole == 'psychiatrist'
               ? widget.patientId
               : widget.psychiatristId;
+
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => ConsultationLauncherScreen(
+              builder: (_) => ModeSelectionScreen(
                 peerId: receiverId.toString(),
                 peerName: widget.name,
                 appointmentId: widget.id,
-                mode: 'chat',
               ),
             ),
           );
         },
-        icon: const Icon(Icons.chat, color: Colors.white),
-        label: const Text(
-          "Rejoindre la consultation",
-          style: TextStyle(color: Colors.white),
-        ),
+        icon: const Icon(Icons.login, color: Colors.white),
+        label: const Text("Rejoindre la consultation",
+            style: TextStyle(color: Colors.white)),
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.green,
           shape: RoundedRectangleBorder(
@@ -304,10 +278,8 @@ class _AppointmentCardState extends State<AppointmentCard> {
         ),
       );
     } else {
-      return const Text(
-        "Disponible à l'heure du rendez-vous",
-        style: TextStyle(color: Colors.grey),
-      );
+      return const Text("Disponible à l'heure du rendez-vous",
+          style: TextStyle(color: Colors.grey));
     }
   }
 }

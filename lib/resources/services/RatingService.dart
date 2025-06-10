@@ -6,7 +6,7 @@ import 'package:mypsy_app/resources/services/auth_service.dart';
 class RatingService {
   Future<void> submitRating({
     required int psychiatristId,
-    required int appointmentId,
+    required int consultationId,
     required double rating,
   }) async {
     try {
@@ -22,7 +22,7 @@ class RatingService {
         },
         body: jsonEncode({
           'psychiatristId': psychiatristId,
-          'appointmentId': appointmentId,
+          'consultationId': consultationId,
           'rating': rating,
         }),
       );

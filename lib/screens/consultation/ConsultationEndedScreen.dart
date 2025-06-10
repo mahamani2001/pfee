@@ -9,7 +9,7 @@ import 'dart:convert';
 class ConsultationEndedScreen extends StatefulWidget {
   final String peerName;
   final int psychiatristId;
-  final int appointmentId;
+  final int consultationId;
   final DateTime startTime;
   final Duration duration;
 
@@ -17,7 +17,7 @@ class ConsultationEndedScreen extends StatefulWidget {
     super.key,
     required this.peerName,
     required this.psychiatristId,
-    required this.appointmentId,
+    required this.consultationId,
     required this.startTime,
     required this.duration,
   });
@@ -50,18 +50,17 @@ class _ConsultationEndedScreenState extends State<ConsultationEndedScreen> {
     setState(() => _loading = true);
     final token = await AuthService().getToken();
     final response = await http.post(
-      Uri.parse('$baseUrl/appointments/ratings'),
+      Uri.parse('$baseUrl/api/appointments/ratings'), // Adjusted URL
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token', // ✅ ajoute le token ici
+        'Authorization': 'Bearer $token',
       },
       body: jsonEncode({
         'psychiatristId': widget.psychiatristId,
-        'appointmentId': widget.appointmentId,
+        'appointmentId': widget.consultationId, // Use appointmentId for rating
         'rating': _rating,
       }),
     );
-
     setState(() => _loading = false);
 
     if (response.statusCode == 200) {
@@ -109,7 +108,7 @@ class _ConsultationEndedScreenState extends State<ConsultationEndedScreen> {
                         try {
                           await RatingService().submitRating(
                             psychiatristId: widget.psychiatristId,
-                            appointmentId: widget.appointmentId,
+                            consultationId: widget.consultationId,
                             rating: _rating,
                           );
                           Navigator.of(context).pop();

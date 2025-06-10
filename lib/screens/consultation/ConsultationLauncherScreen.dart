@@ -1,163 +1,108 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:mypsy_app/helpers/app_config.dart';
 import 'package:mypsy_app/resources/services/auth_service.dart';
-import 'package:mypsy_app/resources/services/socket_service.dart';
-import 'package:mypsy_app/screens/consultation/chatconsultation.dart';
-import 'package:mypsy_app/screens/consultation/video_call_screen.dart';
+import 'package:mypsy_app/resources/services/consultation_service.dart';
+import 'package:mypsy_app/screens/consultation/modeselection.dart';
 
 class ConsultationLauncherScreen extends StatelessWidget {
   final String peerId;
   final String peerName;
   final int appointmentId;
-  final String mode;
+  final int? consultationId;
 
-  const ConsultationLauncherScreen(
-      {super.key,
-      required this.peerId,
-      required this.peerName,
-      required this.appointmentId,
-      required this.mode});
+  const ConsultationLauncherScreen({
+    super.key,
+    required this.peerId,
+    required this.peerName,
+    required this.appointmentId,
+    this.consultationId,
+  });
 
-  void _showComingSoon(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Fonctionnalité en cours'),
-        content:
-            const Text('Cette fonctionnalité sera bientôt disponible ! 🎯'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
+  Future<bool> _canAccessConsultation() async {
+    final token = await AuthService().getToken();
+    final url = Uri.parse(
+        '${AppConfig.instance()!.baseUrl!}appointments/can-access/$appointmentId');
+
+    final response =
+        await http.get(url, headers: {'Authorization': 'Bearer $token'});
+    return response.statusCode == 200;
+  }
+
+  Future<Map<String, dynamic>?> _checkConsultationStatus() async {
+    final existing = await ConsultationService()
+        .getConsultationByAppointment(appointmentId: appointmentId);
+
+    if (existing != null) {
+      final estActive = existing['est_active'] as bool? ?? false;
+      final dateFin =
+          DateTime.tryParse(existing['date_fin'] ?? '') ?? DateTime.now();
+      if (estActive && dateFin.isAfter(DateTime.now())) {
+        print(
+            "Reusing existing active consultation for appointment $appointmentId");
+        return existing;
+      }
+    }
+    return null;
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(
-          title: const Text("Salon de consultation"),
+          title: const Text("Rejoindre la consultation"),
           backgroundColor: Colors.white,
           foregroundColor: Colors.black,
           elevation: 0,
         ),
         backgroundColor: Colors.grey[100],
-        body: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                "Bienvenue dans votre consultation avec",
-                style: TextStyle(fontSize: 18, color: Colors.grey[700]),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                peerName,
-                style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black),
-              ),
-              const SizedBox(height: 40),
-              // 🟢 Chat sécurisé
-              ElevatedButton.icon(
-                onPressed: () async {
-                  SocketService().emit('join_consultation', {
-                    'appointmentId': appointmentId,
-                    'mode': mode, // 🔥 Utilise le mode passé
-                  });
-
-                  if (mode == 'chat') {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => ChatScreen(
-                          peerId: peerId,
-                          peerName: peerName,
-                          appointmentId: appointmentId,
-                        ),
-                      ),
-                    );
-                  } else {
-                    _showComingSoon(
-                        context); // 🔥 Pour audio/video on montre "bientôt disponible"
-                  }
-                },
-                icon:
-                    const Icon(Icons.chat_bubble_outline, color: Colors.white),
-                label: const Text('Chat sécurisé',
-                    style: TextStyle(color: Colors.white)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueAccent,
-                  minimumSize: const Size(double.infinity, 60),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  "Rejoindre votre consultation avec ${peerName}",
+                  style: TextStyle(fontSize: 18, color: Colors.grey[700]),
+                  textAlign: TextAlign.center,
                 ),
-              ),
-              const SizedBox(height: 20),
-              // 🟡 Appel audio
-              ElevatedButton.icon(
-                onPressed: () {
-                  _showComingSoon(context);
-                },
-                icon: const Icon(Icons.call_outlined, color: Colors.white),
-                label: const Text('Appel audio',
-                    style: TextStyle(color: Colors.white)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  minimumSize: const Size(double.infinity, 60),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              // 🟣 Appel vidéo
-              ElevatedButton.icon(
-                onPressed: () async {
-                  final fullName = await AuthService()
-                      .getUserFullName(); // nom de l’appelant
-                  final userRole = await AuthService().getUserRole();
-
-                  final callerName =
-                      userRole == 'psychiatrist' ? 'Dr. $fullName' : fullName;
-
-                  // 1. Envoyer l’appel au peer via socket
-                  SocketService().emit('incoming_call', {
-                    'to': peerId, // ❗ ici peerId doit être un userId, pas vide
-                    'appointmentId': appointmentId,
-                    'callerName': callerName,
-                  });
-print('📞 Émission appel vidéo à $peerId (appointment $appointmentId)');
-
-                  // 2. Lancer l’appel côté appelant
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => VideoCallScreen(
-                        roomId: 'room-$appointmentId',
-                        peerName: peerName,
-                        appointmentId: appointmentId,
-                        isCaller: true,
-                      ),
+                const SizedBox(height: 40),
+                ElevatedButton(
+                  onPressed: () async {
+                    if (await _canAccessConsultation()) {
+                      final consultation = await _checkConsultationStatus();
+                      final role = await AuthService().getUserRole();
+                      if (consultation != null || role == 'patient') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ModeSelectionScreen(
+                              peerId: peerId,
+                              peerName: peerName,
+                              appointmentId: appointmentId,
+                            ),
+                          ),
+                        );
+                      } else {}
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text(
+                                'Impossible de rejoindre la consultation')),
+                      );
+                    }
+                  },
+                  child: const Text('Rejoindre'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueAccent,
+                    minimumSize: const Size(double.infinity, 60),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                  );
-                },
-                icon: const Icon(Icons.videocam_outlined, color: Colors.white),
-                label: const Text('Appel vidéo',
-                    style: TextStyle(color: Colors.white)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.purple,
-                  minimumSize: const Size(double.infinity, 60),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       );

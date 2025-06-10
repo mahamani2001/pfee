@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:mypsy_app/helpers/app_config.dart';
 import 'package:mypsy_app/resources/services/appointment_service.dart';
+import 'package:mypsy_app/resources/services/consultation_service.dart';
 import 'package:mypsy_app/resources/services/http_service.dart';
 import 'package:mypsy_app/resources/services/socket_service.dart';
 import 'package:mypsy_app/resources/services/auth_service.dart';
@@ -156,6 +157,8 @@ class _ChatScreenState extends State<ChatScreen> {
         });
 
         if (consultationHasEnded) {
+          final consultation = await ConsultationService()
+              .getConsultationByAppointment(appointmentId: appointmentId);
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
@@ -164,7 +167,8 @@ class _ChatScreenState extends State<ChatScreen> {
                 startTime: start,
                 duration: duration,
                 psychiatristId: int.parse(data['psychiatrist_id'].toString()),
-                appointmentId: data['id'],
+                consultationId: consultation?['id'] ??
+                    appointmentId, // Use actual consultationId
               ),
             ),
           );
@@ -389,7 +393,7 @@ class _ChatScreenState extends State<ChatScreen> {
               startTime: startTime,
               duration: consultationDuration,
               psychiatristId: int.parse(peerId),
-              appointmentId: appointmentId,
+              consultationId: appointmentId,
             ),
           ),
         );

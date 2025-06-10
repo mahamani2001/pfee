@@ -46,6 +46,34 @@ class AppointmentService {
     return response.statusCode == 204;
   }
 
+  Future<dynamic> startOrFetchConsultation(int appointmentId) async {
+    final url =
+        '${AppConfig.instance()!.baseUrl!}consultation/appointment/$appointmentId';
+    final response = await HttpService().request(
+      url: url,
+      method: 'GET',
+    );
+
+    if (response.statusCode == 200 && response.body.isNotEmpty) {
+      final data = jsonDecode(response.body);
+      return data ?? {};
+    } else {
+      final createResponse = await HttpService().request(
+        url: '${AppConfig.instance()!.baseUrl!}consultation',
+        method: 'POST',
+        body: {
+          'appointmentId': appointmentId,
+          'type': 'chat',
+        },
+      );
+      if (createResponse.statusCode == 201) {
+        return jsonDecode(createResponse.body);
+      } else {
+        throw Exception("Erreur lors de la création de la consultation");
+      }
+    }
+  }
+
   // 3️⃣ Récupérer les rendez-vous par statut
   Future<List<dynamic>> getAppointmentsByStatus(String status) async {
     final response = await HttpService().request(
