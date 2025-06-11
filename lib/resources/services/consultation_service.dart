@@ -11,34 +11,67 @@ class ConsultationService {
   Future<Map<String, dynamic>?> startConsultation({
     required int appointmentId,
     required String type,
-    int duration_minutes = 30,
   }) async {
     try {
-      final token = await AuthService().getToken();
+      final token = await AuthService().getJwtToken();
 
-      final body = {
-        'appointmentId': appointmentId,
-        'type': type,
-        'duration_minutes': duration_minutes,
-      };
+      if (token == null || AuthService.isTokenExpired(token)) {
+        print('❌ Token invalide ou expiré');
+        return null;
+      }
 
-      print("📤 startConsultation() - body envoyé : $body");
-
-      final response = await _httpService.request(
-        url: '$baseUrl',
-        method: 'POST',
+      final response = await http.post(
+        Uri.parse('${AppConfig.instance()!.baseUrl!}consultation'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
-        body: body,
+        body: jsonEncode({
+          'appointmentId': appointmentId,
+          'type': type,
+        }),
       );
 
-      print("📦 Réponse backend : ${response.statusCode} => ${response.body}");
+      print('📡 Response status: ${response.statusCode}');
+      print('📡 Response body: ${response.body}');
 
-      return _decodeResponse(response);
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = jsonDecode(response.body);
+
+        // Vérifie les noms de clé possibles
+        final consultationId = data['id'] ?? data['consultationId'];
+        if (consultationId == null) {
+          print('❌ Réponse sans ID de consultation');
+          return null;
+        }
+
+        return data;
+      } else {
+        print('❌ Erreur HTTP: ${response.statusCode}');
+        return null;
+      }
     } catch (e) {
-      print("❌ Erreur dans startConsultation: $e");
+      print('❌ Exception dans startConsultation: $e');
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> joinConsultation(int appointmentId) async {
+    final token = await AuthService().getToken();
+
+    final response = await http.get(
+      Uri.parse(
+          '${AppConfig.instance()!.baseUrl!}consultation/appointment/$appointmentId'),
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data;
+    } else {
+      print("❌ Échec récupération consultation : ${response.body}");
       return null;
     }
   }
@@ -58,17 +91,20 @@ class ConsultationService {
   }
 
   Future<Map<String, dynamic>?> getConsultationByAppointment(
-      {required int appointmentId}) async {
-    try {
-      final response = await _httpService.request(
-        url: '$baseUrl/appointment/$appointmentId',
-        method: 'GET',
-      );
-      print(
-          "📥 getConsultationByAppointment response: ${response.statusCode} - ${response.body}");
-      return _decodeResponse(response);
-    } catch (e) {
-      print("❌ Erreur getConsultationByAppointment: $e");
+      int appointmentId) async {
+    final token = await AuthService().getToken();
+    final response = await http.get(
+      Uri.parse(
+          '${AppConfig.instance()!.baseUrl!}consultation/appointment/$appointmentId'),
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      print("❌ Erreur récupération consultation: ${response.body}");
       return null;
     }
   }

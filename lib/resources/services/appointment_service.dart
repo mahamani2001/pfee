@@ -46,6 +46,20 @@ class AppointmentService {
     return response.statusCode == 204;
   }
 
+  Future<Map<String, dynamic>?> getConsultationByAppointment(
+      int appointmentId) async {
+    final response = await HttpService().request(
+      url:
+          '${AppConfig.instance()!.baseUrl}/consultation/appointment/$appointmentId',
+      method: 'GET',
+    );
+
+    if (response.statusCode != 200) return null;
+
+    final body = jsonDecode(response.body);
+    return body['consultation'];
+  }
+
   Future<dynamic> startOrFetchConsultation(int appointmentId) async {
     final url =
         '${AppConfig.instance()!.baseUrl!}consultation/appointment/$appointmentId';

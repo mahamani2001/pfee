@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:mypsy_app/helpers/app_config.dart';
 import 'package:mypsy_app/resources/services/appointment_service.dart';
-import 'package:mypsy_app/resources/services/consultation_service.dart';
 import 'package:mypsy_app/resources/services/http_service.dart';
 import 'package:mypsy_app/resources/services/socket_service.dart';
 import 'package:mypsy_app/resources/services/auth_service.dart';
@@ -23,12 +22,15 @@ class ChatScreen extends StatefulWidget {
   final String peerId;
   final String peerName;
   final int appointmentId;
-
+  final int consultationId;
+  final String roomId;
   const ChatScreen({
     super.key,
     required this.peerId,
     required this.peerName,
     required this.appointmentId,
+    required this.consultationId,
+    required this.roomId,
   });
 
   @override
@@ -61,7 +63,7 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _isPlayerInitialized = false;
   String myFullName = '';
   String baseUrl = AppConfig.instance()!.baseUrl!;
-
+  late int consultationId;
   final flutterSoundHelper = FlutterSoundHelper();
   Future<Duration?> getAudioDuration(String filePath) async {
     try {
@@ -157,8 +159,6 @@ class _ChatScreenState extends State<ChatScreen> {
         });
 
         if (consultationHasEnded) {
-          final consultation = await ConsultationService()
-              .getConsultationByAppointment(appointmentId: appointmentId);
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
@@ -167,8 +167,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 startTime: start,
                 duration: duration,
                 psychiatristId: int.parse(data['psychiatrist_id'].toString()),
-                consultationId: consultation?['id'] ??
-                    appointmentId, // Use actual consultationId
+                appointmentId: data['id'],
               ),
             ),
           );
@@ -262,17 +261,33 @@ class _ChatScreenState extends State<ChatScreen> {
     _recorder = FlutterSoundRecorder();
     _initRecorder();
     _initPlayer();
+    SocketService().connectSocket();
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       peerId = widget.peerId;
       peerName = widget.peerName;
       appointmentId = widget.appointmentId;
+      consultationId = widget.consultationId;
       myUserId = await AuthService().getUserId() ?? 0;
       isPsychiatrist = (await AuthService().getUserRole()) == 'psychiatrist';
+      print('Widget info ${myUserId} - ${consultationId}-${appointmentId}');
+      SocketService().onMessage = (data) {
+        print('📥 Reçu depuis socket : $data');
+        handleIncomingMessage(data);
+      };
 
-      SocketService().onMessage = handleIncomingMessage;
       await SocketService()
           .connectSocket(onMessageCallback: handleIncomingMessage);
+      SocketService().emit('join_consultation', {
+        'appointmentId': appointmentId,
+        'mode': 'chat', // ou 'audio', 'video'
+      });
+      print("✅ Émis join_consultation pour $appointmentId en mode chat");
+      SocketService().on('consultation_joined', (data) {
+        final consultationId = data['consultationId'];
+        print('✅ Rejoint consultation ID: $consultationId');
+      });
+
       SocketService().socket?.on('duration_extended', (data) async {
         print("📡 PATIENT a reçu l'événement duration_extended: $data");
 
@@ -338,7 +353,7 @@ class _ChatScreenState extends State<ChatScreen> {
         });
       };
 
-      await loadMessages();
+      //  await loadMessages();
       print(
           "🔍 Appointment ID juste avant initConsultationTiming : $appointmentId");
       await initConsultationTiming();
@@ -393,7 +408,7 @@ class _ChatScreenState extends State<ChatScreen> {
               startTime: startTime,
               duration: consultationDuration,
               psychiatristId: int.parse(peerId),
-              consultationId: appointmentId,
+              appointmentId: appointmentId,
             ),
           ),
         );
@@ -495,13 +510,15 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void handleIncomingMessage(Map<String, dynamic> data) async {
     final fromId = data['from'].toString();
-    if (fromId != peerId) return;
+
+    // ✅ Ne pas traiter les messages que j'ai moi-même envoyés (déjà affichés localement)
+    if (fromId == myUserId.toString()) return;
 
     if (!mounted) return;
 
-    // 🔊 Cas 1: Message vocal en temps réel (non chiffré)
+    // 🔊 Cas 1: Message vocal
     if (data['type'] == 'audio') {
-      final fileUrl = data['fileUrl']; // 🔁 utilise bien cette clé
+      final fileUrl = data['fileUrl'];
       final fileName = data['fileName'] ?? 'audio.aac';
       final dir = await getTemporaryDirectory();
       final filePath = '${dir.path}/$fileName';
@@ -524,6 +541,8 @@ class _ChatScreenState extends State<ChatScreen> {
       }
       return;
     }
+
+    // 📄 Cas 2 : Fichier PDF ou image
     if (data['type'] == 'pdf' || data['type'] == 'image') {
       setState(() {
         messages.add({
@@ -537,7 +556,7 @@ class _ChatScreenState extends State<ChatScreen> {
       return;
     }
 
-    // 🔐 Cas 2: Message texte chiffré
+    // 🔐 Cas 3 : Message texte chiffré
     final peerPublicKey = await AuthService().fetchPeerPublicKey(fromId);
     final decrypted = await CryptoService().decryptMessage(
       cipherTextBase64: data['cipherText'],
@@ -546,7 +565,7 @@ class _ChatScreenState extends State<ChatScreen> {
       peerPublicKeyBase64: peerPublicKey,
     );
 
-    // 🔍 Cas 3: Message spécial
+    // 🎯 Cas 4 : Message spécial
     if (decrypted == '__MEDICAL_CARD_REQUEST__') {
       setState(() {
         messages.add({
@@ -559,7 +578,7 @@ class _ChatScreenState extends State<ChatScreen> {
       return;
     }
 
-    // 📝 Cas 4: Message texte normal
+    // 📝 Cas 5 : Message texte classique
     setState(() {
       messages.add({
         'text': decrypted,
@@ -567,9 +586,10 @@ class _ChatScreenState extends State<ChatScreen> {
         'status': data['status'] ?? 'sent',
         'createdAt': data['createdAt'] ?? DateTime.now().toIso8601String(),
       });
+      _messageController.clear();
     });
 
-    // Lecture confirmée
+    // 📩 Confirmer la lecture
     await HttpService().request(
       url: '$baseUrl/messages/$appointmentId/read',
       method: 'PUT',
@@ -596,14 +616,14 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> loadMessages() async {
     final peerPublicKey = await AuthService().fetchPeerPublicKey(peerId);
-    final data = await ChatService().getMessages(appointmentId);
+    final data = await ChatService().getMessages(consultationId);
 
     await HttpService().request(
-      url: '$baseUrl/messages/$appointmentId/read',
+      url: '$baseUrl/messages/$consultationId/read',
       method: 'PUT',
       body: {},
     );
-
+    print('hii');
     setState(() {
       messages.clear();
     });
@@ -674,17 +694,17 @@ class _ChatScreenState extends State<ChatScreen> {
 
     final peerPublicKey = await AuthService().fetchPeerPublicKey(peerId);
     final encrypted = await CryptoService().encryptMessage(text, peerPublicKey);
-
+    print("longeur du message ${messages.length}");
     SocketService().sendMessage({
       'to': int.parse(peerId),
       'cipherText': encrypted['cipherText'],
       'nonce': encrypted['nonce'],
       'tag': encrypted['mac'],
-      'appointmentId': appointmentId,
+      'consultationId': consultationId, // ✅ ici aussi
     });
 
     await ChatService().saveMessage(
-      appointmentId: appointmentId,
+      consultationId: consultationId,
       iv: encrypted['nonce'],
       ciphertext: encrypted['cipherText'],
       tag: encrypted['mac'],
@@ -700,6 +720,7 @@ class _ChatScreenState extends State<ChatScreen> {
       });
       _messageController.clear();
     });
+    print("longeur du message ${messages.length}");
   }
 
   @override

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:mypsy_app/resources/services/appointment_service.dart';
 import 'package:mypsy_app/resources/services/auth_service.dart';
 import 'package:mypsy_app/screens/apointment/appointment_list.dart';
-import 'package:mypsy_app/screens/consultation/ConsultationLauncherScreen.dart';
+
 import 'package:mypsy_app/screens/layouts/main_screen.dart';
 import 'package:mypsy_app/shared/routes.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';

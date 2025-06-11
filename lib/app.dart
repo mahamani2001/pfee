@@ -20,11 +20,12 @@ import 'package:provider/provider.dart';
 class MyApp extends StatefulWidget {
   bool? showError;
   FlutterErrorDetails? errorDetails;
-
+  final GlobalKey<NavigatorState>? navigatorKey;
   MyApp({
     super.key,
     this.showError = false,
     this.errorDetails,
+    this.navigatorKey, //
   });
 
   @override
@@ -34,7 +35,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) => MaterialApp(
-        navigatorKey: navigatorKey,
+        navigatorKey: widget.navigatorKey,
         locale: const Locale('fr'),
         localizationsDelegates: const [
           GlobalMaterialLocalizations.delegate,

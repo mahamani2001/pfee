@@ -6,10 +6,8 @@ import 'package:mypsy_app/resources/services/auth_service.dart';
 import 'package:mypsy_app/resources/services/http_service.dart';
 
 class ChatService {
-  // Correction : ajout d'un slash manquant si baseUrl ne le contient pas déjà
-  final String baseUrl = '${AppConfig.instance()!.baseUrl!}messages';
+  String baseUrl = '${AppConfig.instance()!.baseUrl!}messages';
 
-  /// Récupérer les messages liés à un rendez-vous
   Future<List<dynamic>> getMessages(int consultationId) async {
     final response = await HttpService().request(
       url: '$baseUrl/$consultationId',
@@ -25,9 +23,9 @@ class ChatService {
     }
   }
 
-  /// Enregistrer un message chiffré dans la base de données
+  // ✅ Enregistrer un message chiffré
   Future<void> saveMessage({
-    required int appointmentId,
+    required int consultationId,
     required String iv,
     required String ciphertext,
     required String tag,
@@ -37,8 +35,8 @@ class ChatService {
       url: baseUrl,
       method: 'POST',
       body: {
-        'appointmentId': appointmentId,
-        'to': receiverId,
+        'consultationId': consultationId,
+        'to': receiverId, // ✅ C’EST ÇA QUI MANQUAIT
         'iv': iv,
         'ciphertext': ciphertext,
         'tag': tag,
@@ -51,14 +49,13 @@ class ChatService {
     }
   }
 
-  /// Envoyer un fichier (image, doc, etc.) dans une conversation
   Future<String?> uploadFileMessage({
     required File file,
     required int appointmentId,
     required int receiverId,
   }) async {
     final uri = Uri.parse('$baseUrl/upload');
-    final token = await AuthService().getToken();
+    final token = await AuthService().getToken(); // 🔑 récupère token JWT
 
     final request = http.MultipartRequest('POST', uri)
       ..headers['Authorization'] = 'Bearer $token'
@@ -78,7 +75,6 @@ class ChatService {
     }
   }
 
-  /// Upload d’un fichier médical (peut être fusionné avec `uploadFileMessage`)
   Future<void> uploadMedicalFile({
     required File file,
     required int appointmentId,

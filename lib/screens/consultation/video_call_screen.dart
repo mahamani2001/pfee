@@ -12,11 +12,13 @@ class VideoCallScreen extends StatefulWidget {
   final String peerName;
   final bool isCaller;
   final int appointmentId;
+  final int consultationId;
   const VideoCallScreen({
     super.key,
     required this.roomId,
     required this.peerName,
     required this.appointmentId,
+    required this.consultationId,
     this.isCaller = false,
   });
 
@@ -35,7 +37,7 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
   bool isConsultationEnded = false;
   Timer? consultationTimer;
   bool isPsychiatrist = false;
-
+  late int consultationId;
   bool _micEnabled = true;
   bool _cameraEnabled = true;
   Timer? _callTimer;
@@ -45,6 +47,7 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
   @override
   void initState() {
     super.initState();
+    consultationId = widget.consultationId;
     _initCall();
     _startTimer();
     _initConsultationTiming();
@@ -191,7 +194,6 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
   }
 
   void _registerSocketEvents() {
-    SocketService().off('duration_extended'); // évite les doublons
     SocketService().on('duration_extended', (data) {
       if (data['appointmentId'] == widget.appointmentId) {
         final extraMinutes = data['extraMinutes'];
@@ -445,10 +447,13 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
                         context,
                         MaterialPageRoute(
                           builder: (_) => ChatScreen(
-                            peerId: widget.roomId,
+                            peerId: widget
+                                .peerName, // ou autre ID utilisateur correct (pas roomId)
                             peerName: widget.peerName,
-                            appointmentId:
-                                widget.appointmentId, // 🔥 corrigé ici
+                            appointmentId: widget.appointmentId,
+                            consultationId: consultationId,
+                            roomId: widget
+                                .roomId, // ✅ ici on fournit bien le paramètre requis
                           ),
                         ),
                       );

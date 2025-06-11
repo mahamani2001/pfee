@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:mypsy_app/helpers/app_config.dart';
-import 'package:mypsy_app/screens/consultation/chatconsultation.dart';
-import 'package:mypsy_app/screens/consultation/video_call_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:mypsy_app/resources/services/auth_service.dart';
+import 'package:mypsy_app/screens/consultation/chatconsultation.dart';
 
 typedef OnMessageReceived = Function(Map<String, dynamic> message);
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -12,13 +10,9 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 class SocketService {
   static final SocketService _instance = SocketService._internal();
   factory SocketService() => _instance;
-  String? get socketId => _socket?.id;
-
   SocketService._internal();
 
   IO.Socket? _socket;
-  bool _isConnected = false;
-  String socketUrl = AppConfig.instance()!.socketUrl!;
 
   // Callbacks
   OnMessageReceived? onMessage;
@@ -36,7 +30,6 @@ class SocketService {
     }
 
     var token = await AuthService().getJwtToken();
-
     if (token == null || AuthService.isTokenExpired(token)) {
       print('🔁 Token expiré. Tentative de refresh...');
       final refreshedToken = await AuthService().refreshToken();
@@ -51,9 +44,7 @@ class SocketService {
       }
     }
 
-    print('📥 Token final utilisé pour le socket : $token');
-
-    _socket = IO.io(socketUrl, {
+    _socket = IO.io('http://192.168.1.2:3001', {
       'transports': ['websocket'],
       'auth': {'token': token},
       'autoConnect': true,
@@ -61,11 +52,11 @@ class SocketService {
       'reconnectionAttempts': 5,
       'reconnectionDelay': 1000,
     });
-    _isConnected = true;
+
     onMessage = onMessageCallback;
 
     _socket!.on('connect', (_) async {
-      print('🟢 Socket connecté avec succès ✅');
+      print('🟢 Socket connecté ✅');
       final userId = await AuthService().getUserId();
       if (userId != null) {
         _socket!.emit('online', {'userId': userId});
@@ -73,25 +64,8 @@ class SocketService {
       }
     });
 
-    _socket!.on('incoming_call', (data) {
-      final roomId = 'room-${data['appointmentId']}';
-      final callerName = data['callerName'];
-      final appointmentId = data['appointmentId'];
-
-      navigatorKey.currentState?.push(MaterialPageRoute(
-        builder: (_) => VideoCallScreen(
-          roomId: roomId,
-          peerName: callerName,
-          appointmentId: appointmentId,
-          isCaller: false,
-        ),
-      ));
-    });
-
     _socket!.on('connect_error', (err) async {
       print('🔴 Erreur de connexion socket : $err');
-      _isConnected = false;
-
       if (err.toString().contains('jwt expired') ||
           err.toString().contains('Unauthorized')) {
         navigatorKey.currentState
@@ -108,44 +82,17 @@ class SocketService {
       final peerId = data['from'].toString();
       final peerName = data['fullName'] ?? 'Patient';
       final appointmentId = data['appointmentId'];
+      final consultationId = data['consultationId'];
+      final roomId = 'consultation_$consultationId';
 
       if (mode == 'chat') {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            duration: const Duration(seconds: 2),
-            behavior: SnackBarBehavior.floating,
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+            content: Text("Consultation en cours avec $peerName"),
             backgroundColor: Colors.green,
-            content: Row(
-              children: [
-                const Icon(Icons.campaign, color: Colors.white, size: 24),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    "Consultation en cours avec $peerName",
-                    style: const TextStyle(fontSize: 16, color: Colors.white),
-                  ),
-                ),
-              ],
-            ),
+            behavior: SnackBarBehavior.floating,
           ),
         );
-        _socket!.on('patient_joined_consultation', (data) {
-          final appointmentId = data['appointmentId'];
-          final mode = data['mode'];
-
-          final context = navigatorKey.currentContext;
-          if (context != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text("👤 Le patient a rejoint en mode $mode"),
-                backgroundColor: Colors.indigo,
-              ),
-            );
-          }
-
-          print("📢 Patient a rejoint ($mode) pour RDV $appointmentId");
-        });
 
         Future.delayed(const Duration(seconds: 2), () {
           Navigator.push(
@@ -155,6 +102,8 @@ class SocketService {
                 peerId: peerId,
                 peerName: peerName,
                 appointmentId: appointmentId,
+                consultationId: consultationId,
+                roomId: roomId,
               ),
             ),
           );
@@ -169,19 +118,16 @@ class SocketService {
 
     _socket!.on('message_read', (data) {
       final messageId = data['messageId'];
-      print('📘 Message lu : messageId = $messageId');
       onMessageRead?.call(messageId);
     });
 
     _socket!.on('user_online', (data) {
       final userId = data['userId'].toString();
-      print('🔵 Utilisateur en ligne : $userId');
       onUserOnline?.call(userId);
     });
 
     _socket!.on('user_offline', (data) {
       final userId = data['userId'].toString();
-      print('⚪ Utilisateur hors ligne : $userId');
       onUserOffline?.call(userId);
     });
 
@@ -201,68 +147,81 @@ class SocketService {
     });
   }
 
-  void joinRoom(String roomId) {
-    if (_isConnected && _socket != null) {
-      _socket!.emit('joinRoom', {'roomId': roomId});
-      print('Rejoint la salle: $roomId');
-    } else {
-      print('Socket non connecté, impossible de rejoindre la salle: $roomId');
-    }
+  void emit(String event, Map<String, dynamic> data) {
+    _socket?.emit(event, data);
   }
 
   void sendMessage(Map<String, dynamic> payload) {
+    if (!isConnected) {
+      print("❌ Impossible d'envoyer le message : socket non connecté");
+      return;
+    }
+    print('📤 Envoi message via socket : $payload'); // 👈 Ajoute cette ligne
     _socket?.emit('send_message', payload);
   }
 
-  void on(String event, Function(dynamic) callback) {
-    _socket?.on(event, callback);
-  }
-
-  void emit(String event, Map<String, dynamic> data) {
-    if (_isConnected && _socket != null) {
-      _socket!.emit(event, data);
-    } else {
-      print('Socket non connecté, impossible d\'émettre l\'événement: $event');
+  void sendVoiceMessage({
+    required String roomId,
+    required String senderId,
+    required String recipientId,
+    required String audioUrl,
+  }) {
+    if (!isConnected) {
+      print("❌ Impossible d'envoyer le message vocal : socket non connecté");
+      return;
     }
+
+    final payload = {
+      'consultationId': roomId,
+      'from': senderId,
+      'to': recipientId,
+      'audioUrl': audioUrl,
+      'type': 'voice',
+      'timestamp': DateTime.now().toIso8601String(),
+    };
+
+    _socket?.emit('send_message', payload);
   }
 
   void emitTyping({required int toUserId, required bool isTyping}) {
+    if (!isConnected) {
+      print("❌ Impossible d'émettre l'état de frappe : socket non connecté");
+      return;
+    }
     _socket?.emit(isTyping ? 'typing' : 'stop_typing', {'to': toUserId});
   }
 
-  void off(String event) {
-    _socket?.off(event);
+  void joinRoom(String roomId) {
+    if (!isConnected) return;
+    _socket?.emit('join_room', {'roomId': roomId});
   }
 
-  void reconnect() async {
-    if (_socket == null || !_socket!.connected) {
-      print('🔄 Tentative de reconnexion au socket...');
-      await connectSocket();
+  void on(String event, Function(dynamic) handler) {
+    if (!isConnected) {
+      print(
+          '⚠️ Tentative d’écouter un événement sans socket connecté : $event');
+      return;
     }
-  }
-
-  void sendVoiceMessage({
-    required int toUserId,
-    required String fileName,
-    required List<int> audioBytes,
-    required int appointmentId,
-    required int durationSeconds,
-  }) {
-    _socket?.emit('send_voice', {
-      'to': toUserId,
-      'fileName': fileName,
-      'audio': audioBytes,
-      'appointmentId': appointmentId,
-      'duration': durationSeconds,
-    });
+    _socket?.on(event, handler);
   }
 
   void disconnect() {
-    if (_isConnected && _socket != null) {
-      _socket!.disconnect();
-      _socket = null;
-      _isConnected = false;
-      print('Socket déconnecté');
+    _socket?.disconnect();
+    _socket = null;
+  }
+
+  Future<void> waitForConnection({int maxTries = 10}) async {
+    int attempt = 0;
+    while (!isConnected && attempt < maxTries) {
+      print("🕒 Attente connexion socket... ($attempt)");
+      await Future.delayed(const Duration(milliseconds: 500));
+      attempt++;
+    }
+
+    if (!isConnected) {
+      print("❌ Connexion socket échouée après $maxTries tentatives");
+    } else {
+      print("✅ Socket connecté après $attempt tentatives");
     }
   }
 

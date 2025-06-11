@@ -3,6 +3,6 @@ const config = {
   'production': false,
   // 'baseUrl': 'http://192.168.1.2:3001/api',
   'baseUrl': 'http://192.168.1.2:3001/api/',
-  'socketUrl': 'http://192.168.1.2:3001/api/',
+  'socketUrl': 'http://192.168.1.2:3001',
   'appName': 'MyPsy',
 };
