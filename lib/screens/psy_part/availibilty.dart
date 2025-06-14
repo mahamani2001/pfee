@@ -63,6 +63,7 @@ class _DoctorAvailiblityState extends State<DoctorAvailiblity> {
         });
         setState(() {});
       }
+      setState(() {});
     }
   }
 

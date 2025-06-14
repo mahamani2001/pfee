@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mypsy_app/helpers/app_config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:mypsy_app/resources/services/auth_service.dart';
@@ -44,7 +45,7 @@ class SocketService {
       }
     }
 
-    _socket = IO.io('http://192.168.1.2:3001', {
+    _socket = IO.io(AppConfig.instance()!.socketUrl, {
       'transports': ['websocket'],
       'auth': {'token': token},
       'autoConnect': true,

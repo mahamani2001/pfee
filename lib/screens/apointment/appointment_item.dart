@@ -240,6 +240,7 @@ class _AppointmentCardState extends State<AppointmentCard> {
             btnNoTitle: "Annuler",
             onPressYes: () async {
               await AppointmentService().confirmAppointment(widget.id);
+              Navigator.pop(context);
               widget.onReload();
             },
             onClosePopup: () {
@@ -259,6 +260,27 @@ class _AppointmentCardState extends State<AppointmentCard> {
             btnNoTitle: "Non",
             onPressYes: () async {
               await AppointmentService().rejectAppointment(widget.id);
+              Navigator.pop(context);
+              widget.onReload();
+            },
+            onClosePopup: () {
+              Navigator.pop(context);
+            }));
+  }
+
+  void alertAnnulerPatient() {
+    final dateFr = formatDateFr(widget.date);
+    showDialog(
+        context: context,
+        builder: (context) => AlertYesNo(
+            title: "Annuler? ",
+            description:
+                "Voulez-vous annuler cette demande \n $dateFr à ${widget.time}?",
+            btnTitle: "Oui",
+            btnNoTitle: "Non",
+            onPressYes: () async {
+              await AppointmentService().cancelAppointment(widget.id);
+              Navigator.pop(context);
               widget.onReload();
             },
             onClosePopup: () {
@@ -292,8 +314,7 @@ class _AppointmentCardState extends State<AppointmentCard> {
         }),
         const SizedBox(width: 8),
         _button(context, 'Annuler', Colors.red, isOutline: true, () async {
-          await AppointmentService().cancelAppointment(widget.id);
-          widget.onReload();
+          alertAnnulerPatient();
         }),
       ];
     }

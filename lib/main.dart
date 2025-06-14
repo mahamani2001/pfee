@@ -27,7 +27,7 @@ Future<void> main({String? env}) async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // 🔐 Optionnel : nettoyage sécurisé
-  final storage = FlutterSecureStorage();
+  final storage = const FlutterSecureStorage();
   await storage.deleteAll();
 
   // 🔌 Initialisation Firebase
