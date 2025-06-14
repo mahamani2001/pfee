@@ -21,6 +21,7 @@ class AppointmentCard extends StatefulWidget {
   final String date;
   final String status;
   final String userRole;
+  final String specialite;
   final VoidCallback onReload;
   final dynamic appt;
   final bool canJoin;
@@ -37,6 +38,7 @@ class AppointmentCard extends StatefulWidget {
     required this.onReload,
     required this.appt,
     required this.canJoin,
+    required this.specialite,
   });
 
   @override
@@ -142,7 +144,9 @@ class _AppointmentCardState extends State<AppointmentCard> {
                                       color: AppColors.mypsySecondary),
                                   const SizedBox(width: 5),
                                   Text(
-                                    "specilaite",
+                                    widget.specialite != null
+                                        ? widget.specialite
+                                        : '',
                                     style: AppThemes.getTextStyle(
                                       size: 12,
                                     ),
