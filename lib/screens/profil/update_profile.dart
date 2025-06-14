@@ -47,9 +47,6 @@ class _UpdateProfileState extends State<UpdateProfile> {
   };
   final Map<String, String> _displayToBackendSpec = {
     'Psy': 'psy',
-    'Étudiant(e)': 'Etudiant(e)',
-    'Employee': 'Employee',
-    "En recherche d'emploi": "En recherche d'emploi",
   };
   List<String> get _options => _displayToBackend.keys.toList();
   List<String> get _optionsSpecialite => _displayToBackendSpec.keys.toList();
@@ -246,7 +243,7 @@ class _UpdateProfileState extends State<UpdateProfile> {
               fromAuthentification: true,
             ),
             const SizedBox(height: 11),
-            (role == PSY_ROLE) ? optionUiPsy() : optionUi(),
+            (role == PSY_ROLE) ? optionUi() : optionUiPsy(),
             const SizedBox(height: 15),
             SizedBox(
               width: MediaQuery.of(context).size.width,
