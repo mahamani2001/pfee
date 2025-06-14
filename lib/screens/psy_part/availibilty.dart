@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mypsy_app/resources/services/appointment_service.dart';
 import 'package:mypsy_app/resources/services/auth_service.dart';
+import 'package:mypsy_app/screens/layouts/main_screen_psy.dart';
 import 'package:mypsy_app/screens/layouts/top_bar_subpage.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';
 import 'package:mypsy_app/shared/themes/app_theme.dart';
@@ -178,6 +179,14 @@ class _DoctorAvailiblityState extends State<DoctorAvailiblity> {
         'Avilibilty enregistrer avec success',
         context,
       );
+      Future.delayed(const Duration(seconds: 2), () async {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const MainScreenPsy(initialTabIndex: 0),
+          ),
+        );
+      });
     } else {
       customFlushbar('', 'Erreur lors de la confirmation', context,
           isError: true);
