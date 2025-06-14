@@ -75,13 +75,15 @@ class _AppointmentCardState extends State<AppointmentCard> {
             Navigator.pushNamed(
               context,
               Routes.patientInfo,
-              arguments: {'patient': widget.appt},
+              arguments: {
+                'patient': widget.appt,
+              },
             );
           },
-          child: cardInfo())
-      : cardInfo();
+          child: cardInfo(widget.userRole))
+      : cardInfo(widget.userRole);
 
-  Widget cardInfo() {
+  Widget cardInfo(String userRole) {
     final dateFr = formatDateFr(widget.date);
     return Container(
       padding: const EdgeInsets.all(12),
@@ -209,8 +211,8 @@ class _AppointmentCardState extends State<AppointmentCard> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Row(children: _buildActionButtons(context)),
-              const SizedBox(height: 10),
+              Row(children: _buildActionButtons(context, userRole)),
+              const SizedBox(height: 5),
               _buildJoinButton(context),
             ],
           ),
@@ -257,7 +259,7 @@ class _AppointmentCardState extends State<AppointmentCard> {
             }));
   }
 
-  List<Widget> _buildActionButtons(BuildContext context) {
+  List<Widget> _buildActionButtons(BuildContext context, String userRole) {
     if (widget.userRole == 'psychiatrist' && widget.status == 'pending') {
       return [
         _button(context, 'Confirmer', Colors.green, () async {
@@ -271,7 +273,8 @@ class _AppointmentCardState extends State<AppointmentCard> {
     } else if (widget.status == 'confirmed' && canAccess) {
       // ✅ Si l'accès est dispo → ne pas afficher d'autres boutons
       return [];
-    } else if (widget.status == 'pending' || widget.status == 'confirmed') {
+    } else if ((widget.status == 'pending' || widget.status == 'confirmed') &&
+        userRole != 'psychiatrist') {
       return [
         _button(context, 'Reprogrammer', AppColors.mypsyDarkBlue, () async {
           await Navigator.pushNamed(context, Routes.booking, arguments: {

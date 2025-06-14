@@ -5,6 +5,7 @@ import 'package:mypsy_app/shared/themes/app_colors.dart';
 import 'package:mypsy_app/shared/themes/app_theme.dart';
 import 'package:mypsy_app/shared/ui/buttons/button.dart';
 import 'package:mypsy_app/utils/functions.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class PatientDetailScreen extends StatelessWidget {
   const PatientDetailScreen({super.key});
@@ -16,6 +17,7 @@ class PatientDetailScreen extends StatelessWidget {
     final patient = args['patient'];
     print(patient);
     final dateFr = formatDateFr(patient["date"]);
+
     return Scaffold(
       backgroundColor: AppColors.mypsyBgApp,
       appBar: const TopBarSubPage(
@@ -25,33 +27,6 @@ class PatientDetailScreen extends StatelessWidget {
           child: SingleChildScrollView(
         child: Column(
           children: [
-            if (patient["status"] == "cancelled")
-              Container(
-                margin:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: AppColors.mypsyAlertRed,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    const BoxShadow(color: AppColors.mypsyBgApp, blurRadius: 6),
-                  ],
-                ),
-                padding:
-                    const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
-                child: Column(
-                  children: [
-                    iconTitle("Cause d'annulation", Icons.info_outline,
-                        colorWhite: true),
-                    const SizedBox(height: 8),
-                    Text(
-                        patient['description'] ??
-                            "Je vous accompagne avec écoute et bienveillance.Chaque pas compte vers une vie plus apaisée.",
-                        style: AppThemes.getTextStyle(
-                            clr: AppColors.mypsyBgApp,
-                            fontWeight: FontWeight.w600)),
-                  ],
-                ),
-              ),
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 16),
               decoration: decorationUi(),
@@ -87,47 +62,57 @@ class PatientDetailScreen extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 10),
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: decorationUi(),
-              padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
-              child: Column(
-                children: [
-                  iconTitle(
-                    "Notes",
-                    Icons.info_outline,
+            (patient["status"] == "cancelled")
+                ? Container(
+                    margin: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: AppColors.mypsyAlertRed,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        const BoxShadow(
+                            color: AppColors.mypsyBgApp, blurRadius: 6),
+                      ],
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 30, horizontal: 20),
+                    child: Column(
+                      children: [
+                        iconTitle("Cause d'annulation", Icons.info_outline,
+                            colorWhite: true),
+                        const SizedBox(height: 8),
+                        Text(
+                            patient['description'] ??
+                                "Je vous accompagne avec écoute et bienveillance.Chaque pas compte vers une vie plus apaisée.",
+                            style: AppThemes.getTextStyle(
+                                clr: AppColors.mypsyBgApp,
+                                fontWeight: FontWeight.w600)),
+                      ],
+                    ),
+                  )
+                : Container(
+                    margin: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 10),
+                    decoration: decorationUi(),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 30, horizontal: 20),
+                    child: Column(
+                      children: [
+                        iconTitle(
+                          "Notes",
+                          Icons.info_outline,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                            patient['description'] ??
+                                "Je vous accompagne avec écoute et bienveillance.Chaque pas compte vers une vie plus apaisée.",
+                            style: AppThemes.getTextStyle()),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                      patient['description'] ??
-                          "Je vous accompagne avec écoute et bienveillance.Chaque pas compte vers une vie plus apaisée.",
-                      style: AppThemes.getTextStyle()),
-                ],
-              ),
-            ),
           ],
         ),
       )),
-      bottomNavigationBar: (patient["status"] == "cancelled")
-          ? null
-          : Padding(
-              padding: const EdgeInsets.fromLTRB(24, 10, 24, 24),
-              child: mypsyButton(
-                isFull: true,
-                onPress: () {
-                  Navigator.pushNamed(
-                    context,
-                    Routes.booking,
-                    arguments: {
-                      'patientId': patient['id'],
-                    },
-                  );
-                },
-                bgColors: AppColors.mypsyDarkBlue,
-                text: "Commence on ....",
-              ),
-            ),
     );
   }
 

@@ -12,6 +12,8 @@ import 'package:mypsy_app/shared/ui/loader/loader.dart';
 import 'package:mypsy_app/helpers/app_config.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:mypsy_app/utils/constants.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class UpdateProfile extends StatefulWidget {
   final String title;
@@ -34,16 +36,23 @@ class _UpdateProfileState extends State<UpdateProfile> {
   TextEditingController? _lastNameController;
   TextEditingController? _phoneController;
   TextEditingController? _dobController;
-  String? _selectedValue;
-
+  TextEditingController? _numbreExperienceController;
+  String? _selectedValue, _selectedValuePsy;
+  String? role;
   final Map<String, String> _displayToBackend = {
     'Lycéen(ne)': 'Lyceen(ne)',
     'Étudiant(e)': 'Etudiant(e)',
     'Employee': 'Employee',
     "En recherche d'emploi": "En recherche d'emploi",
   };
-
+  final Map<String, String> _displayToBackendSpec = {
+    'Psy': 'psy',
+    'Étudiant(e)': 'Etudiant(e)',
+    'Employee': 'Employee',
+    "En recherche d'emploi": "En recherche d'emploi",
+  };
   List<String> get _options => _displayToBackend.keys.toList();
+  List<String> get _optionsSpecialite => _displayToBackendSpec.keys.toList();
 
   bool ispressed = false;
   final inputDateFormat = DateFormat('dd/MM/yyyy');
@@ -57,10 +66,12 @@ class _UpdateProfileState extends State<UpdateProfile> {
     _emailController = TextEditingController();
     _phoneController = TextEditingController();
     _dobController = TextEditingController(text: "");
+    _numbreExperienceController = TextEditingController();
   }
 
   Future<void> fetchData() async {
     final token = await AuthService().getJwtToken();
+    final prefs = await SharedPreferences.getInstance();
 
     if (token == null) {
       customFlushbar("", "Session expirée", context, isError: true);
@@ -77,11 +88,14 @@ class _UpdateProfileState extends State<UpdateProfile> {
       final backendDateFormat = DateFormat('yyyy-MM-dd');
 
       setState(() {
+        role = prefs.getString('user_role');
         _emailController?.text = data['email'] ?? '';
         _phoneController?.text = data['telephone'] ?? '';
+        _numbreExperienceController?.text = data['experience'] ?? '';
+
         _selectedValue = _displayToBackend.keys.firstWhere(
           (key) => _displayToBackend[key] == (data['dans_la_vie_tu_es'] ?? ''),
-          orElse: () => '', // Default to empty if no match
+          orElse: () => '',
         );
         _dobController?.text = data['date_of_birth'] != null
             ? inputDateFormat
@@ -232,36 +246,7 @@ class _UpdateProfileState extends State<UpdateProfile> {
               fromAuthentification: true,
             ),
             const SizedBox(height: 11),
-            Text("Dans la vie tu es ?", style: AppThemes.getTextStyle()),
-            if (_options
-                .isNotEmpty) // Only show DropdownButton if options exist
-              DropdownButton<String>(
-                isExpanded: true,
-                hint: const Text(
-                  "Dans la vie tu es ?",
-                  style: AppThemes.placeholderStyle,
-                ),
-                value: _selectedValue != null &&
-                        _selectedValue!.isNotEmpty &&
-                        _options.contains(_selectedValue)
-                    ? _selectedValue
-                    : null,
-                onChanged: (value) {
-                  setState(() {
-                    _selectedValue = value;
-                  });
-                },
-                items: _options
-                    .map((option) => DropdownMenuItem<String>(
-                          value: option,
-                          child:
-                              Text(option, style: AppThemes.placeholderStyle),
-                        ))
-                    .toList(),
-              )
-            else
-              const Text("Aucune option disponible",
-                  style: AppThemes.placeholderStyle),
+            (role == PSY_ROLE) ? optionUiPsy() : optionUi(),
             const SizedBox(height: 15),
             SizedBox(
               width: MediaQuery.of(context).size.width,
@@ -285,6 +270,75 @@ class _UpdateProfileState extends State<UpdateProfile> {
             ),
           ],
         ),
+      );
+  Widget optionUiPsy() => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text("Specialite", style: AppThemes.getTextStyle()),
+          if (_optionsSpecialite.isNotEmpty)
+            DropdownButton<String>(
+              isExpanded: true,
+              hint: const Text(
+                "Specialite",
+                style: AppThemes.placeholderStyle,
+              ),
+              value: _selectedValuePsy != null &&
+                      _selectedValuePsy!.isNotEmpty &&
+                      _optionsSpecialite.contains(_selectedValuePsy)
+                  ? _selectedValue
+                  : null,
+              onChanged: (value) {
+                setState(() {
+                  _selectedValuePsy = value;
+                });
+              },
+              items: _optionsSpecialite
+                  .map((option) => DropdownMenuItem<String>(
+                        value: option,
+                        child: Text(option, style: AppThemes.placeholderStyle),
+                      ))
+                  .toList(),
+            ),
+          InputField(
+            _numbreExperienceController,
+            "Experience",
+            (value) =>
+                value!.isEmpty ? "Renseignez votre numero d'experience" : null,
+            TextInputAction.done,
+            onChanged: (_) => _formKey.currentState!.validate(),
+          ),
+        ],
+      );
+
+  Widget optionUi() => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text("Dans la vie tu es ?", style: AppThemes.getTextStyle()),
+          if (_options.isNotEmpty)
+            DropdownButton<String>(
+              isExpanded: true,
+              hint: const Text(
+                "Dans la vie tu es ?",
+                style: AppThemes.placeholderStyle,
+              ),
+              value: _selectedValue != null &&
+                      _selectedValue!.isNotEmpty &&
+                      _options.contains(_selectedValue)
+                  ? _selectedValue
+                  : null,
+              onChanged: (value) {
+                setState(() {
+                  _selectedValue = value;
+                });
+              },
+              items: _options
+                  .map((option) => DropdownMenuItem<String>(
+                        value: option,
+                        child: Text(option, style: AppThemes.placeholderStyle),
+                      ))
+                  .toList(),
+            ),
+        ],
       );
 
   Future<void> updateUserProfile() async {
@@ -329,6 +383,8 @@ class _UpdateProfileState extends State<UpdateProfile> {
         "telephone": _phoneController!.text.trim(),
         "date_de_naissance": formattedDate,
         "dans_la_vie_tu_es": _displayToBackend[_selectedValue] ?? "",
+        "role": role,
+        "experience": role == PSY_ROLE ? _numbreExperienceController!.text : 0,
       }),
     );
 
