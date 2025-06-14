@@ -9,6 +9,7 @@ import 'package:mypsy_app/shared/themes/app_colors.dart';
 import 'package:mypsy_app/shared/themes/app_theme.dart';
 import 'package:mypsy_app/shared/ui/alert.dart';
 import 'package:mypsy_app/shared/ui/buttons/button.dart';
+import 'package:mypsy_app/utils/constants.dart';
 import 'package:mypsy_app/utils/functions.dart';
 
 class AppointmentCard extends StatefulWidget {
@@ -133,19 +134,21 @@ class _AppointmentCardState extends State<AppointmentCard> {
                                 style: AppThemes.getTextStyle(
                                     fontWeight: FontWeight.bold)),
                             const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                const Icon(Icons.medical_services_outlined,
-                                    size: 14, color: AppColors.mypsySecondary),
-                                const SizedBox(width: 5),
-                                Text(
-                                  "specilaite",
-                                  style: AppThemes.getTextStyle(
-                                    size: 12,
+                            if (widget.userRole != PSY_ROLE)
+                              Row(
+                                children: [
+                                  const Icon(Icons.medical_services_outlined,
+                                      size: 14,
+                                      color: AppColors.mypsySecondary),
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    "specilaite",
+                                    style: AppThemes.getTextStyle(
+                                      size: 12,
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
+                                ],
+                              ),
                             const SizedBox(height: 4),
                             Row(
                               children: [
