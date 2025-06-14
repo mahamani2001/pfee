@@ -282,10 +282,8 @@ class _UpdateProfileState extends State<UpdateProfile> {
                 "Specialite",
                 style: AppThemes.placeholderStyle,
               ),
-              value: _selectedValuePsy != null &&
-                      _selectedValuePsy!.isNotEmpty &&
-                      _optionsSpecialite.contains(_selectedValuePsy)
-                  ? _selectedValue
+              value: _optionsSpecialite.contains(_selectedValuePsy)
+                  ? _selectedValuePsy
                   : null,
               onChanged: (value) {
                 setState(() {
@@ -383,10 +381,12 @@ class _UpdateProfileState extends State<UpdateProfile> {
         "telephone": _phoneController!.text.trim(),
         "date_de_naissance": formattedDate,
         "dans_la_vie_tu_es": role == PSY_ROLE
-            ? _displayToBackendSpec[_selectedValuePsy] ?? ""
+            ? _selectedValuePsy ?? ""
             : _displayToBackend[_selectedValue],
         "role": role,
-        "experience": role == PSY_ROLE ? _numbreExperienceController!.text : 0,
+        "experience":
+            role == PSY_ROLE ? _numbreExperienceController!.text.trim() : 0,
+        "specialty": role == PSY_ROLE ? _selectedValuePsy ?? "" : null
       }),
     );
 
