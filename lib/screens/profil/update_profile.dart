@@ -243,7 +243,7 @@ class _UpdateProfileState extends State<UpdateProfile> {
               fromAuthentification: true,
             ),
             const SizedBox(height: 11),
-            (role == PSY_ROLE) ? optionUi() : optionUiPsy(),
+            (role == PSY_ROLE) ? optionUiPsy() : optionUi(),
             const SizedBox(height: 15),
             SizedBox(
               width: MediaQuery.of(context).size.width,
