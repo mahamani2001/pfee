@@ -3,6 +3,7 @@ import 'package:mypsy_app/resources/services/appointment_service.dart';
 import 'package:mypsy_app/resources/services/auth_service.dart';
 import 'package:mypsy_app/screens/apointment/appointment_item.dart';
 import 'package:mypsy_app/shared/themes/app_theme.dart';
+import 'package:mypsy_app/utils/constants.dart';
 
 class AppointmentList extends StatefulWidget {
   final String status;
@@ -84,18 +85,20 @@ class _AppointmentListState extends State<AppointmentList> {
             : "Dr. ${appt['psychiatrist_name'] ?? 'Inconnu'}";
 
         return AppointmentCard(
-          id: appt['id'],
-          psychiatristId: appt['psychiatrist_id'],
-          patientId: appt['patient_id'],
-          name: displayName,
-          time: appt['start_time'].toString().substring(0, 5),
-          date: appt['date'],
-          status: widget.status,
-          userRole: userRole ?? '',
-          onReload: loadAppointments,
-          appt: appt,
-          canJoin: canAccessAppointment(appt), // ✅ ← AJOUT ICI
-        );
+            id: appt['id'],
+            psychiatristId: appt['psychiatrist_id'],
+            patientId: appt['patient_id'],
+            name: displayName,
+            time: appt['start_time'].toString().substring(0, 5),
+            date: appt['date'],
+            status: widget.status,
+            userRole: userRole ?? '',
+            onReload: loadAppointments,
+            appt: appt,
+            canJoin: canAccessAppointment(appt),
+            specialite: (userRole == PSY_ROLE)
+                ? (appt['dans_la_vie_tu_es'] ?? '')
+                : '');
       },
     );
   }
