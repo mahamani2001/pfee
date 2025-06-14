@@ -18,3 +18,5 @@ const String urlCGU = 'https://www.google.com/';
 const String urlPolitique = 'https://www.google.com/';
 const String urlLeCercle = 'https://www.google.com/';
 const String urlmypsy = 'https://www.google.com/';
+
+const String PSY_ROLE = 'psychiatrist';
