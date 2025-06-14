@@ -381,7 +381,7 @@ class _UpdateProfileState extends State<UpdateProfile> {
         "telephone": _phoneController!.text.trim(),
         "date_de_naissance": formattedDate,
         "dans_la_vie_tu_es": role == PSY_ROLE
-            ? _selectedValuePsy ?? ""
+            ? _displayToBackendSpec[_selectedValuePsy]
             : _displayToBackend[_selectedValue],
         "role": role,
         "experience":
