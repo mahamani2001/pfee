@@ -49,16 +49,19 @@ class _DoctorAvailiblityState extends State<DoctorAvailiblity> {
       final data = await AppointmentService().getMyAvailiblity(userId!);
 
       print(data);
-      setState(() {});
       if (data != null) {
         data.forEach((day, slots) {
-          if (slots.isNotEmpty) {
-            List<String> sorted = slots.toList()
+          final List<String> stringSlots = List<String>.from(slots);
+          if (stringSlots.isNotEmpty) {
+            List<String> sorted = stringSlots
               ..sort((a, b) => _timeToMinutes(a.split('-')[0])
                   .compareTo(_timeToMinutes(b.split('-')[0])));
             cleaned[day] = sorted;
+            daySelected[day] = true; // ✅ Active le jour
+            selectedSlots[day] = sorted;
           }
         });
+        setState(() {});
       }
     }
   }

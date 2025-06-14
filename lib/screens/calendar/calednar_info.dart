@@ -71,24 +71,24 @@ class _BookingPageState extends State<BookingPage> {
     print('📅 Date sélectionnée (Flutter) : $dateStr');
 
     try {
-      final reserved =
-          await AppointmentService().getReservedTimes(psychiatristId, dateStr);
-      print('🔒 Heures déjà réservées : $reserved');
+      //  final reserved =
+      //     await AppointmentService().getReservedTimes(psychiatristId, dateStr);
+      //print('🔒 Heures déjà réservées : $reserved');
 
       final available =
-          await AppointmentService().getAvailabilities(psychiatristId);
-      print('✅ Disponibilités récupérées du backend :');
+          await AppointmentService().getMyAvailiblity(psychiatristId);
+      /*    print('✅ Disponibilités récupérées du backend :');
       for (var a in available) {
         print(
             '  → id=${a['availability_id']} | date=${a['date']} | start=${a['start_time']}');
-      }
-
-      final availableFiltered = available.where((a) {
+      } */
+      print(available);
+      /*   final availableFiltered = available.where((a) {
         final dateFromApi = DateTime.parse(a['date']).toLocal();
         final formattedDate = DateFormat('yyyy-MM-dd').format(dateFromApi);
         return formattedDate == dateStr;
       }).toList();
-
+ */ /* 
       final times = <String>[];
       final map = <String, int>{};
 
@@ -97,11 +97,11 @@ class _BookingPageState extends State<BookingPage> {
         times.add(time);
         map[time] = a['availability_id'];
       }
-
+ */
       setState(() {
-        reservedTimes = reserved;
-        availableTimes = times;
-        timeToAvailabilityId = map;
+        //    reservedTimes = reserved;
+        //  availableTimes = times;
+        //  timeToAvailabilityId = map;
       });
     } catch (e) {
       print("❌ Erreur chargement créneaux: $e");
