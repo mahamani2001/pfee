@@ -98,7 +98,7 @@ class DoctorCard extends StatelessWidget {
             style:
                 AppThemes.getTextStyle(size: 12, fontWeight: FontWeight.w500),
           ),
-          const SizedBox(width: 10),
+          /*  const SizedBox(width: 10),
           const Icon(Icons.access_time,
               size: 14, color: AppColors.mypsySecondary),
           const SizedBox(width: 4),
@@ -107,7 +107,7 @@ class DoctorCard extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style:
                 AppThemes.getTextStyle(size: 12, fontWeight: FontWeight.w500),
-          ),
+          ),*/
         ],
       );
 

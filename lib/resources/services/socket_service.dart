@@ -44,7 +44,7 @@ class SocketService {
       }
     }
 
-    _socket = IO.io('http://192.168.1.2:3001', {
+    _socket = IO.io('http://10.225.1.87:3001', {
       'transports': ['websocket'],
       'auth': {'token': token},
       'autoConnect': true,

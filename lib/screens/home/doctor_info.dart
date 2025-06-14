@@ -49,10 +49,10 @@ class DoctorDetailScreen extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                       psychiatrist['description'] ??
-                          "Je vous accompagne avec écoute et bienveillance.Chaque pas compte vers une vie plus apaisée.",
-                      style: AppThemes.getTextStyle()),
-                  const SizedBox(height: 20),
-                  availiblityUi(),
+                          "Je vous accompagne avec écoute et bienveillance.\nChaque pas compte vers une vie plus apaisée.",
+                      style: AppThemes.getTextStyle(size: 13)),
+                  //const SizedBox(height: 20),
+                  // availiblityUi(),
                 ],
               ),
             ),

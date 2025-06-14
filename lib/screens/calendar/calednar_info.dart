@@ -69,39 +69,32 @@ class _BookingPageState extends State<BookingPage> {
     if (_selectedDay == null) return;
     final dateStr = DateFormat('yyyy-MM-dd').format(_selectedDay!);
     print('📅 Date sélectionnée (Flutter) : $dateStr');
+    final dayOfWeek = DateFormat('EEEE', 'fr_FR').format(_selectedDay!);
 
     try {
       final reserved =
           await AppointmentService().getReservedTimes(psychiatristId, dateStr);
-      print('🔒 Heures déjà réservées : $reserved');
+      //print('🔒 Heures déjà réservées : $reserved');
 
       final available =
-          await AppointmentService().getAvailabilities(psychiatristId);
-      print('✅ Disponibilités récupérées du backend :');
-      for (var a in available) {
-        print(
-            '  → id=${a['availability_id']} | date=${a['date']} | start=${a['start_time']}');
-      }
+          await AppointmentService().getMyAvailiblity(psychiatristId);
 
-      final availableFiltered = available.where((a) {
-        final dateFromApi = DateTime.parse(a['date']).toLocal();
-        final formattedDate = DateFormat('yyyy-MM-dd').format(dateFromApi);
-        return formattedDate == dateStr;
-      }).toList();
+      List<String> times = [];
 
-      final times = <String>[];
-      final map = <String, int>{};
-
-      for (var a in availableFiltered) {
-        final time = a['start_time'].toString().substring(0, 5);
-        times.add(time);
-        map[time] = a['availability_id'];
-      }
+      available!.forEach((jour, horaires) {
+        if (dayOfWeek.toLowerCase() == jour.toLowerCase()) {
+          for (var h in horaires) {
+            final parts = h.split('-');
+            final startTime = parts[0];
+            times.add(startTime);
+          }
+        }
+      });
 
       setState(() {
         reservedTimes = reserved;
         availableTimes = times;
-        timeToAvailabilityId = map;
+        timeToAvailabilityId = {};
       });
     } catch (e) {
       print("❌ Erreur chargement créneaux: $e");

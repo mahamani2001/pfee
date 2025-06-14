@@ -83,7 +83,7 @@ class PatientDetailScreen extends StatelessWidget {
                         const SizedBox(height: 8),
                         Text(
                             patient['description'] ??
-                                "Je vous accompagne avec écoute et bienveillance.Chaque pas compte vers une vie plus apaisée.",
+                                "Je vous accompagne avec écoute et bienveillance.\nChaque pas compte vers une vie plus apaisée.",
                             style: AppThemes.getTextStyle(
                                 clr: AppColors.mypsyBgApp,
                                 fontWeight: FontWeight.w600)),
