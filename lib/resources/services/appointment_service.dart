@@ -6,7 +6,7 @@ import 'package:mypsy_app/resources/services/http_service.dart';
 
 class AppointmentService {
   String baseUrl = '${AppConfig.instance()!.baseUrl!}appointments';
-
+  String baseUrlavailability = '${AppConfig.instance()!.baseUrl!}availability';
   // 1️⃣ Réserver un rendez-vous
   Future<Map<String, dynamic>> reserveAppointment({
     required int psychiatristId,
@@ -243,5 +243,16 @@ class AppointmentService {
       print('❌ Erreur récupération rendez-vous : ${response.body}');
       return null;
     }
+  }
+
+  Future<bool> setAvailiblity({
+    required dynamic slots,
+  }) async {
+    final response = await HttpService().request(
+      url: '$baseUrlavailability',
+      method: 'POST',
+      body: {'slots': slots},
+    );
+    return response.statusCode == 201;
   }
 }

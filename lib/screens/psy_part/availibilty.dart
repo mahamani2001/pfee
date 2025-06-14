@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mypsy_app/resources/services/appointment_service.dart';
 import 'package:mypsy_app/screens/layouts/top_bar_subpage.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';
 import 'package:mypsy_app/shared/themes/app_theme.dart';
@@ -126,7 +127,7 @@ class _DoctorAvailiblityState extends State<DoctorAvailiblity> {
     );
   }
 
-  void saveAvailability() {
+  Future<void> saveAvailability() async {
     Map<String, List<String>> cleaned = {};
     selectedSlots.forEach((day, slots) {
       if (slots.isNotEmpty) {
@@ -137,6 +138,9 @@ class _DoctorAvailiblityState extends State<DoctorAvailiblity> {
       }
     });
 
+    final result = await AppointmentService().setAvailiblity(
+      slots: cleaned,
+    );
     print("Saved Availability:\n$cleaned");
   }
 
