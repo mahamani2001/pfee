@@ -245,6 +245,20 @@ class AppointmentService {
     }
   }
 
+  Future<Map<String, dynamic>?> getMyAvailiblity(int psyId) async {
+    final response = await HttpService().request(
+      url: '$baseUrlavailability/$psyId',
+      method: 'GET',
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      print('❌ Erreur récupération rendez-vous : ${response.body}');
+      return null;
+    }
+  }
+
   Future<bool> setAvailiblity({
     required dynamic slots,
   }) async {
