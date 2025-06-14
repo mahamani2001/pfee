@@ -131,3 +131,10 @@ DateTime getFirstDateForAgeRange(int startAge) {
 DateTime initialDate = getFirstDateForAgeRange(80);
 DateTime firstDate = getFirstDateForAgeRange(80);
 DateTime lastDate = getFirstDateForAgeRange(13);
+
+String formatedSlot(String slot) {
+  List<String> parts = slot.split('-');
+  String formattedSlot = "${parts[0]}\n-\n${parts[1]}";
+
+  return formattedSlot;
+}

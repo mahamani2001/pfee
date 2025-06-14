@@ -1,9 +1,9 @@
 import 'package:mypsy_app/resources/services/fcm_service.dart';
 import 'package:mypsy_app/screens/apointment/appointment.dart';
+import 'package:mypsy_app/screens/apointment/requests.dart';
 import 'package:mypsy_app/screens/home/home_psy.dart';
 import 'package:mypsy_app/screens/profil/settings.dart';
 import 'package:mypsy_app/screens/psy_part/availibilty.dart';
-import 'package:mypsy_app/screens/psy_part/old_availibilty.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';
 import 'package:mypsy_app/shared/ui/device_types.dart';
 import 'package:mypsy_app/shared/ui/menu/icon_menu.dart';
@@ -27,9 +27,10 @@ class _MainScreenPsyState extends State<MainScreenPsy>
 
   final List<Widget> _screens = [
     const HomePsy(),
+    const Demandes(),
     const Appointment(),
     const Settings(),
-    DoctorAvailiblityOld(),
+    DoctorAvailiblity(),
   ];
   @override
   void initState() {
@@ -70,22 +71,30 @@ class _MainScreenPsyState extends State<MainScreenPsy>
                   child: IconMenu(
                     icon: 'assets/menu/booking.svg',
                     isSelected: _currentIndex == 1,
-                    title: 'Rdv',
+                    title: 'Demandes',
                   ),
                 ),
                 GestureDetector(
                   onTap: () => setState(() => _currentIndex = 2),
                   child: IconMenu(
-                    icon: 'assets/menu/user.svg',
+                    icon: 'assets/menu/booking.svg',
                     isSelected: _currentIndex == 2,
-                    title: 'Profil',
+                    title: 'Rdv',
                   ),
                 ),
                 GestureDetector(
                   onTap: () => setState(() => _currentIndex = 3),
                   child: IconMenu(
-                    icon: 'assets/menu/booking.svg',
+                    icon: 'assets/menu/user.svg',
                     isSelected: _currentIndex == 3,
+                    title: 'Profil',
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () => setState(() => _currentIndex = 4),
+                  child: IconMenu(
+                    icon: 'assets/menu/booking.svg',
+                    isSelected: _currentIndex == 4,
                     title: 'Calendar',
                   ),
                 ),
