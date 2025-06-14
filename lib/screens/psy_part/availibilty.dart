@@ -49,7 +49,7 @@ class _DoctorAvailiblityState extends State<DoctorAvailiblity> {
       final data = await AppointmentService().getMyAvailiblity(userId!);
 
       print(data);
-      setState(() {});
+
       if (data != null) {
         data.forEach((day, slots) {
           if (slots.isNotEmpty) {
@@ -60,6 +60,7 @@ class _DoctorAvailiblityState extends State<DoctorAvailiblity> {
           }
         });
       }
+      setState(() {});
     }
   }
 
