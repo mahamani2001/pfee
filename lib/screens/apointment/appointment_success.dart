@@ -50,25 +50,45 @@ class _AppointmentSuccessScreenState extends State<AppointmentSuccessScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                //Lottie.asset('assets/animations/success.json',
-                // width: 200, repeat: false),
-                const SizedBox(height: 32),
-                Text(
-                  'Rendez-vous réservé avec succès 🎉',
-                  textAlign: TextAlign.center,
-                  style: AppThemes.getTextStyle(
-                      size: 20, fontWeight: FontWeight.bold),
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.green.withOpacity(0.1),
+                  ),
+                  child: const CircleAvatar(
+                    radius: 40,
+                    backgroundColor: Colors.green,
+                    child: Icon(Icons.check, size: 40, color: Colors.white),
+                  ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 50),
+
+                Text(
+                  "Rendez-vous réservé avec succès",
+                  style: AppThemes.getTextStyle(
+                      fontWeight: FontWeight.bold, size: 16),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+
+                // Description
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: Text(
+                    "Votre rendez-vous a été planifié avec succès.\n Vous pouvez consulter les détails dans l'onglet Rendez-vous.",
+                    textAlign: TextAlign.center,
+                    style: AppThemes.getTextStyle(),
+                  ),
+                ),
+                const SizedBox(height: 70),
                 mypsyButton(
                   isFull: true,
                   onPress: () {
                     _navigateToAppointments;
                   },
-                  bgColors: AppColors.mypsyDarkBlue,
                   text: "Voir mes rendez-vous",
                 ),
-
                 const SizedBox(height: 16),
               ],
             ),

@@ -1,15 +1,11 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:mypsy_app/resources/services/appointment_service.dart';
-import 'package:mypsy_app/resources/services/auth_service.dart';
 import 'package:mypsy_app/screens/apointment/appointment_list.dart';
-
 import 'package:mypsy_app/screens/layouts/main_screen.dart';
-import 'package:mypsy_app/shared/routes.dart';
+import 'package:mypsy_app/screens/layouts/main_screen_psy.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';
 import 'package:mypsy_app/shared/themes/app_theme.dart';
-import 'package:mypsy_app/utils/functions.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Appointment extends StatelessWidget {
   const Appointment({super.key});
@@ -21,25 +17,35 @@ class Appointment extends StatelessWidget {
           backgroundColor: Colors.white,
           appBar: AppBar(
             leading: IconButton(
-              icon: Container(
-                color: Colors.transparent,
-                width: 100,
-                height: 40,
-                child: const Icon(
-                  Icons.arrow_back,
-                  color: AppColors.mypsyBlack,
-                  size: 15,
-                ),
-              ),
-              onPressed: () async {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const MainScreen(initialTabIndex: 0),
+                icon: Container(
+                  color: Colors.transparent,
+                  width: 100,
+                  height: 40,
+                  child: const Icon(
+                    Icons.arrow_back,
+                    color: AppColors.mypsyBlack,
+                    size: 15,
                   ),
-                );
-              },
-            ),
+                ),
+                onPressed: () async {
+                  final prefs = await SharedPreferences.getInstance();
+                  final role = prefs.getString('user_role');
+                  if (role == "psychiatrist") {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const MainScreenPsy(initialTabIndex: 0),
+                      ),
+                    );
+                  } else {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const MainScreen(initialTabIndex: 0),
+                      ),
+                    );
+                  }
+                }),
             centerTitle: true,
             title: const Text(
               "Mes rendez-vous",

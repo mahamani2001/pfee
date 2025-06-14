@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:mypsy_app/screens/apointment/item_patient.dart';
 import 'package:mypsy_app/screens/layouts/top_bar_subpage.dart';
-import 'package:mypsy_app/screens/psys/item_doctor.dart';
 import 'package:mypsy_app/shared/routes.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';
 import 'package:mypsy_app/shared/themes/app_theme.dart';
 import 'package:mypsy_app/shared/ui/buttons/button.dart';
+import 'package:mypsy_app/utils/functions.dart';
 
 class PatientDetailScreen extends StatelessWidget {
   const PatientDetailScreen({super.key});
@@ -15,7 +14,8 @@ class PatientDetailScreen extends StatelessWidget {
     final args =
         ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
     final patient = args['patient'];
-
+    print(patient);
+    final dateFr = formatDateFr(patient["date"]);
     return Scaffold(
       backgroundColor: AppColors.mypsyBgApp,
       appBar: const TopBarSubPage(
@@ -25,24 +25,77 @@ class PatientDetailScreen extends StatelessWidget {
           child: SingleChildScrollView(
         child: Column(
           children: [
-            PatientCard(
-              patient: patient,
-            ),
+            if (patient["status"] == "cancelled")
+              Container(
+                margin:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: AppColors.mypsyAlertRed,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    const BoxShadow(color: AppColors.mypsyBgApp, blurRadius: 6),
+                  ],
+                ),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
+                child: Column(
+                  children: [
+                    iconTitle("Cause d'annulation", Icons.info_outline,
+                        colorWhite: true),
+                    const SizedBox(height: 8),
+                    Text(
+                        patient['description'] ??
+                            "Je vous accompagne avec écoute et bienveillance.Chaque pas compte vers une vie plus apaisée.",
+                        style: AppThemes.getTextStyle(
+                            clr: AppColors.mypsyBgApp,
+                            fontWeight: FontWeight.w600)),
+                  ],
+                ),
+              ),
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                      color: Colors.black12.withOpacity(0.05), blurRadius: 6),
-                ],
-              ),
+              decoration: decorationUi(),
               padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
               child: Column(
                 children: [
                   iconTitle(
-                    "À propos",
+                    "Horaire",
+                    Icons.info_outline,
+                  ),
+                  const SizedBox(height: 10),
+                  _buildInfoRow("Date", dateFr),
+                  _buildInfoRow("Time", patient["start_time"]),
+                  _buildInfoRow("Durée", "${patient["duration_minutes"]} min"),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: decorationUi(),
+              padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
+              child: Column(
+                children: [
+                  iconTitle(
+                    "Informations du patient",
+                    Icons.info_outline,
+                  ),
+                  const SizedBox(height: 8),
+                  _buildInfoRow("Nom", "${patient["patient_name"]}"),
+                  _buildInfoRow("Age", "26 years"),
+                  _buildInfoRow("Genre", "Male"),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: decorationUi(),
+              padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
+              child: Column(
+                children: [
+                  iconTitle(
+                    "Notes",
                     Icons.info_outline,
                   ),
                   const SizedBox(height: 8),
@@ -50,121 +103,72 @@ class PatientDetailScreen extends StatelessWidget {
                       patient['description'] ??
                           "Je vous accompagne avec écoute et bienveillance.Chaque pas compte vers une vie plus apaisée.",
                       style: AppThemes.getTextStyle()),
-                  const SizedBox(height: 20),
                 ],
               ),
             ),
-            const SizedBox(height: 100),
-            _buildSectionTitle("Appointment Schedule"),
-            _buildInfoRow("Date", "23 September 2023"),
-            _buildInfoRow("Time", "05 : 30 PM"),
-            Divider(height: 32),
-            _buildSectionTitle("Patient Details"),
-            _buildInfoRow("Name", "Akash basak"),
-            _buildInfoRow("Age", "26 years"),
-            _buildInfoRow("Gender", "Male"),
-            _buildInfoRow(
-              "Problem",
-              "Lorem ipsum dolor sit amet consectetur. Donec duis faucibus vitae",
-              isMultiline: true,
-              trailingWidget: Text(
-                "See more",
-                style: TextStyle(color: Colors.teal),
-              ),
-            ),
-            Divider(height: 32),
-            _buildSectionTitle("General Instructions"),
-            _buildInstruction(
-                "Start meeting with a stable internet connection"),
-            _buildInstruction("Avoid low light rooms for better observation"),
-            _buildInstruction("Talk to Doctor loud and clear"),
-            _buildInstruction("Ensure a quiet environment during the session"),
           ],
         ),
       )),
-      bottomNavigationBar: Padding(
-        padding:
-            const EdgeInsets.fromLTRB(24, 10, 24, 24), // ⬅ remonte le bouton
-        child: mypsyButton(
-          isFull: true,
-          onPress: () {
-            Navigator.pushNamed(
-              context,
-              Routes.booking,
-              arguments: {
-                'patientId': patient['id'],
-              },
-            );
-          },
-          bgColors: AppColors.mypsyDarkBlue,
-          text: "Commence on ....",
-        ),
-      ),
+      bottomNavigationBar: (patient["status"] == "cancelled")
+          ? null
+          : Padding(
+              padding: const EdgeInsets.fromLTRB(24, 10, 24, 24),
+              child: mypsyButton(
+                isFull: true,
+                onPress: () {
+                  Navigator.pushNamed(
+                    context,
+                    Routes.booking,
+                    arguments: {
+                      'patientId': patient['id'],
+                    },
+                  );
+                },
+                bgColors: AppColors.mypsyDarkBlue,
+                text: "Commence on ....",
+              ),
+            ),
     );
   }
 
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: TextStyle(
-        fontWeight: FontWeight.bold,
-        fontSize: 16,
-      ),
-    );
-  }
+  BoxDecoration decorationUi() => BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(color: Colors.black12.withOpacity(0.05), blurRadius: 6),
+        ],
+      );
 
   Widget _buildInfoRow(String label, String value,
-      {bool isMultiline = false, Widget? trailingWidget}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        crossAxisAlignment:
-            isMultiline ? CrossAxisAlignment.start : CrossAxisAlignment.center,
-        children: [
-          SizedBox(
-            width: 90,
-            child: Text(
-              "$label :",
-              style: TextStyle(fontWeight: FontWeight.w500),
+          {bool isMultiline = false, Widget? trailingWidget}) =>
+      Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Row(
+          crossAxisAlignment: isMultiline
+              ? CrossAxisAlignment.start
+              : CrossAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 90,
+              child: Text("$label :",
+                  style: AppThemes.getTextStyle(
+                    fontWeight: FontWeight.bold,
+                  )),
             ),
-          ),
-          Expanded(
-            child: Wrap(
-              children: [
-                Text(
-                  value,
-                  style: TextStyle(color: Colors.black87),
-                ),
-                if (trailingWidget != null) ...[
-                  SizedBox(width: 6),
-                  trailingWidget,
-                ]
-              ],
+            Expanded(
+              child: Wrap(
+                children: [
+                  Text(value, style: AppThemes.getTextStyle()),
+                  if (trailingWidget != null) ...[
+                    const SizedBox(width: 6),
+                    trailingWidget,
+                  ]
+                ],
+              ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInstruction(String text) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(Icons.check_circle, color: Colors.green, size: 18),
-          SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              text,
-              style: TextStyle(color: Colors.black87),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+          ],
+        ),
+      );
 
   Widget availiblityUi() => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -205,12 +209,17 @@ class PatientDetailScreen extends StatelessWidget {
         ],
       );
 
-  Widget iconTitle(String title, IconData icon) => Row(
+  Widget iconTitle(String title, IconData icon, {bool colorWhite = false}) =>
+      Row(
         children: [
           Icon(icon, size: 18, color: AppColors.mypsyDarkBlue),
           const SizedBox(width: 8),
           Text(title,
-              style: AppThemes.getTextStyle(fontWeight: FontWeight.bold)),
+              style: AppThemes.getTextStyle(
+                  fontWeight: FontWeight.bold,
+                  clr: colorWhite
+                      ? AppColors.mypsyWhite
+                      : AppColors.mypsyBlack)),
         ],
       );
 }

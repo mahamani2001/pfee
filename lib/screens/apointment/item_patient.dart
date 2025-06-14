@@ -37,19 +37,6 @@ class PatientCard extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  image: const DecorationImage(
-                      image: AssetImage("assets/images/psy.jpg")),
-                  color: AppColors.mypsyPrimary.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(5),
-                  border: Border.all(
-                    color: AppColors.mypsyPrimary.withOpacity(0.2),
-                  ),
-                ),
-              ),
               SizedBox(
                 width: MediaQuery.of(context).size.width - 150,
                 child: Row(
@@ -67,9 +54,10 @@ class PatientCard extends StatelessWidget {
                             height: 7,
                           ),
                           Text(
-                            patient['specialty'] ?? 'Psychiatre',
+                            'actibity , chnowa ya3ml ?',
                             style: AppThemes.getTextStyle(
-                                size: 11, clr: AppColors.mypsyBlack),
+                              size: 11,
+                            ),
                           ),
                           const SizedBox(
                             height: 7,
