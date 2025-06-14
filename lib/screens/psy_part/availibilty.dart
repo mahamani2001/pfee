@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:mypsy_app/resources/services/appointment_service.dart';
 import 'package:mypsy_app/resources/services/auth_service.dart';
+import 'package:mypsy_app/screens/layouts/main_screen_psy.dart';
 import 'package:mypsy_app/screens/layouts/top_bar_subpage.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';
 import 'package:mypsy_app/shared/themes/app_theme.dart';
 import 'package:mypsy_app/shared/ui/buttons/button.dart';
+import 'package:mypsy_app/shared/ui/flushbar.dart';
 import 'package:mypsy_app/utils/functions.dart';
 
 class DoctorAvailiblity extends StatefulWidget {
@@ -16,6 +18,8 @@ class DoctorAvailiblity extends StatefulWidget {
 }
 
 class _DoctorAvailiblityState extends State<DoctorAvailiblity> {
+  bool ispressed = false;
+  Map<String, List<String>> cleaned = {};
   final List<String> days = [
     'Lundi',
     'Mardi',
@@ -41,11 +45,22 @@ class _DoctorAvailiblityState extends State<DoctorAvailiblity> {
 
   Future<void> loadAvailiblity() async {
     final int? userId = await AuthService().getUserId();
+    if (userId != null) {
+      final data = await AppointmentService().getMyAvailiblity(userId!);
 
-    final data = await AppointmentService().getMyAvailiblity(userId!);
-
-    print(data);
-    setState(() {});
+      print(data);
+      setState(() {});
+      if (data != null) {
+        data.forEach((day, slots) {
+          if (slots.isNotEmpty) {
+            List<String> sorted = slots.toList()
+              ..sort((a, b) => _timeToMinutes(a.split('-')[0])
+                  .compareTo(_timeToMinutes(b.split('-')[0])));
+            cleaned[day] = sorted;
+          }
+        });
+      }
+    }
   }
 
   @override
@@ -139,7 +154,10 @@ class _DoctorAvailiblityState extends State<DoctorAvailiblity> {
   }
 
   Future<void> saveAvailability() async {
-    Map<String, List<String>> cleaned = {};
+    setState(() {
+      ispressed = true;
+    });
+
     selectedSlots.forEach((day, slots) {
       if (slots.isNotEmpty) {
         List<String> sorted = slots.toList()
@@ -152,6 +170,28 @@ class _DoctorAvailiblityState extends State<DoctorAvailiblity> {
     final result = await AppointmentService().setAvailiblity(
       slots: cleaned,
     );
+    setState(() {
+      ispressed = false;
+    });
+    if (result) {
+      customFlushbar(
+        '',
+        'Avilibilty enregistrer avec success',
+        context,
+      );
+      Future.delayed(const Duration(seconds: 2), () async {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const MainScreenPsy(initialTabIndex: 0),
+          ),
+        );
+      });
+    } else {
+      customFlushbar('', 'Erreur lors de la confirmation', context,
+          isError: true);
+    }
+
     print("Saved Availability:\n$cleaned");
   }
 
@@ -231,8 +271,9 @@ class _DoctorAvailiblityState extends State<DoctorAvailiblity> {
               height: 30,
             ),
             mypsyButton(
-              onPress: saveAvailability,
+              onPress: ispressed ? null : saveAvailability,
               text: "Save Availability",
+              withLoader: ispressed,
             )
           ],
         ),
