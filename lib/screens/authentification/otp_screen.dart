@@ -153,7 +153,24 @@ class _OtpScreenState extends State<OtpScreen> {
                         ),
                         const SizedBox(height: 12),
                         TextButton(
-                          onPressed: () {},
+                          onPressed: () async {
+                            final result =
+                                await _authService.resendOTP(widget.tempToken);
+
+                            if (result['status'] == 200) {
+                              customFlushbar(
+                                  '✅',
+                                  ' Un nouveau code vous a été envoyé par email.',
+                                  context);
+                            } else {
+                              customFlushbar(
+                                  '❌',
+                                  result['data']['message'] ??
+                                      'Erreur lors du renvoi.',
+                                  context,
+                                  isError: true);
+                            }
+                          },
                           child: const Text("Renvoyer le code ?",
                               style: TextStyle(color: Colors.white)),
                         ),

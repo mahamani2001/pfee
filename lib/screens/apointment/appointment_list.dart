@@ -7,7 +7,7 @@ import 'package:mypsy_app/shared/themes/app_theme.dart';
 class AppointmentList extends StatefulWidget {
   final String status;
   const AppointmentList({super.key, required this.status});
-   
+
   @override
   State<AppointmentList> createState() => _AppointmentListState();
 }
@@ -25,7 +25,6 @@ class _AppointmentListState extends State<AppointmentList> {
       date.day,
       int.parse(startParts[0]),
       int.parse(startParts[1]),
-      
     );
 
     final endDateTime = startDateTime.add(Duration(
@@ -54,7 +53,21 @@ class _AppointmentListState extends State<AppointmentList> {
 
   @override
   Widget build(BuildContext context) {
-    if (appointments.isEmpty) {
+    final now = DateTime.now();
+    final futureAppointments = appointments.where((appt) {
+      final date = DateTime.parse(appt['date']);
+      final startParts = appt['start_time'].split(':');
+      final startDateTime = DateTime(
+        date.year,
+        date.month,
+        date.day,
+        int.parse(startParts[0]),
+        int.parse(startParts[1]),
+      );
+      return startDateTime.isAfter(now);
+    }).toList();
+
+    if (futureAppointments.isEmpty) {
       return Center(
         child: Text("Aucun rendez-vous",
             style: AppThemes.getTextStyle(clr: Colors.grey, size: 16)),
@@ -70,21 +83,19 @@ class _AppointmentListState extends State<AppointmentList> {
             ? appt['patient_name'] ?? 'Patient inconnu'
             : "Dr. ${appt['psychiatrist_name'] ?? 'Inconnu'}";
 
-       return AppointmentCard(
-  id: appt['id'],
-  psychiatristId: appt['psychiatrist_id'],
-  patientId: appt['patient_id'],
-  name: displayName,
-  time: appt['start_time'].toString().substring(0, 5),
-  date: appt['date'],
-  status: widget.status,
-  userRole: userRole ?? '',
-  onReload: loadAppointments,
-  appt: appt,
-  canJoin: canAccessAppointment(appt), // ✅ ← AJOUT ICI
-);
-
-           
+        return AppointmentCard(
+          id: appt['id'],
+          psychiatristId: appt['psychiatrist_id'],
+          patientId: appt['patient_id'],
+          name: displayName,
+          time: appt['start_time'].toString().substring(0, 5),
+          date: appt['date'],
+          status: widget.status,
+          userRole: userRole ?? '',
+          onReload: loadAppointments,
+          appt: appt,
+          canJoin: canAccessAppointment(appt), // ✅ ← AJOUT ICI
+        );
       },
     );
   }

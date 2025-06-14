@@ -80,6 +80,20 @@ class AuthService {
     return {'status': response.statusCode, 'data': data};
   }
 
+  Future<Map<String, dynamic>> resendOTP(String tempToken) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/resend-otp'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'tempToken': tempToken}),
+    );
+
+    final data = jsonDecode(response.body);
+    return {
+      'status': response.statusCode,
+      'data': data,
+    };
+  }
+
   Future<Map<String, dynamic>> verifyOTP(String otp, String tempToken) async {
     final response = await http.post(
       Uri.parse('$baseUrl/verify-otp'),

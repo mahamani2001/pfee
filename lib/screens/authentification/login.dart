@@ -158,7 +158,7 @@ class _LoginState extends State<Login> {
               },
             ),
             spaceBetweenInput,
-            Container(
+            /*  Container(
               margin: const EdgeInsets.only(bottom: 35),
               child: Center(
                 child: InkWell(
@@ -169,7 +169,7 @@ class _LoginState extends State<Login> {
                   ),
                 ),
               ),
-            ),
+            ), */
             SizedBox(
               width: MediaQuery.of(context).size.width,
               child: mypsyButton(

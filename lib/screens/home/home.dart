@@ -265,15 +265,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 clr: AppColors.mypsyDarkBlue,
               ),
             ),
-            ElevatedButton(
-              onPressed: () {
-                FCMService().handleFCMRedirect(
-                  context,
-                  {"action": "/join?consultationId=124&mode=chat"},
-                );
-              },
-              child: Text('Test Redirection Manuelle'),
-            ),
           ],
         ),
       );
