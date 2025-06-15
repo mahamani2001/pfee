@@ -46,11 +46,19 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
   Timer? _callTimer;
   String _callDuration = "00:00";
   late DateTime endTime; // 🔥 ajoute ceci en haut
+  Future<void> _initSocketThenCall() async {
+    await SocketService().waitForConnection(); // ✅ attend socket actif
+
+    _registerSocketEvents(); // ✅ maintenant il est connecté
+    await _initCall(); // ✅ on peut initier l’appel WebRTC
+  }
 
   @override
   void initState() {
     super.initState();
+    SocketService().connectSocket();
     consultationId = widget.consultationId;
+    _initSocketThenCall();
     _initCall();
     _startTimer();
     _initConsultationTiming();

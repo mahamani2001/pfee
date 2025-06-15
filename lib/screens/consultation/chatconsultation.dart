@@ -210,7 +210,8 @@ class _ChatScreenState extends State<ChatScreen> {
       final files = Directory(tempDir.path).listSync();
       files.forEach((f) => print("🗂️ ${f.path}"));
 
-      await _recorder!.startRecorder(toFile: path, codec: Codec.aacADTS);
+      await _recorder!.startRecorder(toFile: path, codec: Codec.aacMP4);
+
       print(path);
       setState(() {
         _isRecording = true;
@@ -221,6 +222,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
+    consultationId = widget.consultationId;
     _recorder = FlutterSoundRecorder();
     _initRecorder();
     _initPlayer();
@@ -231,6 +233,7 @@ class _ChatScreenState extends State<ChatScreen> {
       peerName = widget.peerName;
       appointmentId = widget.appointmentId;
       consultationId = widget.consultationId;
+      await SocketService().waitForConnection();
       myUserId = await AuthService().getUserId() ?? 0;
       isPsychiatrist = (await AuthService().getUserRole()) == 'psychiatrist';
       print('Widget info ${myUserId} - ${consultationId}-${appointmentId}');
