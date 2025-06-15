@@ -5,7 +5,7 @@ import 'package:mypsy_app/resources/services/auth_service.dart';
 import 'package:mypsy_app/resources/services/http_service.dart';
 
 class AppointmentService {
-  String baseUrl = '${AppConfig.instance()!.baseUrl!}appointments';
+  String baseUrl = '${AppConfig.instance()!.baseUrl}appointments';
   String baseUrlavailability = '${AppConfig.instance()!.baseUrl!}availability';
   // 1️⃣ Réserver un rendez-vous
   Future<Map<String, dynamic>> reserveAppointment({
@@ -15,9 +15,10 @@ class AppointmentService {
     int durationMinutes = 30,
     int? availabilityId,
   }) async {
+    String urlRes = '${baseUrl}';
     final token = await AuthService().getToken();
     final response = await http.post(
-      Uri.parse('$baseUrl'),
+      Uri.parse(urlRes),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -40,7 +41,7 @@ class AppointmentService {
   // 2️⃣ Annuler un rendez-vous
   Future<bool> cancelAppointment(int appointmentId) async {
     final response = await HttpService().request(
-      url: '$baseUrl/$appointmentId',
+      url: '$baseUrl$appointmentId',
       method: 'DELETE',
     );
     return response.statusCode == 204;
@@ -48,9 +49,10 @@ class AppointmentService {
 
   Future<Map<String, dynamic>?> getConsultationByAppointment(
       int appointmentId) async {
+    print("Let s het the  list  $appointmentId");
     final response = await HttpService().request(
       url:
-          '${AppConfig.instance()!.baseUrl}/consultation/appointment/$appointmentId',
+          '${AppConfig.instance()!.baseUrl}consultation/appointment/$appointmentId',
       method: 'GET',
     );
 
@@ -90,8 +92,9 @@ class AppointmentService {
 
   // 3️⃣ Récupérer les rendez-vous par statut
   Future<List<dynamic>> getAppointmentsByStatus(String status) async {
+    print(' getting list of getAppointmentsByStatus $baseUrl');
     final response = await HttpService().request(
-      url: '$baseUrl/me?status=$status',
+      url: '${baseUrl}/me?status=$status',
       method: 'GET',
     );
 
