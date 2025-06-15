@@ -46,8 +46,9 @@ class _AppointmentListState extends State<AppointmentList> {
     final data =
         await AppointmentService().getAppointmentsByStatus(widget.status);
     final role = await AuthService().getUserRole();
+
     setState(() {
-      appointments = data;
+      appointments = List<Map<String, dynamic>>.from(data);
       userRole = role;
     });
   }
@@ -68,12 +69,12 @@ class _AppointmentListState extends State<AppointmentList> {
       return startDateTime.isAfter(now);
     }).toList();
 
-    if (futureAppointments.isEmpty) {
+    /*if (futureAppointments.isEmpty) {
       return Center(
         child: Text("Aucun rendez-vous",
             style: AppThemes.getTextStyle(clr: Colors.grey, size: 16)),
       );
-    }
+    }*/
 
     return ListView.builder(
       padding: const EdgeInsets.all(16),

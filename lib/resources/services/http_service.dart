@@ -35,7 +35,7 @@ class HttpService {
     Object? body,
   }) async {
     String? token = await _getAccessToken();
-
+    print("token $token");
     Future<http.Response> sendRequest(String token) {
       final allHeaders = {
         'Authorization': 'Bearer $token',
