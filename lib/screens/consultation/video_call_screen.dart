@@ -51,6 +51,7 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
   void initState() {
     super.initState();
     consultationId = widget.consultationId;
+    SocketService().connectSocket();
     _initCall();
     _startTimer();
     _initConsultationTiming();
