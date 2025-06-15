@@ -4,8 +4,6 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:http/http.dart' as http;
 import 'package:mypsy_app/helpers/app_config.dart';
-import 'package:mypsy_app/resources/services/consultation_service.dart';
-import 'package:mypsy_app/resources/services/socket_service.dart';
 import 'package:mypsy_app/screens/consultation/chatconsultation.dart';
 import 'package:mypsy_app/screens/consultation/video_call_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -201,7 +199,6 @@ class FCMService {
         final appointmentId = consultation['appointment_id'];
         final peerName = '${peer['first_name']} ${peer['last_name']}';
         final peerId = peer['id'].toString();
-        final roomId = 'room-$appointmentId';
 
         navigatorKey.currentState?.push(
           MaterialPageRoute(
@@ -211,10 +208,10 @@ class FCMService {
                     peerName: peerName,
                     peerId: peerId,
                     consultationId: consultationId,
-                    roomId: 'consultation_$consultationId',
+                    roomId: 'room-$consultationId',
                   )
                 : VideoCallScreen(
-                    roomId: 'consultation_$consultationId',
+                    roomId: 'room-$consultationId',
                     peerName: peerName,
                     appointmentId: appointmentId,
                     consultationId: consultationId,
@@ -267,7 +264,6 @@ class FCMService {
         final appointmentId = consultation['appointment_id'];
         final peerId = peer['id'].toString();
         final peerName = '${peer['first_name']} ${peer['last_name']}';
-        final roomId = 'room-$appointmentId';
 
         final Widget screen = (mode == 'chat')
             ? ChatScreen(
@@ -275,10 +271,10 @@ class FCMService {
                 peerName: peerName,
                 appointmentId: appointmentId,
                 consultationId: consultationId,
-             roomId: 'consultation_$consultationId',
+                roomId: 'room-$consultationId',
               )
             : VideoCallScreen(
-                roomId: 'consultation_$consultationId',
+                roomId: 'room-$consultationId',
                 peerName: peerName,
                 appointmentId: appointmentId,
                 consultationId: consultationId,

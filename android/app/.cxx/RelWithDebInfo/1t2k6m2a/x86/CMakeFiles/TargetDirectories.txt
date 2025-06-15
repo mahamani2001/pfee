@@ -1,0 +1,2 @@
+/Users/mounamani/Desktop/mahepfe/pfee/android/app/.cxx/RelWithDebInfo/1t2k6m2a/x86/CMakeFiles/edit_cache.dir
+/Users/mounamani/Desktop/mahepfe/pfee/android/app/.cxx/RelWithDebInfo/1t2k6m2a/x86/CMakeFiles/rebuild_cache.dir
