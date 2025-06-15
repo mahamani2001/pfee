@@ -1,25 +1,11 @@
-import 'dart:async'; // ← important pour Timer
-import 'package:file_picker/file_picker.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:mypsy_app/helpers/app_config.dart';
-import 'package:mypsy_app/resources/services/appointment_service.dart';
-import 'package:mypsy_app/resources/services/http_service.dart';
-import 'package:mypsy_app/resources/services/socket_service.dart';
-import 'package:mypsy_app/resources/services/auth_service.dart';
-import 'package:mypsy_app/resources/services/crypto_service.dart';
-import 'package:mypsy_app/resources/services/chat_service.dart';
-import 'package:mypsy_app/screens/consultation/chat/chat_widgets.dart';
-import 'package:mypsy_app/screens/consultation/consultationEndedScreen.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';
 import 'package:mypsy_app/shared/themes/app_theme.dart';
 import 'package:open_file/open_file.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:flutter_sound/flutter_sound.dart';
 import 'dart:io';
 import 'package:mypsy_app/utils/functions.dart';
-
 import 'package:url_launcher/url_launcher.dart';
 
 Widget headerInfo(bool isPeerOnline, String peerName) => Row(
@@ -34,7 +20,8 @@ Widget headerInfo(bool isPeerOnline, String peerName) => Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(peerName,
-                  style: const TextStyle(fontSize: 18),
+                  style: AppThemes.getTextStyle(
+                      clr: AppColors.mypsyWhite, fontWeight: FontWeight.bold),
                   overflow: TextOverflow.ellipsis),
               Row(
                 children: [
@@ -49,7 +36,10 @@ Widget headerInfo(bool isPeerOnline, String peerName) => Row(
                   const SizedBox(width: 6),
                   Text(
                     isPeerOnline ? "En ligne" : "Hors ligne",
-                    style: const TextStyle(fontSize: 12, color: Colors.white),
+                    style: AppThemes.getTextStyle(
+                      clr: AppColors.mypsyWhite,
+                      size: 12,
+                    ),
                   ),
                 ],
               )
@@ -59,7 +49,7 @@ Widget headerInfo(bool isPeerOnline, String peerName) => Row(
       ],
     );
 
-Widget msgRead(bool fromMe, String msg) => Align(
+Widget msgRead(bool fromMe, String msg, {String status = 'sent'}) => Align(
       alignment: fromMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 4),
@@ -68,7 +58,20 @@ Widget msgRead(bool fromMe, String msg) => Align(
           color: fromMe ? const Color(0xFFDCF8C6) : Colors.white,
           borderRadius: BorderRadius.circular(18),
         ),
-        child: Text(msg, style: const TextStyle(fontSize: 16)),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(child: Text(msg, style: const TextStyle(fontSize: 16))),
+            if (fromMe) ...[
+              const SizedBox(width: 6),
+              Icon(
+                status == 'sent' ? Icons.done_all : Icons.done,
+                size: 18,
+                color: status == 'sent' ? Colors.blue : Colors.grey,
+              ),
+            ],
+          ],
+        ),
       ),
     );
 
@@ -159,7 +162,6 @@ Widget buildPdfBubble(String fileName, String filePath, bool fromMe) => Align(
             IconButton(
               icon: const Icon(Icons.open_in_new, size: 20),
               onPressed: () {
-                // Ouvre le PDF avec n'importe quel lecteur ou WebView
                 _openFile(filePath);
               },
             ),

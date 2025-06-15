@@ -529,11 +529,12 @@ class _ChatScreenState extends State<ChatScreen> {
     }
 
     // 💬 Normal text
+    // read here
     setState(() {
       messages.add({
         'text': decrypted,
         'fromMe': false,
-        'status': data['status'] ?? 'sent',
+        'status': 'read',
         'createdAt': data['createdAt'] ?? DateTime.now().toIso8601String(),
         'messageId': messageId,
       });
@@ -781,7 +782,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                 msg['text'], msg['options'] ?? [], fromMe);
                           }
 
-                          return msgRead(fromMe, '${msg['text']}');
+                          return msgRead(fromMe, '${msg['text']}',
+                              status: msg['status']);
                         },
                       ),
               ),
