@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:mypsy_app/helpers/app_config.dart';
 import 'package:mypsy_app/resources/services/RatingService.dart';
 import 'package:mypsy_app/resources/services/auth_service.dart';
+import 'package:mypsy_app/screens/layouts/main_screen.dart';
+import 'package:mypsy_app/screens/layouts/main_screen_psy.dart';
+import 'package:mypsy_app/screens/layouts/top_bar_subpage.dart';
+import 'package:mypsy_app/shared/themes/app_colors.dart';
+import 'package:mypsy_app/shared/themes/app_theme.dart';
+import 'package:mypsy_app/shared/ui/buttons/button.dart';
 import 'package:smooth_star_rating_null_safety/smooth_star_rating_null_safety.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -80,7 +86,11 @@ class _ConsultationEndedScreenState extends State<ConsultationEndedScreen> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text("Notez votre consultation"),
+        title: Text(
+          "Notez votre consultation",
+          style: AppThemes.getTextStyle(),
+          textAlign: TextAlign.center,
+        ),
         content: StatefulBuilder(
           builder: (context, setStateDialog) => Column(
             mainAxisSize: MainAxisSize.min,
@@ -101,8 +111,8 @@ class _ConsultationEndedScreenState extends State<ConsultationEndedScreen> {
               const SizedBox(height: 20),
               _loading
                   ? const CircularProgressIndicator()
-                  : ElevatedButton(
-                      onPressed: () async {
+                  : mypsyButton(
+                      onPress: () async {
                         setState(() => _loading = true);
                         setStateDialog(() {}); // mettre à jour le dialog
 
@@ -126,7 +136,8 @@ class _ConsultationEndedScreenState extends State<ConsultationEndedScreen> {
                           );
                         }
                       },
-                      child: const Text("Envoyer"),
+                      text: "Envoyer",
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
                     ),
             ],
           ),
@@ -144,22 +155,31 @@ class _ConsultationEndedScreenState extends State<ConsultationEndedScreen> {
         "${endTime.hour.toString().padLeft(2, '0')}:${endTime.minute.toString().padLeft(2, '0')}";
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Consultation Terminée'),
-        backgroundColor: Colors.teal,
-      ),
+      appBar: const TopBarSubPage(title: "Consultation Terminée"),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            const Icon(Icons.check_circle_outline,
-                color: Colors.green, size: 100),
-            const SizedBox(height: 20),
-            Text("Merci 🙏", style: Theme.of(context).textTheme.headlineMedium),
+            const SizedBox(
+              height: 50,
+            ),
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.green.withOpacity(0.1),
+              ),
+              child: const CircleAvatar(
+                radius: 40,
+                backgroundColor: Colors.green,
+                child: Icon(Icons.check, size: 40, color: Colors.white),
+              ),
+            ),
+            const SizedBox(height: 50),
+            Text("Merci 🙏", style: AppThemes.getTextStyle(size: 16)),
             const SizedBox(height: 10),
-            Text("Votre consultation avec ${widget.peerName} est terminée.",
-                textAlign: TextAlign.center),
-            const SizedBox(height: 30),
+            consultationInfo(),
+            const SizedBox(height: 50),
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -169,22 +189,44 @@ class _ConsultationEndedScreenState extends State<ConsultationEndedScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("👤 Psychiatre : ${widget.peerName}"),
+                  rowInfo("👤 Psychiatre :", widget.peerName),
                   const SizedBox(height: 8),
-                  Text("🕒 Heure : $formattedStart - $formattedEnd"),
+                  rowInfo("🕒 Heure : ", "$formattedStart - $formattedEnd"),
                   const SizedBox(height: 8),
-                  Text("⏳ Durée : ${widget.duration.inMinutes} minutes"),
+                  rowInfo("⏳ Durée :", "${widget.duration.inMinutes} minutes"),
                 ],
               ),
             ),
             const Spacer(),
             ElevatedButton.icon(
               onPressed: () {
-                Navigator.pushNamedAndRemoveUntil(
-                    context, '/home', (route) => false);
+                if (isPsychiatrist) {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const MainScreen(initialTabIndex: 0),
+                    ),
+                  );
+                } else {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const MainScreenPsy(initialTabIndex: 0),
+                    ),
+                  );
+                }
               },
-              icon: const Icon(Icons.home),
-              label: const Text("Retour à l'accueil"),
+              icon: const Icon(
+                Icons.home,
+                color: AppColors.mypsyWhite,
+              ),
+              label: Text(
+                "Retour à l'accueil",
+                style: AppThemes.getTextStyle(
+                    clr: AppColors.mypsyWhite,
+                    size: 15,
+                    fontWeight: FontWeight.w600),
+              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.teal,
                 minimumSize: const Size.fromHeight(50),
@@ -195,7 +237,8 @@ class _ConsultationEndedScreenState extends State<ConsultationEndedScreen> {
               OutlinedButton.icon(
                 onPressed: _showRatingDialog,
                 icon: const Icon(Icons.star_border),
-                label: const Text("Noter la consultation"),
+                label: Text("Noter la consultation",
+                    style: AppThemes.getTextStyle()),
                 style: OutlinedButton.styleFrom(
                   minimumSize: const Size.fromHeight(50),
                 ),
@@ -205,4 +248,28 @@ class _ConsultationEndedScreenState extends State<ConsultationEndedScreen> {
       ),
     );
   }
+
+  Widget consultationInfo() => Wrap(
+        children: [
+          Text("Votre consultation avec",
+              style: AppThemes.getTextStyle(), textAlign: TextAlign.center),
+          Text("  ${widget.peerName}",
+              style: AppThemes.getTextStyle(
+                  fontWeight: FontWeight.bold, clr: AppColors.mypsyGreen),
+              textAlign: TextAlign.center),
+          Text(" est terminée.",
+              style: AppThemes.getTextStyle(), textAlign: TextAlign.center),
+        ],
+      );
+
+  Widget rowInfo(String title, String info) => Row(
+        children: [
+          Text(title, style: AppThemes.getTextStyle(size: 15)),
+          const SizedBox(
+            width: 5,
+          ),
+          Text(info,
+              style: AppThemes.getTextStyle(fontWeight: FontWeight.bold)),
+        ],
+      );
 }

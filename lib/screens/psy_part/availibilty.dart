@@ -180,7 +180,7 @@ class _DoctorAvailiblityState extends State<DoctorAvailiblity> {
     if (result) {
       customFlushbar(
         '',
-        'Avilibilty enregistrer avec success',
+        'Vos créneaux ont été enregistrés avec succès',
         context,
       );
       Future.delayed(const Duration(seconds: 2), () async {

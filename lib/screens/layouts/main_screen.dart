@@ -68,7 +68,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
                 GestureDetector(
                   onTap: () => setState(() => _currentIndex = 1),
                   child: IconMenu(
-                    icon: 'assets/menu/booking.svg',
+                    icon: 'assets/menu/appointments.svg',
                     isSelected: _currentIndex == 1,
                     title: 'Rdv',
                   ),
@@ -76,7 +76,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
                 GestureDetector(
                   onTap: () => setState(() => _currentIndex = 2),
                   child: IconMenu(
-                    icon: 'assets/menu/chat.svg',
+                    icon: 'assets/menu/quiz.svg',
                     isSelected: _currentIndex == 2,
                     title: 'Quiz',
                   ),

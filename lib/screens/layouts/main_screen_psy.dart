@@ -69,7 +69,7 @@ class _MainScreenPsyState extends State<MainScreenPsy>
                 GestureDetector(
                   onTap: () => setState(() => _currentIndex = 1),
                   child: IconMenu(
-                    icon: 'assets/menu/booking.svg',
+                    icon: 'assets/menu/demande.svg',
                     isSelected: _currentIndex == 1,
                     title: 'Demandes',
                   ),
@@ -77,7 +77,7 @@ class _MainScreenPsyState extends State<MainScreenPsy>
                 GestureDetector(
                   onTap: () => setState(() => _currentIndex = 2),
                   child: IconMenu(
-                    icon: 'assets/menu/booking.svg',
+                    icon: 'assets/menu/appointments.svg',
                     isSelected: _currentIndex == 2,
                     title: 'Rdv',
                   ),

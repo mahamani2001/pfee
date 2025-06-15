@@ -4,6 +4,9 @@ import 'package:mypsy_app/resources/services/consultation_service.dart';
 import 'package:mypsy_app/resources/services/socket_service.dart';
 import 'package:mypsy_app/screens/consultation/chatconsultation.dart';
 import 'package:mypsy_app/screens/consultation/video_call_screen.dart';
+import 'package:mypsy_app/screens/layouts/top_bar_subpage.dart';
+import 'package:mypsy_app/shared/themes/app_colors.dart';
+import 'package:mypsy_app/shared/themes/app_theme.dart';
 
 class ConsultationLauncherScreen extends StatelessWidget {
   final String peerId;
@@ -155,22 +158,20 @@ class ConsultationLauncherScreen extends StatelessWidget {
           final isPsy = snapshot.data == 'psychiatrist';
 
           return Scaffold(
-            appBar: AppBar(
-              title: const Text("Consultation"),
-              backgroundColor: Colors.white,
-              foregroundColor: Colors.black,
+            appBar: const TopBarSubPage(
+              title: 'Consultation',
             ),
             body: Padding(
               padding: const EdgeInsets.all(24),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text("Consultation avec",
-                      style: TextStyle(fontSize: 18, color: Colors.grey[700])),
+                  Text("Consultation avec : ",
+                      style: AppThemes.getTextStyle(size: 15)),
                   const SizedBox(height: 8),
                   Text(peerName,
-                      style: const TextStyle(
-                          fontSize: 22, fontWeight: FontWeight.bold)),
+                      style: AppThemes.getTextStyle(
+                          size: 23, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 40),
                   if (isPsy)
                     ElevatedButton.icon(
@@ -178,10 +179,13 @@ class ConsultationLauncherScreen extends StatelessWidget {
                       icon: const Icon(Icons.login),
                       label: const Text("Rejoindre la consultation"),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.indigo,
+                        elevation: 0,
+                        textStyle: AppThemes.appbarSubPageTitleStyle,
+                        foregroundColor: AppColors.mypsyBgApp,
+                        backgroundColor: AppColors.mypsyDarkBlue,
                         minimumSize: const Size(double.infinity, 60),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16)),
+                            borderRadius: BorderRadius.circular(12)),
                       ),
                     )
                   else ...[
@@ -190,39 +194,54 @@ class ConsultationLauncherScreen extends StatelessWidget {
                       onPressed: () => _handlePatientMode(context, 'chat'),
                       icon: const Icon(Icons.chat_bubble_outline,
                           color: Colors.white),
-                      label: const Text('Chat sécurisé',
-                          style: TextStyle(color: Colors.white)),
+                      label: Text(
+                        'Chat sécurisé',
+                        style: AppThemes.getTextStyle(
+                            clr: AppColors.mypsyBgApp,
+                            size: 16,
+                            fontWeight: FontWeight.w600),
+                      ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blueAccent,
                         minimumSize: const Size(double.infinity, 60),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16)),
+                            borderRadius: BorderRadius.circular(12)),
                       ),
                     ),
                     const SizedBox(height: 20),
                     ElevatedButton.icon(
                       onPressed: () => _handlePatientMode(context, 'audio'),
                       icon: const Icon(Icons.call, color: Colors.white),
-                      label: const Text('Appel audio',
-                          style: TextStyle(color: Colors.white)),
+                      label: Text(
+                        'Appel audio',
+                        style: AppThemes.getTextStyle(
+                            clr: AppColors.mypsyBgApp,
+                            size: 16,
+                            fontWeight: FontWeight.w600),
+                      ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
                         minimumSize: const Size(double.infinity, 60),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16)),
+                            borderRadius: BorderRadius.circular(12)),
                       ),
                     ),
                     const SizedBox(height: 20),
                     ElevatedButton.icon(
                       onPressed: () => _handlePatientMode(context, 'video'),
                       icon: const Icon(Icons.videocam, color: Colors.white),
-                      label: const Text('Appel vidéo',
-                          style: TextStyle(color: Colors.white)),
+                      label: Text(
+                        'Appel vidéo',
+                        style: AppThemes.getTextStyle(
+                            clr: AppColors.mypsyBgApp,
+                            size: 16,
+                            fontWeight: FontWeight.w600),
+                      ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.purple,
                         minimumSize: const Size(double.infinity, 60),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16)),
+                            borderRadius: BorderRadius.circular(12)),
                       ),
                     ),
                   ],

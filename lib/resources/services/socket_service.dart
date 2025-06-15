@@ -157,7 +157,7 @@ class SocketService {
       print("❌ Impossible d'envoyer le message : socket non connecté");
       return;
     }
-    print('📤 Envoi message via socket : $payload'); // 👈 Ajoute cette ligne
+    print('📤 Envoi message via socket : $payload');
     _socket?.emit('send_message', payload);
   }
 
@@ -181,6 +181,7 @@ class SocketService {
       'timestamp': DateTime.now().toIso8601String(),
     };
 
+    print(' Now we weill send the message : ${payload.toString()}');
     _socket?.emit('send_message', payload);
   }
 
