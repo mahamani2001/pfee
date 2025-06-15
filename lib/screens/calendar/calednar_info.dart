@@ -121,6 +121,7 @@ class _BookingPageState extends State<BookingPage> {
       },
       onPressYes: () {
         confirmAppointment();
+        Navigator.pop(context);
       },
     );
   }

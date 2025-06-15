@@ -1,7 +1,6 @@
 import 'dart:async'; // ← important pour Timer
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:just_audio/just_audio.dart';
 import 'package:mypsy_app/helpers/app_config.dart';
 import 'package:mypsy_app/resources/services/appointment_service.dart';
 import 'package:mypsy_app/resources/services/http_service.dart';
@@ -9,14 +8,13 @@ import 'package:mypsy_app/resources/services/socket_service.dart';
 import 'package:mypsy_app/resources/services/auth_service.dart';
 import 'package:mypsy_app/resources/services/crypto_service.dart';
 import 'package:mypsy_app/resources/services/chat_service.dart';
-import 'package:mypsy_app/screens/consultation/ConsultationEndedScreen.dart';
-import 'package:open_file/open_file.dart';
+import 'package:mypsy_app/screens/consultation/chat/chat_widgets.dart';
+import 'package:mypsy_app/screens/consultation/consultationEndedScreen.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'dart:io';
-
-import 'package:url_launcher/url_launcher.dart';
+import 'package:mypsy_app/utils/functions.dart';
 
 class ChatScreen extends StatefulWidget {
   final String peerId;
@@ -65,45 +63,8 @@ class _ChatScreenState extends State<ChatScreen> {
   String baseUrl = AppConfig.instance()!.baseUrl!;
   late int consultationId;
   final flutterSoundHelper = FlutterSoundHelper();
-  Future<Duration?> getAudioDuration(String filePath) async {
-    try {
-      final player = AudioPlayer();
-      await player.setFilePath(filePath); // ❌ ne joue rien, juste charge
-      final duration = player.duration;
-      await player.dispose(); // libère les ressources
-      return duration;
-    } catch (e) {
-      print("❌ Erreur de durée audio : $e");
-      return null;
-    }
-  }
-
-  Future<void> _playAudioWithJustAudio(String filePath) async {
-    final file = File(filePath);
-    if (!await file.exists()) {
-      print("❌ Fichier audio introuvable : $filePath");
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Fichier audio introuvable")),
-      );
-      return;
-    }
-
-    final player = AudioPlayer();
-
-    try {
-      await player.setFilePath(filePath);
-      await player.play();
-      print("🎧 Lecture en cours...");
-      player.playerStateStream.listen((state) {
-        if (state.processingState == ProcessingState.completed) {
-          print("✅ Lecture terminée");
-          player.dispose(); // Libère les ressources
-        }
-      });
-    } catch (e) {
-      print("❌ Erreur pendant la lecture : $e");
-    }
-  }
+  final Set<String> _processedMessageIds = {};
+  final messageId = DateTime.now().millisecondsSinceEpoch.toString();
 
   Future<void> initConsultationTiming() async {
     print("🚀 initConsultationTiming lancé");
@@ -159,18 +120,20 @@ class _ChatScreenState extends State<ChatScreen> {
         });
 
         if (consultationHasEnded) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (_) => ConsultationEndedScreen(
-                peerName: peerName,
-                startTime: start,
-                duration: duration,
-                psychiatristId: int.parse(data['psychiatrist_id'].toString()),
-                appointmentId: data['id'],
+          if (data['psychiatrist_id'] != null) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ConsultationEndedScreen(
+                  peerName: peerName,
+                  startTime: start,
+                  duration: duration,
+                  psychiatristId: int.parse(data['psychiatrist_id'].toString()),
+                  appointmentId: data['id'],
+                ),
               ),
-            ),
-          );
+            );
+          }
         } else {
           startConsultationTimer();
         }
@@ -292,7 +255,6 @@ class _ChatScreenState extends State<ChatScreen> {
         print("📡 PATIENT a reçu l'événement duration_extended: $data");
 
         final int receivedAppointmentId = data['appointmentId'];
-        final int extraMinutes = data['extraMinutes'];
 
         if (receivedAppointmentId != appointmentId) return;
 
@@ -344,6 +306,7 @@ class _ChatScreenState extends State<ChatScreen> {
       };
 
       SocketService().onMessageRead = (messageId) {
+        print("let s readdd nowww @ $messageId ");
         setState(() {
           for (var msg in messages) {
             if (msg['id'] == messageId && msg['fromMe']) {
@@ -353,7 +316,7 @@ class _ChatScreenState extends State<ChatScreen> {
         });
       };
 
-      //  await loadMessages();
+      await loadMessages();
       print(
           "🔍 Appointment ID juste avant initConsultationTiming : $appointmentId");
       await initConsultationTiming();
@@ -431,31 +394,6 @@ class _ChatScreenState extends State<ChatScreen> {
     _isRecorderInitialized = true;
   }
 
-  Future<void> _playAudio(String fileName) async {
-    if (!_isPlayerInitialized) return;
-
-    final dir = await getTemporaryDirectory();
-    final filePath = '${dir.path}/$fileName';
-    print("🎧 Demande de lecture : $filePath");
-    print("🎧 Player initialized: $_isPlayerInitialized");
-
-    final file = File(filePath);
-    if (!await file.exists()) {
-      print("❌ Fichier introuvable : $filePath");
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Fichier audio introuvable')),
-      );
-      return;
-    }
-
-    print("🎧 Lecture de $filePath");
-    await _audioPlayer.startPlayer(
-      fromURI: filePath, // ou fileUrl
-      codec: Codec.aacADTS,
-      whenFinished: () => print('✅ Lecture terminée'),
-    );
-  }
-
   void extendConsultation() async {
     showModalBottomSheet(
       context: context,
@@ -509,14 +447,23 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void handleIncomingMessage(Map<String, dynamic> data) async {
+    print("📥 Received socket message: ${data.toString()}");
+
     final fromId = data['from'].toString();
+    if (!mounted || fromId == myUserId.toString()) return;
 
-    // ✅ Ne pas traiter les messages que j'ai moi-même envoyés (déjà affichés localement)
-    if (fromId == myUserId.toString()) return;
+    // 🛡️ Try to get messageId, or generate one as fallback
+    final messageId = data['messageId'] ??
+        data['id'] ??
+        "${data['cipherText']}_${data['createdAt'] ?? ''}";
 
-    if (!mounted) return;
+    if (_processedMessageIds.contains(messageId)) {
+      print("🔁 Duplicate skipped: $messageId");
+      return;
+    }
+    _processedMessageIds.add(messageId);
 
-    // 🔊 Cas 1: Message vocal
+    // 📂 Handle audio
     if (data['type'] == 'audio') {
       final fileUrl = data['fileUrl'];
       final fileName = data['fileName'] ?? 'audio.aac';
@@ -534,15 +481,16 @@ class _ChatScreenState extends State<ChatScreen> {
             'fromMe': false,
             'status': 'received',
             'createdAt': data['createdAt'] ?? DateTime.now().toIso8601String(),
+            'messageId': messageId,
           });
         });
       } catch (e) {
-        print("❌ Erreur téléchargement audio : $e");
+        print("❌ Audio download failed: $e");
       }
       return;
     }
 
-    // 📄 Cas 2 : Fichier PDF ou image
+    // 📂 Handle file
     if (data['type'] == 'pdf' || data['type'] == 'image') {
       setState(() {
         messages.add({
@@ -551,12 +499,13 @@ class _ChatScreenState extends State<ChatScreen> {
           'fileName': data['fileName'],
           'fromMe': false,
           'createdAt': data['createdAt'],
+          'messageId': messageId,
         });
       });
       return;
     }
 
-    // 🔐 Cas 3 : Message texte chiffré
+    // 🔐 Handle encrypted text
     final peerPublicKey = await AuthService().fetchPeerPublicKey(fromId);
     final decrypted = await CryptoService().decryptMessage(
       cipherTextBase64: data['cipherText'],
@@ -565,7 +514,7 @@ class _ChatScreenState extends State<ChatScreen> {
       peerPublicKeyBase64: peerPublicKey,
     );
 
-    // 🎯 Cas 4 : Message spécial
+    // 🧾 Special command message
     if (decrypted == '__MEDICAL_CARD_REQUEST__') {
       setState(() {
         messages.add({
@@ -573,45 +522,29 @@ class _ChatScreenState extends State<ChatScreen> {
           'type': 'choice',
           'options': ['Yes', 'No'],
           'fromMe': false,
+          'messageId': messageId,
         });
       });
       return;
     }
 
-    // 📝 Cas 5 : Message texte classique
+    // 💬 Normal text
+    // read here
     setState(() {
       messages.add({
         'text': decrypted,
         'fromMe': false,
-        'status': data['status'] ?? 'sent',
+        'status': 'read',
         'createdAt': data['createdAt'] ?? DateTime.now().toIso8601String(),
+        'messageId': messageId,
       });
-      _messageController.clear();
     });
 
-    // 📩 Confirmer la lecture
     await HttpService().request(
       url: '$baseUrl/messages/$appointmentId/read',
       method: 'PUT',
       body: {},
     );
-  }
-
-  String _formatTime(String? iso) {
-    if (iso == null) return '';
-    final date = DateTime.tryParse(iso);
-    if (date == null) return '';
-    final hour = date.hour.toString().padLeft(2, '0');
-    final minute = date.minute.toString().padLeft(2, '0');
-    return '$hour:$minute';
-  }
-
-  // 🕒 Ajoute ici la fonction pour formater la durée
-  String _formatDuration(Duration duration) {
-    final hours = duration.inHours.toString().padLeft(2, '0');
-    final minutes = (duration.inMinutes % 60).toString().padLeft(2, '0');
-    final seconds = (duration.inSeconds % 60).toString().padLeft(2, '0');
-    return '$hours:$minutes:$seconds';
   }
 
   Future<void> loadMessages() async {
@@ -623,7 +556,7 @@ class _ChatScreenState extends State<ChatScreen> {
       method: 'PUT',
       body: {},
     );
-    print('hii');
+
     setState(() {
       messages.clear();
     });
@@ -657,7 +590,7 @@ class _ChatScreenState extends State<ChatScreen> {
           print('❌ Erreur lors du téléchargement du vocal : $e');
         }
 
-        continue; // 👈 évite d’aller au décryptage
+        continue;
       }
 
       // 🔐 Cas des messages texte chiffrés
@@ -694,13 +627,13 @@ class _ChatScreenState extends State<ChatScreen> {
 
     final peerPublicKey = await AuthService().fetchPeerPublicKey(peerId);
     final encrypted = await CryptoService().encryptMessage(text, peerPublicKey);
-    print("longeur du message ${messages.length}");
+
     SocketService().sendMessage({
       'to': int.parse(peerId),
       'cipherText': encrypted['cipherText'],
       'nonce': encrypted['nonce'],
       'tag': encrypted['mac'],
-      'consultationId': consultationId, // ✅ ici aussi
+      'consultationId': consultationId,
     });
 
     await ChatService().saveMessage(
@@ -720,7 +653,6 @@ class _ChatScreenState extends State<ChatScreen> {
       });
       _messageController.clear();
     });
-    print("longeur du message ${messages.length}");
   }
 
   @override
@@ -731,14 +663,18 @@ class _ChatScreenState extends State<ChatScreen> {
     _recorder = null;
     SocketService().onMessage = null;
     SocketService().onMessageRead = null;
+    if (isConsultationEnded) {
+      SocketService().socket?.disconnect();
+      SocketService().socket?.destroy();
 
+      SocketService().onMessage = null;
+      SocketService().onMessageRead = null;
+      SocketService().onUserOnline = null;
+      SocketService().onUserOffline = null;
+      SocketService().onUserTyping = null;
+      SocketService().onUserStopTyping = null;
+    }
     super.dispose();
-  }
-
-  String formatDuration(int seconds) {
-    final minutes = (seconds ~/ 60).toString().padLeft(2, '0');
-    final secs = (seconds % 60).toString().padLeft(2, '0');
-    return '$minutes:$secs';
   }
 
   @override
@@ -749,56 +685,18 @@ class _ChatScreenState extends State<ChatScreen> {
           foregroundColor: Colors.black,
           centerTitle: false,
           toolbarHeight: 70,
-          title: Row(
-            children: [
-              const CircleAvatar(
-                radius: 20,
-                backgroundImage: AssetImage('assets/images/doctor_avatar.png'),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(widget.peerName,
-                        style: const TextStyle(fontSize: 18),
-                        overflow: TextOverflow.ellipsis),
-                    Row(
-                      children: [
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: isPeerOnline ? Colors.green : Colors.grey,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          isPeerOnline ? "En ligne" : "Hors ligne",
-                          style: const TextStyle(
-                              fontSize: 12, color: Colors.white),
-                        ),
-                      ],
-                    )
-                  ],
-                ),
-              ),
-            ],
-          ),
+          title: headerInfo(isPeerOnline, peerName),
           actions: [
             // 🔥 Seulement si psy
             IconButton(
               icon: const Icon(Icons.call, color: Colors.white),
               onPressed: () {
-                // TODO: logiques d’appel audio ici
                 print('📞 Appel audio');
               },
             ),
             IconButton(
               icon: const Icon(Icons.videocam, color: Colors.white),
               onPressed: () {
-                // TODO: logiques d’appel vidéo ici
                 print('🎥 Appel vidéo');
               },
             ),
@@ -822,7 +720,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               color: Colors.orange),
                           const SizedBox(width: 8),
                           Text(
-                            _formatDuration(remainingTime),
+                            formatDuration(remainingTime),
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -850,13 +748,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     ],
                   ),
                 ),
-              if (isConsultationEnded)
-                const Center(
-                  child: Text(
-                    "⏰ La consultation est terminée",
-                    style: TextStyle(color: Colors.red, fontSize: 18),
-                  ),
-                ),
+              if (isConsultationEnded) endChat(),
               Expanded(
                 child: isConsultationEnded
                     ? const Center()
@@ -866,69 +758,28 @@ class _ChatScreenState extends State<ChatScreen> {
                         itemCount: messages.length + (isPeerTyping ? 1 : 0),
                         itemBuilder: (_, index) {
                           if (isPeerTyping && index == messages.length) {
-                            return Align(
-                              alignment: Alignment.centerLeft,
-                              child: Container(
-                                margin: const EdgeInsets.symmetric(vertical: 4),
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 14, vertical: 10),
-                                decoration: BoxDecoration(
-                                  color: Colors.grey[200],
-                                  borderRadius: BorderRadius.circular(18),
-                                ),
-                                child: Text(
-                                  "$peerName est en train d’écrire...",
-                                  style: const TextStyle(
-                                      fontStyle: FontStyle.italic,
-                                      color: Colors.grey),
-                                ),
-                              ),
-                            );
+                            return userTypingText(peerName);
                           }
 
                           final msg = messages[index];
                           final fromMe = msg['fromMe'] ?? false;
                           final type = msg['type'] ?? 'text';
                           if (type == 'pdf') {
-                            return _buildPdfBubble(
+                            return buildPdfBubble(
                                 msg['fileName'], msg['filePath'], fromMe);
                           }
 
                           if (type == 'image') {
-                            return _buildImageBubble(msg['filePath'], fromMe);
+                            return buildImageBubble(msg['filePath'], fromMe);
                           }
 
                           if (msg['text']
                               .toString()
                               .startsWith('🎤 Message vocal')) {
                             final fileName = msg['text'].split(':').last.trim();
-                            return Align(
-                              alignment: fromMe
-                                  ? Alignment.centerRight
-                                  : Alignment.centerLeft,
-                              child: GestureDetector(
-                                onTap: () => _playAudio(fileName),
-                                child: Container(
-                                  margin:
-                                      const EdgeInsets.symmetric(vertical: 4),
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 14, vertical: 10),
-                                  decoration: BoxDecoration(
-                                    color: Colors.green[100],
-                                    borderRadius: BorderRadius.circular(18),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Icon(Icons.play_arrow,
-                                          color: Colors.black),
-                                      const SizedBox(width: 8),
-                                      Text('Écouter le message'),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            );
+                            return buildVocalMessage(fromMe, fileName, () {
+                              _playAudio(fileName, context);
+                            });
                           }
 
                           if (type == 'audio') {
@@ -941,24 +792,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                 msg['text'], msg['options'] ?? [], fromMe);
                           }
 
-                          return Align(
-                            alignment: fromMe
-                                ? Alignment.centerRight
-                                : Alignment.centerLeft,
-                            child: Container(
-                              margin: const EdgeInsets.symmetric(vertical: 4),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 14, vertical: 10),
-                              decoration: BoxDecoration(
-                                color: fromMe
-                                    ? const Color(0xFFDCF8C6)
-                                    : Colors.white,
-                                borderRadius: BorderRadius.circular(18),
-                              ),
-                              child: Text(msg['text'],
-                                  style: const TextStyle(fontSize: 16)),
-                            ),
-                          );
+                          return msgRead(fromMe, '${msg['text']}',
+                              status: msg['status']);
                         },
                       ),
               ),
@@ -967,110 +802,25 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         ),
       );
-  Widget buildAudioBubble(String filePath, bool fromMe) {
-    return FutureBuilder<Duration?>(
-      future: getAudioDuration(filePath),
-      builder: (context, snapshot) {
-        final duration = snapshot.data ?? Duration.zero;
-        final durationFormatted = formatDuration(duration.inSeconds);
+  Future<void> _playAudio(String fileName, BuildContext context,
+      {bool isPlayerInitialized = false}) async {
+    if (!isPlayerInitialized) return;
+    final dir = await getTemporaryDirectory();
+    final filePath = '${dir.path}/$fileName';
 
-        return Align(
-          alignment: fromMe ? Alignment.centerRight : Alignment.centerLeft,
-          child: Container(
-            margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(
-              color: fromMe ? const Color(0xFF128C7E) : const Color(0xFFE5E5EA),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: Icon(Icons.play_arrow,
-                      color: fromMe ? Colors.white : Colors.black87),
-                  onPressed: () => _playAudioWithJustAudio(filePath),
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  durationFormatted,
-                  style: TextStyle(
-                    color: fromMe ? Colors.white : Colors.black87,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
+    final file = File(filePath);
+    if (!await file.exists()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Fichier audio introuvable')),
+      );
+      return;
+    }
 
-  Widget _buildPdfBubble(String fileName, String filePath, bool fromMe) {
-    return Align(
-      alignment: fromMe ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: fromMe ? const Color(0xFFDCF8C6) : Colors.white,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.picture_as_pdf, size: 28, color: Colors.red),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                fileName ?? 'Document',
-                style: const TextStyle(fontSize: 14),
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-              ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.open_in_new, size: 20),
-              onPressed: () {
-                // Ouvre le PDF avec n'importe quel lecteur ou WebView
-                _openFile(filePath);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildImageBubble(String filePath, bool fromMe) {
-    final isUrl = filePath.startsWith('http');
-
-    return Align(
-      alignment: fromMe ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          color: Colors.grey[100],
-        ),
-        clipBehavior: Clip.hardEdge,
-        child: isUrl
-            ? Image.network(
-                filePath,
-                width: 200,
-                height: 200,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) =>
-                    const Icon(Icons.error),
-              )
-            : Image.file(
-                File(filePath),
-                width: 200,
-                height: 200,
-                fit: BoxFit.cover,
-              ),
-      ),
+    print("🎧 Lecture de $filePath");
+    await _audioPlayer.startPlayer(
+      fromURI: filePath, // ou fileUrl
+      codec: Codec.aacADTS,
+      whenFinished: () => print('✅ Lecture terminée'),
     );
   }
 
@@ -1167,32 +917,33 @@ class _ChatScreenState extends State<ChatScreen> {
             const SizedBox(height: 10),
             Wrap(
               spacing: 10,
-              children: options.map<Widget>((option) {
-                return ChoiceChip(
-                  label: Text(option),
-                  selected: false,
-                  onSelected: (_) {
-                    if (option.toLowerCase() == 'yes') {
-                      setState(() {
-                        messages.add({
-                          'text': 'Please upload your medical card',
-                          'fromMe': true,
-                          'status': 'sent',
-                          'createdAt': DateTime.now().toIso8601String(),
-                        });
-                      });
-                      _showUploadDialog();
-                    } else {
-                      sendMessageWithText("No medical card available.");
-                    }
-                  },
-                  backgroundColor: Colors.grey[200],
-                  selectedColor: option.toLowerCase() == 'yes'
-                      ? Colors.green
-                      : Colors.redAccent,
-                  labelStyle: const TextStyle(fontWeight: FontWeight.w500),
-                );
-              }).toList(),
+              children: options
+                  .map<Widget>((option) => ChoiceChip(
+                        label: Text(option),
+                        selected: false,
+                        onSelected: (_) {
+                          if (option.toLowerCase() == 'yes') {
+                            setState(() {
+                              messages.add({
+                                'text': 'Please upload your medical card',
+                                'fromMe': true,
+                                'status': 'sent',
+                                'createdAt': DateTime.now().toIso8601String(),
+                              });
+                            });
+                            _showUploadDialog();
+                          } else {
+                            sendMessageWithText("No medical card available.");
+                          }
+                        },
+                        backgroundColor: Colors.grey[200],
+                        selectedColor: option.toLowerCase() == 'yes'
+                            ? Colors.green
+                            : Colors.redAccent,
+                        labelStyle:
+                            const TextStyle(fontWeight: FontWeight.w500),
+                      ))
+                  .toList(),
             ),
           ],
         ),
@@ -1201,28 +952,6 @@ class _ChatScreenState extends State<ChatScreen> {
   void sendMessageWithText(String message) {
     _messageController.text = message;
     sendMessage();
-  }
-
-  void _openFile(String filePath) async {
-    try {
-      if (filePath.startsWith('http')) {
-        final encoded = Uri.encodeFull(filePath);
-        final uri = Uri.parse(encoded);
-
-        if (await canLaunchUrl(uri)) {
-          await launchUrl(uri, mode: LaunchMode.externalApplication);
-        } else {
-          print(
-              '❌ Impossible d’ouvrir le lien dans une app... essai navigateur');
-          await launchUrl(uri, mode: LaunchMode.platformDefault);
-        }
-      } else {
-        // ✅ ouvrir localement si c'est un fichier
-        await OpenFile.open(filePath);
-      }
-    } catch (e) {
-      print("❌ Impossible d’ouvrir le fichier : $e");
-    }
   }
 
   void _showUploadDialog() {
@@ -1316,42 +1045,40 @@ class _ChatScreenState extends State<ChatScreen> {
   void _showFileTypeChooser(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      shape: RoundedRectangleBorder(
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       backgroundColor: Colors.white,
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-          child: Wrap(
-            children: [
-              ListTile(
-                leading:
-                    const Icon(Icons.picture_as_pdf, color: Colors.deepPurple),
-                title: const Text('Document PDF'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _pickFile(extension: 'pdf');
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.image, color: Colors.teal),
-                title: const Text('Photo ou Image'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _pickFile(extension: 'image');
-                },
-              ),
-              const Divider(),
-              ListTile(
-                leading: const Icon(Icons.close, color: Colors.grey),
-                title: const Text('Annuler'),
-                onTap: () => Navigator.pop(context),
-              ),
-            ],
-          ),
-        );
-      },
+      builder: (context) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+        child: Wrap(
+          children: [
+            ListTile(
+              leading:
+                  const Icon(Icons.picture_as_pdf, color: Colors.deepPurple),
+              title: const Text('Document PDF'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickFile(extension: 'pdf');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.image, color: Colors.teal),
+              title: const Text('Photo ou Image'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickFile(extension: 'image');
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.close, color: Colors.grey),
+              title: const Text('Annuler'),
+              onTap: () => Navigator.pop(context),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

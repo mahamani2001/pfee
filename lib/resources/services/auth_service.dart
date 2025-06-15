@@ -3,7 +3,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:mypsy_app/helpers/app_config.dart';
 import 'package:mypsy_app/resources/services/crypto_service.dart';
-import 'package:mypsy_app/resources/services/http_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {

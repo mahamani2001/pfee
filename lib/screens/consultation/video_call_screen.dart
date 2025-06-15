@@ -4,6 +4,7 @@ import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:mypsy_app/resources/services/appointment_service.dart';
 import 'package:mypsy_app/resources/services/auth_service.dart';
 import 'package:mypsy_app/screens/consultation/chatconsultation.dart';
+import 'package:mypsy_app/shared/themes/app_theme.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:mypsy_app/resources/services/socket_service.dart';
 
@@ -354,7 +355,7 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
                   isConsultationEnded
                       ? "✅ Consultation terminée"
                       : "⏳ Restant : ${_formatDuration(remainingTime)}",
-                  style: const TextStyle(color: Colors.white, fontSize: 16),
+                  style: AppThemes.getTextStyle(),
                 ),
               ),
             ),
@@ -367,7 +368,9 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
                 child: ElevatedButton.icon(
                   onPressed: _showExtendDialog,
                   icon: const Icon(Icons.add_alarm),
-                  label: const Text("Prolonger"),
+                  label: const Text(
+                    "Prolonger",
+                  ),
                   style:
                       ElevatedButton.styleFrom(backgroundColor: Colors.orange),
                 ),

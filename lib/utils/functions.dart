@@ -139,4 +139,24 @@ String formatedSlot(String slot) {
   return formattedSlot;
 }
 
+String _formatTime(String? iso) {
+  if (iso == null) return '';
+  final date = DateTime.tryParse(iso);
+  if (date == null) return '';
+  final hour = date.hour.toString().padLeft(2, '0');
+  final minute = date.minute.toString().padLeft(2, '0');
+  return '$hour:$minute';
+}
 
+String formatDuration(Duration duration) {
+  final hours = duration.inHours.toString().padLeft(2, '0');
+  final minutes = (duration.inMinutes % 60).toString().padLeft(2, '0');
+  final seconds = (duration.inSeconds % 60).toString().padLeft(2, '0');
+  return '$hours:$minutes:$seconds';
+}
+
+String formatDurationSeconds(int seconds) {
+  final minutes = (seconds ~/ 60).toString().padLeft(2, '0');
+  final secs = (seconds % 60).toString().padLeft(2, '0');
+  return '$minutes:$secs';
+}

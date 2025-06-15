@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:mypsy_app/resources/services/appointment_service.dart';
 import 'package:mypsy_app/resources/services/auth_service.dart';
-import 'package:mypsy_app/screens/consultation/ConsultationLauncherScreen.dart';
+import 'package:mypsy_app/screens/consultation/consultationLauncherScreen.dart';
 import 'package:mypsy_app/shared/routes.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';
 import 'package:mypsy_app/shared/themes/app_theme.dart';

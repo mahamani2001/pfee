@@ -123,7 +123,6 @@ class AppointmentService {
     }
   }
 
-  // 5️⃣ Récupérer les heures réservées pour un jour donné
   Future<List<String>> getReservedTimes(int psychiatristId, String date) async {
     final response = await HttpService().request(
       url: '$baseUrl/reserved?psychiatristId=$psychiatristId&date=$date',
