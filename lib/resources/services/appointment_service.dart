@@ -17,7 +17,7 @@ class AppointmentService {
   }) async {
     final token = await AuthService().getToken();
     final response = await http.post(
-      Uri.parse('$baseUrl/appointments'),
+      Uri.parse('$baseUrl'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -218,17 +218,15 @@ class AppointmentService {
     return response.statusCode == 200;
   }
 
-  Future<bool> extendAppointment({
-    required int appointmentId,
-    required int extraMinutes,
-  }) async {
-    final response = await HttpService().request(
-      url: '$baseUrl/$appointmentId/extend',
-      method: 'PUT',
-      body: {'extraMinutes': extraMinutes},
+  Future<void> extendAppointment(
+      {required int appointmentId, required int extraMinutes}) async {
+    final response = await http.put(
+      Uri.parse(
+          'http://192.168.1.2:3001/api/appointments/$appointmentId/extend'),
+      headers: {'Authorization': 'Bearer ${await AuthService().getToken()}'},
+      body: jsonEncode({'extraMinutes': extraMinutes}),
     );
-
-    return response.statusCode == 200;
+    if (response.statusCode != 200) throw Exception('Échec de la prolongation');
   }
 
   Future<Map<String, dynamic>?> getAppointmentById(int appointmentId) async {

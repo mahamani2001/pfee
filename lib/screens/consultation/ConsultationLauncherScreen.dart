@@ -87,7 +87,30 @@ class ConsultationLauncherScreen extends StatelessWidget {
           ),
         );
       } else if (selectedMode == 'audio') {
-        _showComingSoon(context); // ou rediriger vers audio plus tard
+        final fullName = await AuthService().getUserFullName();
+        final userRole = await AuthService().getUserRole();
+        final callerName =
+            userRole == 'psychiatrist' ? 'Dr. $fullName' : fullName;
+
+        SocketService().emit('incoming_call', {
+          'to': peerId,
+          'appointmentId': appointmentId,
+          'callerName': callerName,
+        });
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => VideoCallScreen(
+              roomId: 'room-$appointmentId',
+              peerName: peerName,
+              appointmentId: appointmentId,
+              consultationId: consultationId,
+              isCaller: true,
+              isAudioOnly: true, // 👈 important
+            ),
+          ),
+        );
       }
     } catch (e) {
       print("❌ Erreur lancement $selectedMode: $e");

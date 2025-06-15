@@ -228,4 +228,5 @@ class SocketService {
 
   bool get isConnected => _socket?.connected ?? false;
   IO.Socket? get socket => _socket;
+  String? get id => _socket?.id;
 }

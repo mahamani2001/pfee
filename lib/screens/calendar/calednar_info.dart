@@ -86,7 +86,9 @@ class _BookingPageState extends State<BookingPage> {
           for (var h in horaires) {
             final parts = h.split('-');
             final startTime = parts[0];
-            times.add(startTime);
+            if (!reserved.contains(startTime)) {
+              times.add(startTime);
+            }
           }
         }
       });

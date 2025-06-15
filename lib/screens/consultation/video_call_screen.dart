@@ -13,6 +13,7 @@ class VideoCallScreen extends StatefulWidget {
   final bool isCaller;
   final int appointmentId;
   final int consultationId;
+  final bool isAudioOnly;
   const VideoCallScreen({
     super.key,
     required this.roomId,
@@ -20,6 +21,7 @@ class VideoCallScreen extends StatefulWidget {
     required this.appointmentId,
     required this.consultationId,
     this.isCaller = false,
+    this.isAudioOnly = false,
   });
 
   @override
@@ -98,7 +100,7 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
 
     _localStream = await navigator.mediaDevices.getUserMedia({
       'audio': true,
-      'video': {'facingMode': 'user'}
+      'video': widget.isAudioOnly ? false : {'facingMode': 'user'},
     });
 
     _localRenderer.srcObject = _localStream;
