@@ -5,7 +5,7 @@ import 'package:mypsy_app/resources/services/auth_service.dart';
 import 'package:mypsy_app/resources/services/http_service.dart';
 
 class AppointmentService {
-  String baseUrl = AppConfig.instance()!.baseUrl!;
+  String baseUrl = '${AppConfig.instance()!.baseUrl}appointments';
   String baseUrlavailability = '${AppConfig.instance()!.baseUrl!}availability';
   // 1️⃣ Réserver un rendez-vous
   Future<Map<String, dynamic>> reserveAppointment({
@@ -15,7 +15,7 @@ class AppointmentService {
     int durationMinutes = 30,
     int? availabilityId,
   }) async {
-    String urlRes = '${baseUrl}appointments';
+    String urlRes = '${baseUrl}';
     final token = await AuthService().getToken();
     final response = await http.post(
       Uri.parse(urlRes),
@@ -94,7 +94,7 @@ class AppointmentService {
   Future<List<dynamic>> getAppointmentsByStatus(String status) async {
     print(' getting list of getAppointmentsByStatus $baseUrl');
     final response = await HttpService().request(
-      url: '${baseUrl}appointments/me?status=$status',
+      url: '${baseUrl}/me?status=$status',
       method: 'GET',
     );
 
