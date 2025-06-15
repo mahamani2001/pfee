@@ -281,32 +281,32 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
       ),
       builder: (_) => Column(
         mainAxisSize: MainAxisSize.min,
-        children: [5, 10, 15].map((min) {
-          return ListTile(
-            title: Text("Ajouter $min minutes"),
-            onTap: () async {
-              await AppointmentService().extendAppointment(
-                appointmentId: widget.appointmentId,
-                extraMinutes: min,
-              );
+        children: [5, 10, 15]
+            .map((min) => ListTile(
+                  title: Text("Ajouter $min minutes"),
+                  onTap: () async {
+                    await AppointmentService().extendAppointment(
+                      appointmentId: widget.appointmentId,
+                      extraMinutes: min,
+                    );
 
-              SocketService().emit('duration_extended', {
-                'appointmentId': widget.appointmentId,
-                'extraMinutes': min,
-              });
-              setState(() {
-                endTime = endTime
-                    .add(Duration(minutes: min)); // ✅ on met à jour le temps
-              });
-              startConsultationTimer(); // 🔁 relancer le timer avec le nouveau endTime
+                    SocketService().emit('duration_extended', {
+                      'appointmentId': widget.appointmentId,
+                      'extraMinutes': min,
+                    });
+                    setState(() {
+                      endTime = endTime.add(Duration(minutes: min));
+                    });
+                    startConsultationTimer();
 
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text("Consultation prolongée de $min min")),
-              );
-            },
-          );
-        }).toList(),
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                          content: Text("Consultation prolongée de $min min")),
+                    );
+                  },
+                ))
+            .toList(),
       ),
     );
   }
