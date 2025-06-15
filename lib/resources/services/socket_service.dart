@@ -209,6 +209,7 @@ class SocketService {
 
   void disconnect() {
     _socket?.disconnect();
+    _socket?.destroy();
     _socket = null;
   }
 

@@ -52,36 +52,6 @@ class _ConsultationEndedScreenState extends State<ConsultationEndedScreen> {
     });
   }
 
-  Future<void> _submitRating() async {
-    setState(() => _loading = true);
-    final token = await AuthService().getToken();
-    final response = await http.post(
-      Uri.parse('$baseUrl/appointments/ratings'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token', // ✅ ajoute le token ici
-      },
-      body: jsonEncode({
-        'psychiatristId': widget.psychiatristId,
-        'appointmentId': widget.appointmentId,
-        'rating': _rating,
-      }),
-    );
-
-    setState(() => _loading = false);
-
-    if (response.statusCode == 200) {
-      Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Merci pour votre note 🌟")),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Erreur : ${response.body}")),
-      );
-    }
-  }
-
   void _showRatingDialog() {
     showDialog(
       context: context,

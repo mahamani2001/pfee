@@ -111,6 +111,7 @@ class ConsultationService {
 
   Future<Map<String, dynamic>?> endConsultation(
       {required int consultationId}) async {
+    print('Consultaion end');
     try {
       final response = await _httpService.request(
         url: '$baseUrl/$consultationId/end',

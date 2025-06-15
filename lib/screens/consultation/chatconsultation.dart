@@ -663,7 +663,17 @@ class _ChatScreenState extends State<ChatScreen> {
     _recorder = null;
     SocketService().onMessage = null;
     SocketService().onMessageRead = null;
+    if (isConsultationEnded) {
+      SocketService().socket?.disconnect();
+      SocketService().socket?.destroy();
 
+      SocketService().onMessage = null;
+      SocketService().onMessageRead = null;
+      SocketService().onUserOnline = null;
+      SocketService().onUserOffline = null;
+      SocketService().onUserTyping = null;
+      SocketService().onUserStopTyping = null;
+    }
     super.dispose();
   }
 

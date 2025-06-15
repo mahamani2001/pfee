@@ -11,14 +11,14 @@ class RatingService {
   }) async {
     try {
       String baseUrl = AppConfig.instance()!.baseUrl!;
-
+      print('appointmentId $appointmentId');
+      print('psychiatristId $psychiatristId');
       final token = await AuthService().getToken();
-      print('🪪 TOKEN UTILISÉ : $token');
       final response = await http.post(
-        Uri.parse('$baseUrl/appointments/ratings'),
+        Uri.parse('${baseUrl}appointments/ratings'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token', // ✅ ajoute le token ici
+          'Authorization': 'Bearer $token',
         },
         body: jsonEncode({
           'psychiatristId': psychiatristId,
@@ -29,7 +29,7 @@ class RatingService {
 
       if (response.statusCode != 200) {
         throw Exception(
-            "Erreur HTTP ${response.statusCode} : ${response.body}");
+            "Erreur HTTP  here${response.statusCode} : ${response.body}");
       }
     } catch (e) {
       print("❌ Erreur dans submitRating : $e");
