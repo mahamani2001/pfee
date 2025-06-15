@@ -223,8 +223,7 @@ class AppointmentService {
   Future<void> extendAppointment(
       {required int appointmentId, required int extraMinutes}) async {
     final response = await http.put(
-      Uri.parse(
-          'http://192.168.1.2:3001/api/appointments/$appointmentId/extend'),
+      Uri.parse('$baseUrl/$appointmentId/extend'),
       headers: {'Authorization': 'Bearer ${await AuthService().getToken()}'},
       body: jsonEncode({'extraMinutes': extraMinutes}),
     );
