@@ -18,14 +18,15 @@ class JoinConsultationScreen extends StatelessWidget {
 
   Future<void> _joinConsultation(BuildContext context) async {
     try {
-      final consultation =
-          await ConsultationService().getConsultationByAppointment(appointmentId);
-
+      final consultation = await ConsultationService()
+          .getConsultationByAppointment(appointmentId);
+      print('consultation info ---- ${consultation.toString()}');
       if (consultation == null) {
         throw Exception("Consultation introuvable");
       }
 
-      final consultationId = consultation['id'] ?? consultation['consultationId'];
+      final consultationId =
+          consultation['id'] ?? consultation['consultationId'];
       final String mode = consultation['type']; // "chat", "video", "audio"
 
       print("🔁 Mode consultation détecté : $mode");
@@ -39,7 +40,7 @@ class JoinConsultationScreen extends StatelessWidget {
               peerName: peerName,
               appointmentId: appointmentId,
               consultationId: consultationId,
-              roomId: 'room-$appointmentId',
+              roomId: 'room-$consultationId',
             ),
           ),
         );
@@ -48,7 +49,7 @@ class JoinConsultationScreen extends StatelessWidget {
           context,
           MaterialPageRoute(
             builder: (_) => VideoCallScreen(
-              roomId: 'room-$appointmentId',
+              roomId: 'room-$consultationId',
               peerName: peerName,
               appointmentId: appointmentId,
               consultationId: consultationId,

@@ -61,7 +61,7 @@ class ConsultationLauncherScreen extends StatelessWidget {
               peerName: peerName,
               appointmentId: appointmentId,
               consultationId: consultationId,
-              roomId: 'room-$appointmentId',
+              roomId: 'room-$consultationId',
             ),
           ),
         );
@@ -81,7 +81,7 @@ class ConsultationLauncherScreen extends StatelessWidget {
           context,
           MaterialPageRoute(
             builder: (_) => VideoCallScreen(
-              roomId: 'room-$appointmentId',
+              roomId: 'room-$consultationId',
               peerName: peerName,
               appointmentId: appointmentId,
               consultationId: consultationId,
@@ -105,7 +105,7 @@ class ConsultationLauncherScreen extends StatelessWidget {
           context,
           MaterialPageRoute(
             builder: (_) => VideoCallScreen(
-              roomId: 'room-$appointmentId',
+              roomId: 'room-$consultationId',
               peerName: peerName,
               appointmentId: appointmentId,
               consultationId: consultationId,
@@ -141,7 +141,7 @@ class ConsultationLauncherScreen extends StatelessWidget {
               peerName: peerName,
               appointmentId: appointmentId,
               consultationId: consultationId,
-              roomId: 'room-$appointmentId',
+              roomId: 'room-$consultationId',
             ),
           ),
         );
@@ -150,7 +150,7 @@ class ConsultationLauncherScreen extends StatelessWidget {
           context,
           MaterialPageRoute(
             builder: (_) => VideoCallScreen(
-              roomId: 'room-$appointmentId',
+              roomId: 'room-$consultationId',
               peerName: peerName,
               appointmentId: appointmentId,
               consultationId: consultationId,
