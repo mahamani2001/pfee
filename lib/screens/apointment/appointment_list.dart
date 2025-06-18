@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:mypsy_app/resources/services/appointment_service.dart';
 import 'package:mypsy_app/resources/services/auth_service.dart';
 import 'package:mypsy_app/screens/apointment/appointment_item.dart';
-import 'package:mypsy_app/shared/themes/app_theme.dart';
 import 'package:mypsy_app/utils/constants.dart';
 
 class AppointmentList extends StatefulWidget {
