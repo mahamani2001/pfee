@@ -119,7 +119,7 @@ class _HomePsyState extends State<HomePsy> with SingleTickerProviderStateMixin {
                             const SizedBox(height: 15),
                             upcomingApointment(),
                             const SizedBox(height: 15),
-                            menuCards(),
+                            //   menuCards(),
                           ],
                         ),
                       ),
@@ -368,7 +368,6 @@ class _HomePsyState extends State<HomePsy> with SingleTickerProviderStateMixin {
       );
 }
 
-// Animation bouton "clic"
 class AnimatedScaleButton extends StatefulWidget {
   final Widget child;
   final VoidCallback onTap;

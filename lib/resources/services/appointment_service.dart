@@ -90,11 +90,9 @@ class AppointmentService {
     }
   }
 
-  // 3️⃣ Récupérer les rendez-vous par statut
   Future<List<dynamic>> getAppointmentsByStatus(String status) async {
-    print(' getting list of getAppointmentsByStatus $baseUrl');
     final response = await HttpService().request(
-      url: '${baseUrl}/me?status=$status',
+      url: '$baseUrl/me?status=$status',
       method: 'GET',
     );
 
@@ -112,7 +110,6 @@ class AppointmentService {
     }
   }
 
-  // 4️⃣ Récupérer les créneaux disponibles
   Future<List<dynamic>> getAvailabilities(int psychiatristId) async {
     final response = await HttpService().request(
       url: '$baseUrl/available/$psychiatristId',
@@ -140,7 +137,6 @@ class AppointmentService {
     }
   }
 
-  // 6️⃣ Proposer un créneau personnalisé
   Future<bool> proposeCustomAppointment({
     required int psychiatristId,
     required String date,
@@ -160,7 +156,6 @@ class AppointmentService {
     return response.statusCode == 201;
   }
 
-  // 7️⃣ Reprogrammer un rendez-vous
   Future<bool> rescheduleAppointment({
     required int appointmentId,
     required String date,
@@ -177,7 +172,6 @@ class AppointmentService {
     return response.statusCode == 200;
   }
 
-  // 8️⃣ Vérifier accès à la consultation
   Future<bool> checkAccess(int appointmentId) async {
     final response = await HttpService().request(
       url: '$baseUrl/can-access/$appointmentId',
@@ -197,13 +191,13 @@ class AppointmentService {
       final response = await HttpService().request(
         url: '$baseUrl/$appointmentId/confirm',
         method: 'PUT',
-        body: {}, // même vide c’est important pour éviter le JSON.parse null côté Node.js
+        body: {},
       );
 
       return response.statusCode == 200;
     } catch (e) {
       print("❌ Erreur confirmAppointment: $e");
-      return false; // on retourne false en cas d’erreur
+      return false;
     }
   }
 
@@ -260,7 +254,7 @@ class AppointmentService {
     required dynamic slots,
   }) async {
     final response = await HttpService().request(
-      url: '$baseUrlavailability',
+      url: baseUrlavailability,
       method: 'POST',
       body: {'slots': slots},
     );
