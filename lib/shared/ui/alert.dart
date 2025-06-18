@@ -44,9 +44,9 @@ class AlertYesNo extends StatelessWidget {
                   Text(
                     title,
                     style: AppThemes.getTextStyle(
-                        clr: AppColors.mypsyPrimary,
-                        fontWeight: FontWeight.w700,
-                        size: 14),
+                      clr: AppColors.mypsyPrimary,
+                      fontWeight: FontWeight.w700,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   Padding(
