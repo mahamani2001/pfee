@@ -391,6 +391,8 @@ class _UpdateProfileState extends State<UpdateProfile> {
 
     if (response.statusCode == 200) {
       customFlushbar("", "Mise à jour réussie", context);
+      //
+      await AuthService().getUserFullName();
     } else {
       customFlushbar("", data['message'] ?? 'Erreur serveur', context,
           isError: true);
