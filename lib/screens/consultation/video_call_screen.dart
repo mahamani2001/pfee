@@ -49,6 +49,7 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
 
   @override
   void initState() {
+    print('Room ID is ${widget.roomId}');
     super.initState();
     SocketService().connectSocket();
 
@@ -154,6 +155,7 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
   }
 
   void startConsultationTimer() {
+    print('Room ID is ${widget.roomId} ${widget.appointmentId}');
     consultationTimer?.cancel(); // 🔁 Toujours annuler le précédent
     print(widget.roomId);
     consultationTimer = Timer.periodic(const Duration(seconds: 1), (timer) {

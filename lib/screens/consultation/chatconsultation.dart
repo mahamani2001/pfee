@@ -221,6 +221,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void initState() {
+    print(' INITTTT statateee hereeeee');
     super.initState();
     consultationId = widget.consultationId;
     _recorder = FlutterSoundRecorder();
@@ -238,16 +239,18 @@ class _ChatScreenState extends State<ChatScreen> {
       isPsychiatrist = (await AuthService().getUserRole()) == 'psychiatrist';
       print('Widget info ${myUserId} - ${consultationId}-${appointmentId}');
       SocketService().onMessage = (data) {
-        print('📥 Reçu depuis socket : $data');
+        print('📥 Reçu depuis socket on init state : $data');
         handleIncomingMessage(data);
       };
 
       await SocketService()
           .connectSocket(onMessageCallback: handleIncomingMessage);
+
       SocketService().emit('join_consultation', {
         'appointmentId': appointmentId,
         'mode': 'chat', // ou 'audio', 'video'
       });
+
       print("✅ Émis join_consultation pour $appointmentId en mode chat");
       SocketService().on('consultation_joined', (data) {
         final consultationId = data['consultationId'];
@@ -293,6 +296,7 @@ class _ChatScreenState extends State<ChatScreen> {
       });
 
       SocketService().onUserOnline = (userId) {
+        print('USER nlineeeee');
         if (userId == peerId) {
           setState(() {
             isPeerOnline = true;
@@ -301,6 +305,7 @@ class _ChatScreenState extends State<ChatScreen> {
       };
 
       SocketService().onUserOffline = (userId) {
+        print('USER OFFLINE');
         if (userId == peerId) {
           setState(() {
             isPeerOnline = false;
@@ -450,8 +455,6 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void handleIncomingMessage(Map<String, dynamic> data) async {
-    print("📥 Received socket message: ${data.toString()}");
-
     final fromId = data['from'].toString();
     if (!mounted || fromId == myUserId.toString()) return;
 
@@ -660,13 +663,14 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
+    print('diosposseeeeeeeeee');
     _isChatScreenActive = false;
     _timer?.cancel();
     _recorder?.closeRecorder();
     _recorder = null;
     SocketService().onMessage = null;
     SocketService().onMessageRead = null;
-    if (isConsultationEnded) {
+    /* if (isConsultationEnded) {
       SocketService().socket?.disconnect();
       SocketService().socket?.destroy();
 
@@ -676,7 +680,7 @@ class _ChatScreenState extends State<ChatScreen> {
       SocketService().onUserOffline = null;
       SocketService().onUserTyping = null;
       SocketService().onUserStopTyping = null;
-    }
+    }*/
     super.dispose();
   }
 
@@ -688,7 +692,7 @@ class _ChatScreenState extends State<ChatScreen> {
           foregroundColor: Colors.black,
           centerTitle: false,
           toolbarHeight: 70,
-          title: headerInfo(isPeerOnline, peerName,widget.roomId),
+          title: headerInfo(isPeerOnline, peerName),
           actions: [
             // 🔥 Seulement si psy
             IconButton(

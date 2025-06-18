@@ -84,7 +84,7 @@ class SocketService {
       final peerName = data['fullName'] ?? 'Patient';
       final appointmentId = data['appointmentId'];
       final consultationId = data['consultationId'];
-      final roomId = 'consultation_$consultationId';
+      final roomId = 'room-$consultationId';
 
       if (mode == 'chat') {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -123,6 +123,7 @@ class SocketService {
     });
 
     _socket!.on('user_online', (data) {
+      print('DATA socek user online ${data.toString()}');
       final userId = data['userId'].toString();
       onUserOnline?.call(userId);
     });
@@ -133,6 +134,7 @@ class SocketService {
     });
 
     _socket!.on('typing', (data) {
+      print(' I am typinnffff');
       final userId = data['userId'].toString();
       onUserTyping?.call(userId);
     });

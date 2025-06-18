@@ -8,7 +8,7 @@ import 'dart:io';
 import 'package:mypsy_app/utils/functions.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-Widget headerInfo(bool isPeerOnline, String peerName, String id) => Row(
+Widget headerInfo(bool isPeerOnline, String peerName) => Row(
       children: [
         const CircleAvatar(
           radius: 20,
@@ -19,7 +19,7 @@ Widget headerInfo(bool isPeerOnline, String peerName, String id) => Row(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(peerName + id,
+              Text(peerName,
                   style: AppThemes.getTextStyle(
                       clr: AppColors.mypsyWhite, fontWeight: FontWeight.bold),
                   overflow: TextOverflow.ellipsis),
