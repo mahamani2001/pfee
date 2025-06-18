@@ -105,6 +105,7 @@ class _QuestionPageState extends State<QuestionPage> {
         backgroundColor: AppColors.mypsyBgApp,
         appBar: const TopBarSubPage(
           title: 'Quiz d’anxiété',
+          goHome: true,
         ),
         body: SafeArea(
           child: Padding(
