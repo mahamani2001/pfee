@@ -11,6 +11,7 @@ import 'package:mypsy_app/shared/ui/alert.dart';
 import 'package:mypsy_app/shared/ui/buttons/button.dart';
 import 'package:mypsy_app/utils/constants.dart';
 import 'package:mypsy_app/utils/functions.dart';
+import 'package:mypsy_app/shared/ui/device_types.dart';
 
 class AppointmentCard extends StatefulWidget {
   final int id;
@@ -255,48 +256,78 @@ class _AppointmentCardState extends State<AppointmentCard> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Rejeter le rendez-vous"),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text("Rendez-vous le $dateFr à ${widget.time}"),
-            const SizedBox(height: 10),
-            TextField(
-              controller: reasonController,
-              decoration: const InputDecoration(
-                labelText: "Cause du refus",
-                hintText: "Ex: Je ne suis pas disponible",
+        backgroundColor: AppColors.mypsyWhite,
+        contentPadding: const EdgeInsets.all(0),
+        title: Text(
+          "Rejeter le rendez-vous",
+          style: AppThemes.getTextStyle(fontWeight: FontWeight.w500, size: 16),
+          textAlign: TextAlign.center,
+        ),
+        content: Container(
+          width:
+              Device.get().isTablet! ? 400 : MediaQuery.of(context).size.width,
+          padding: const EdgeInsets.all(25),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            color: AppColors.mypsyWhite,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "Rendez-vous le $dateFr à ${widget.time}",
+                style: AppThemes.getTextStyle(
+                    fontWeight: FontWeight.w700, size: 13),
               ),
-              maxLines: 3,
-            ),
-          ],
+              TextField(
+                controller: reasonController,
+                decoration: const InputDecoration(
+                  labelText: "Cause du refus",
+                  hintText: "Ex: Je ne suis pas disponible",
+                ),
+                maxLines: 3,
+              ),
+            ],
+          ),
         ),
         actions: [
-          TextButton(
-            child: const Text("Annuler"),
-            onPressed: () => Navigator.pop(context),
-          ),
-          ElevatedButton(
-            child: const Text("Rejeter"),
-            onPressed: () async {
-              final reason = reasonController.text.trim();
-              if (reason.isEmpty) return;
+          Row(
+            children: [
+              Expanded(
+                child: mypsyButton(
+                  text: 'Annuler',
+                  padding: const EdgeInsets.symmetric(vertical: 5),
+                  onPress: () => Navigator.pop(context),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: mypsyButton(
+                  text: 'Rejeter',
+                  bgColors: AppColors.mypsySecondary,
+                  padding: const EdgeInsets.symmetric(vertical: 5),
+                  onPress: () async {
+                    final reason = reasonController.text.trim();
+                    if (reason.isEmpty) return;
 
-              final success = await AppointmentService()
-                  .rejectAppointment(widget.id, reason);
-              Navigator.pop(context); // Fermer la boîte
+                    final success = await AppointmentService()
+                        .rejectAppointment(widget.id, reason);
+                    Navigator.pop(context); // Fermer la boîte
 
-              if (success) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Rendez-vous rejeté ❌")),
-                );
-                widget.onReload(); // Recharger la liste
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Erreur lors du rejet")),
-                );
-              }
-            },
+                    if (success) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Rendez-vous rejeté ❌")),
+                      );
+                      widget.onReload(); // Recharger la liste
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Erreur lors du rejet")),
+                      );
+                    }
+                  },
+                ),
+              ),
+            ],
           ),
         ],
       ),
