@@ -155,41 +155,47 @@ class _BookingPageState extends State<BookingPage> {
         success = true;
       } else if (result['status'] == 409) {
         final errorBody = result['body'];
-        if (errorBody['message'] ==
-            "Tu as déjà un autre rendez-vous à ce moment.") {
-          final conflictingTime = errorBody['conflictingTime'];
-          await showDialog(
-            context: context,
-            builder: (_) => AlertDialog(
-              title: const Text("Conflit de rendez-vous"),
-              content:
-                  Text("Tu as déjà un autre rendez-vous à $conflictingTime."),
-              actions: [
-                TextButton(
-                  child: const Text("OK"),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
-            ),
-          );
-          return;
+        final errorMessage = errorBody['message'];
+        final conflictingTime = errorBody['conflictingTime'] ?? _selectedTime;
+
+        String dialogMessage;
+        if (errorMessage == "Tu as déjà un autre rendez-vous à ce moment.") {
+          dialogMessage =
+              "❗ Tu as déjà un autre rendez-vous à $conflictingTime.\n\nVeuillez choisir une autre heure.";
+        } else if (errorMessage == "Ce créneau est déjà réservé.") {
+          dialogMessage =
+              "❗ Ce créneau vient d’être réservé par un autre utilisateur.\n\nVeuillez choisir un autre horaire.";
         } else {
-          await showDialog(
-            context: context,
-            builder: (_) => AlertDialog(
-              title: const Text("Créneau déjà pris"),
-              content: const Text(
-                  "Ce créneau vient d’être réservé. Veuillez en choisir un autre."),
-              actions: [
-                TextButton(
-                  child: const Text("OK"),
-                  onPressed: () => Navigator.pop(context),
-                ),
+          dialogMessage = "Une erreur est survenue. Veuillez réessayer.";
+        }
+
+        await showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: Row(
+              children: const [
+                Icon(Icons.warning_amber_rounded, color: Colors.redAccent),
+                SizedBox(width: 8),
+                Text("Conflit détecté"),
               ],
             ),
-          );
-          return;
-        }
+            content: Text(
+              dialogMessage,
+              style: AppThemes.getTextStyle(size: 14),
+            ),
+            actions: [
+              TextButton(
+                child: const Text("OK",
+                    style: TextStyle(color: Colors.deepPurple)),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ],
+          ),
+        );
+
+        return;
       }
     } else {
       final result = await AppointmentService().proposeCustomAppointment(
@@ -202,31 +208,55 @@ class _BookingPageState extends State<BookingPage> {
       if (result == true) {
         success = true;
       } else {
-        // Vérifier si l'échec est dû à un chevauchement
         final resultCheck = await AppointmentService().reserveAppointment(
           psychiatristId: psychiatristId,
           date: dateStr,
           startTime: formattedStartTime,
           durationMinutes: 30,
         );
-        if (resultCheck['status'] == 409 &&
-            resultCheck['body']['message'] ==
-                "Tu as déjà un autre rendez-vous à ce moment.") {
-          final conflictingTime = resultCheck['body']['conflictingTime'];
+
+        if (resultCheck['status'] == 409) {
+          final errorMessage = resultCheck['body']['message'];
+          final conflictingTime =
+              resultCheck['body']['conflictingTime'] ?? _selectedTime;
+
+          String dialogMessage;
+          if (errorMessage == "Tu as déjà un autre rendez-vous à ce moment.") {
+            dialogMessage =
+                "❗ Tu as déjà un autre rendez-vous à $conflictingTime.\n\nVeuillez choisir une autre heure.";
+          } else if (errorMessage == "Ce créneau est déjà réservé.") {
+            dialogMessage =
+                "❗Tu as déjà un autre rendez-vous à ce moment.\n\nVeuillez choisir un autre horaire.";
+          } else {
+            dialogMessage = "Une erreur est survenue. Veuillez réessayer.";
+          }
+
           await showDialog(
             context: context,
             builder: (_) => AlertDialog(
-              title: const Text("Conflit de rendez-vous"),
-              content:
-                  Text("Tu as déjà un autre rendez-vous à $conflictingTime."),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
+              title: Row(
+                children: const [
+                  Icon(Icons.warning_amber_rounded, color: Colors.redAccent),
+                  SizedBox(width: 8),
+                  Text("Déjà réservé"),
+                ],
+              ),
+              content: Text(
+                dialogMessage,
+                style: AppThemes.getTextStyle(size: 14),
+              ),
               actions: [
                 TextButton(
-                  child: const Text("OK"),
+                  child: const Text("OK",
+                      style: TextStyle(color: Colors.deepPurple)),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
             ),
           );
+
           return;
         }
       }

@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:mypsy_app/helpers/app_config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mypsy_app/resources/services/auth_service.dart';
 
@@ -21,21 +20,18 @@ class HttpService {
     return prefs.getString('refresh_token');
   }
 
-  /// 🔁 Essaie de rafraîchir le token si nécessaire
   Future<bool> _tryRefreshToken() async {
     final newToken = await AuthService().refreshToken();
     return newToken != null;
   }
 
-  /// 🧠 Requête générique avec gestion auto des tokens
   Future<http.Response> request({
     required String url,
-    required String method, // 'GET', 'POST', 'PUT', 'DELETE'
+    required String method,
     Map<String, String>? headers,
     Object? body,
   }) async {
     String? token = await _getAccessToken();
-    print("token $token");
     Future<http.Response> sendRequest(String token) {
       final allHeaders = {
         'Authorization': 'Bearer $token',

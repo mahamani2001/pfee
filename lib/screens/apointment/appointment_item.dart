@@ -248,24 +248,59 @@ class _AppointmentCardState extends State<AppointmentCard> {
             }));
   }
 
-  void alertRejct() {
+  void alertRejectWithReason() {
+    final TextEditingController reasonController = TextEditingController();
     final dateFr = formatDateFr(widget.date);
+
     showDialog(
-        context: context,
-        builder: (context) => AlertYesNo(
-            title: "Rejeter? ",
-            description:
-                "Voulez-vous rejeter ce RDV \n $dateFr à ${widget.time}?",
-            btnTitle: "Oui",
-            btnNoTitle: "Non",
-            onPressYes: () async {
-              await AppointmentService().rejectAppointment(widget.id);
-              Navigator.pop(context);
-              widget.onReload();
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Rejeter le rendez-vous"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text("Rendez-vous le $dateFr à ${widget.time}"),
+            const SizedBox(height: 10),
+            TextField(
+              controller: reasonController,
+              decoration: const InputDecoration(
+                labelText: "Cause du refus",
+                hintText: "Ex: Je ne suis pas disponible",
+              ),
+              maxLines: 3,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            child: const Text("Annuler"),
+            onPressed: () => Navigator.pop(context),
+          ),
+          ElevatedButton(
+            child: const Text("Rejeter"),
+            onPressed: () async {
+              final reason = reasonController.text.trim();
+              if (reason.isEmpty) return;
+
+              final success = await AppointmentService()
+                  .rejectAppointment(widget.id, reason);
+              Navigator.pop(context); // Fermer la boîte
+
+              if (success) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Rendez-vous rejeté ❌")),
+                );
+                widget.onReload(); // Recharger la liste
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Erreur lors du rejet")),
+                );
+              }
             },
-            onClosePopup: () {
-              Navigator.pop(context);
-            }));
+          ),
+        ],
+      ),
+    );
   }
 
   void alertAnnulerPatient() {
@@ -296,7 +331,7 @@ class _AppointmentCardState extends State<AppointmentCard> {
         }),
         const SizedBox(width: 8),
         _button(context, 'Rejeter', Colors.red, () async {
-          alertRejct();
+          alertRejectWithReason();
         }),
       ];
     } else if (widget.status == 'confirmed' && canAccess) {

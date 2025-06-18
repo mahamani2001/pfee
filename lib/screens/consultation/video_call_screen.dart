@@ -32,7 +32,7 @@ class VideoCallScreen extends StatefulWidget {
 class _VideoCallScreenState extends State<VideoCallScreen> {
   final RTCVideoRenderer _localRenderer = RTCVideoRenderer();
   final RTCVideoRenderer _remoteRenderer = RTCVideoRenderer();
-  late RTCPeerConnection _peerConnection;
+  RTCPeerConnection? _peerConnection;
   MediaStream? _localStream;
   late DateTime startTime;
   Duration consultationDuration = Duration.zero;
@@ -45,20 +45,15 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
   bool _cameraEnabled = true;
   Timer? _callTimer;
   String _callDuration = "00:00";
-  late DateTime endTime; // 🔥 ajoute ceci en haut
-  Future<void> _initSocketThenCall() async {
-    await SocketService().waitForConnection(); // ✅ attend socket actif
-
-    _registerSocketEvents(); // ✅ maintenant il est connecté
-    await _initCall(); // ✅ on peut initier l’appel WebRTC
-  }
+  late DateTime endTime;
 
   @override
   void initState() {
     super.initState();
     SocketService().connectSocket();
+
     consultationId = widget.consultationId;
-    _initSocketThenCall();
+    print(consultationId);
     _initCall();
     _startTimer();
     _initConsultationTiming();
@@ -67,36 +62,14 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
         isPsychiatrist = (role == 'psychiatrist');
       });
     });
-
-    _registerSocketEvents(); //
-    // 🔁 Socket: écoute si durée prolongée
-    SocketService().on('duration_extended', (data) {
-      if (data['appointmentId'] == widget.appointmentId) {
-        final extraMinutes = data['extraMinutes'];
-
-        setState(() {
-          consultationDuration += Duration(minutes: extraMinutes);
-          endTime = endTime.add(Duration(minutes: extraMinutes)); // 🔥🔥🔥
-        });
-
-        startConsultationTimer(); // 🔁 redémarre le timer avec le nouveau endTime
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text(
-                  "⏱ La consultation a été prolongée de $extraMinutes minutes")),
-        );
-      }
-    });
+    _registerSocketEvents();
   }
 
   Future<void> _initCall() async {
     await _localRenderer.initialize();
     await _remoteRenderer.initialize();
 
-    await [
-      Permission.camera,
-      Permission.microphone,
-    ].request();
+    await [Permission.camera, Permission.microphone].request();
 
     if (!await Permission.camera.isGranted ||
         !await Permission.microphone.isGranted) {
@@ -120,20 +93,16 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
       ]
     });
 
-    _peerConnection.onIceCandidate = (candidate) {
+    _peerConnection!.onIceCandidate = (candidate) {
       if (candidate != null) {
         SocketService().emit('webrtc-ice-candidate', {
           'roomId': widget.roomId,
-          'candidate': {
-            'candidate': candidate.candidate,
-            'sdpMid': candidate.sdpMid,
-            'sdpMLineIndex': candidate.sdpMLineIndex,
-          },
+          'candidate': candidate.toMap(),
         });
       }
     };
 
-    _peerConnection.onTrack = (event) {
+    _peerConnection!.onTrack = (event) {
       print("🎥 Remote track received: ${event.streams.length}");
       if (event.track.kind == 'video' && event.streams.isNotEmpty) {
         setState(() {
@@ -143,14 +112,14 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
     };
 
     _localStream!.getTracks().forEach((track) {
-      _peerConnection.addTrack(track, _localStream!);
+      _peerConnection!.addTrack(track, _localStream!);
     });
 
     SocketService().on('webrtc-offer', (data) async {
       final offer = RTCSessionDescription(data['sdp'], 'offer');
-      await _peerConnection.setRemoteDescription(offer);
-      final answer = await _peerConnection.createAnswer();
-      await _peerConnection.setLocalDescription(answer);
+      await _peerConnection!.setRemoteDescription(offer);
+      final answer = await _peerConnection!.createAnswer();
+      await _peerConnection!.setLocalDescription(answer);
 
       SocketService().emit('webrtc-answer', {
         'roomId': widget.roomId,
@@ -160,24 +129,23 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
 
     SocketService().on('webrtc-answer', (data) async {
       final answer = RTCSessionDescription(data['sdp'], 'answer');
-      await _peerConnection.setRemoteDescription(answer);
+      await _peerConnection!.setRemoteDescription(answer);
     });
 
     SocketService().on('webrtc-ice-candidate', (data) async {
-      final c = data['candidate'];
       final candidate = RTCIceCandidate(
-        c['candidate'],
-        c['sdpMid'],
-        c['sdpMLineIndex'],
+        data['candidate']['candidate'],
+        data['candidate']['sdpMid'],
+        data['candidate']['sdpMLineIndex'],
       );
-      await _peerConnection.addCandidate(candidate);
+      await _peerConnection!.addCandidate(candidate);
     });
 
     SocketService().emit('join-room', {'roomId': widget.roomId});
 
     if (widget.isCaller) {
-      final offer = await _peerConnection.createOffer();
-      await _peerConnection.setLocalDescription(offer);
+      final offer = await _peerConnection!.createOffer();
+      await _peerConnection!.setLocalDescription(offer);
       SocketService().emit('webrtc-offer', {
         'roomId': widget.roomId,
         'sdp': offer.sdp,
@@ -187,7 +155,7 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
 
   void startConsultationTimer() {
     consultationTimer?.cancel(); // 🔁 Toujours annuler le précédent
-
+    print(widget.roomId);
     consultationTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       final now = DateTime.now();
       final diff = endTime.difference(now);
@@ -289,32 +257,32 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
       ),
       builder: (_) => Column(
         mainAxisSize: MainAxisSize.min,
-        children: [5, 10, 15].map((min) {
-          return ListTile(
-            title: Text("Ajouter $min minutes"),
-            onTap: () async {
-              await AppointmentService().extendAppointment(
-                appointmentId: widget.appointmentId,
-                extraMinutes: min,
-              );
+        children: [5, 10, 15]
+            .map((min) => ListTile(
+                  title: Text("Ajouter $min minutes"),
+                  onTap: () async {
+                    await AppointmentService().extendAppointment(
+                      appointmentId: widget.appointmentId,
+                      extraMinutes: min,
+                    );
 
-              SocketService().emit('duration_extended', {
-                'appointmentId': widget.appointmentId,
-                'extraMinutes': min,
-              });
-              setState(() {
-                endTime = endTime
-                    .add(Duration(minutes: min)); // ✅ on met à jour le temps
-              });
-              startConsultationTimer(); // 🔁 relancer le timer avec le nouveau endTime
+                    SocketService().emit('duration_extended', {
+                      'appointmentId': widget.appointmentId,
+                      'extraMinutes': min,
+                    });
+                    setState(() {
+                      endTime = endTime.add(Duration(minutes: min));
+                    });
+                    startConsultationTimer();
 
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text("Consultation prolongée de $min min")),
-              );
-            },
-          );
-        }).toList(),
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                          content: Text("Consultation prolongée de $min min")),
+                    );
+                  },
+                ))
+            .toList(),
       ),
     );
   }
@@ -331,7 +299,7 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
     _localRenderer.dispose();
     _remoteRenderer.dispose();
     _localStream?.dispose();
-    _peerConnection.close();
+    _peerConnection!.close();
     super.dispose();
   }
 
@@ -409,7 +377,7 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
               right: 0,
               child: Column(
                 children: [
-                  Text(widget.peerName,
+                  Text(widget.peerName + widget.roomId,
                       style: const TextStyle(
                           fontSize: 24,
                           color: Colors.white,

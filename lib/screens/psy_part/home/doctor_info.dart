@@ -18,7 +18,7 @@ class DoctorDetailScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.mypsyBgApp,
       appBar: const TopBarSubPage(
-        title: 'Detail',
+        title: 'Détail',
       ),
       body: SafeArea(
           child: SingleChildScrollView(
@@ -122,7 +122,7 @@ class DoctorDetailScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  "10+",
+                  psychiatrist['experience'],
                   style: AppThemes.getTextStyle(
                       size: 16, fontWeight: FontWeight.bold),
                 ),

@@ -688,7 +688,7 @@ class _ChatScreenState extends State<ChatScreen> {
           foregroundColor: Colors.black,
           centerTitle: false,
           toolbarHeight: 70,
-          title: headerInfo(isPeerOnline, peerName),
+          title: headerInfo(isPeerOnline, peerName,widget.roomId),
           actions: [
             // 🔥 Seulement si psy
             IconButton(

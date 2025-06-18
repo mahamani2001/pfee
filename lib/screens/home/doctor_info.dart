@@ -122,7 +122,7 @@ class DoctorDetailScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  "10+",
+                  '${psychiatrist['experience']} ans',
                   style: AppThemes.getTextStyle(
                       size: 16, fontWeight: FontWeight.bold),
                 ),

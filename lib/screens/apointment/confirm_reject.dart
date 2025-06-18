@@ -36,7 +36,8 @@ class ConfirmRejectScreen extends StatelessWidget {
   }
 
   Future<void> rejectAppointment(BuildContext context) async {
-    final success = await AppointmentService().rejectAppointment(appointmentId);
+    final success =
+        await AppointmentService().rejectAppointment(appointmentId, '');
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Rendez-vous rejeté ❌")),

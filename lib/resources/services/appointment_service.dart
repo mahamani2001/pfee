@@ -41,7 +41,7 @@ class AppointmentService {
   // 2️⃣ Annuler un rendez-vous
   Future<bool> cancelAppointment(int appointmentId) async {
     final response = await HttpService().request(
-      url: '$baseUrl$appointmentId',
+      url: '$baseUrl/$appointmentId',
       method: 'DELETE',
     );
     return response.statusCode == 204;
@@ -207,24 +207,21 @@ class AppointmentService {
     }
   }
 
-  Future<bool> rejectAppointment(int appointmentId) async {
+  Future<bool> rejectAppointment(int appointmentId, String reason) async {
     final response = await HttpService().request(
       url: '$baseUrl/$appointmentId/reject',
       method: 'PUT',
-      body: {},
+      body: {'reason': reason},
     );
 
-    print(
-        "🔴 Reject response: ${response.statusCode} | ${response.body}"); // ← AJOUTE CETTE LIGNE
-
+    print("🔴 Reject response: ${response.statusCode} | ${response.body}");
     return response.statusCode == 200;
   }
 
   Future<void> extendAppointment(
       {required int appointmentId, required int extraMinutes}) async {
     final response = await http.put(
-      Uri.parse(
-          'http://192.168.1.2:3001/api/appointments/$appointmentId/extend'),
+      Uri.parse('$baseUrl/$appointmentId/extend'),
       headers: {'Authorization': 'Bearer ${await AuthService().getToken()}'},
       body: jsonEncode({'extraMinutes': extraMinutes}),
     );

@@ -56,6 +56,7 @@ class _AppointmentListState extends State<AppointmentList> {
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
+
     final futureAppointments = appointments.where((appt) {
       final date = DateTime.parse(appt['date']);
       final startParts = appt['start_time'].split(':');
@@ -66,7 +67,9 @@ class _AppointmentListState extends State<AppointmentList> {
         int.parse(startParts[0]),
         int.parse(startParts[1]),
       );
-      return startDateTime.isAfter(now);
+
+      // Inclure rendez-vous à venir ou exactement maintenant
+      return !startDateTime.isBefore(now);
     }).toList();
 
     /*if (futureAppointments.isEmpty) {
