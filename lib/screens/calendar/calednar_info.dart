@@ -174,11 +174,14 @@ class _BookingPageState extends State<BookingPage> {
           builder: (_) => AlertDialog(
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            title: Row(
+            title: const Row(
               children: const [
                 Icon(Icons.warning_amber_rounded, color: Colors.redAccent),
                 SizedBox(width: 8),
-                Text("Conflit détecté"),
+                Text(
+                  "Conflit détecté",
+                  style: AppThemes.appbarTitleStyle,
+                ),
               ],
             ),
             content: Text(
@@ -236,11 +239,14 @@ class _BookingPageState extends State<BookingPage> {
             builder: (_) => AlertDialog(
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16)),
-              title: Row(
+              title: const Row(
                 children: const [
                   Icon(Icons.warning_amber_rounded, color: Colors.redAccent),
                   SizedBox(width: 8),
-                  Text("Déjà réservé"),
+                  Text(
+                    "Déjà réservé",
+                    style: AppThemes.appbarSubPageTitleStyle,
+                  ),
                 ],
               ),
               content: Text(
@@ -248,10 +254,13 @@ class _BookingPageState extends State<BookingPage> {
                 style: AppThemes.getTextStyle(size: 14),
               ),
               actions: [
-                TextButton(
-                  child: const Text("OK",
-                      style: TextStyle(color: Colors.deepPurple)),
-                  onPressed: () => Navigator.pop(context),
+                mypsyButton(
+                  text: 'OK',
+                  bgColors: AppColors.mypsySecondary,
+                  padding: const EdgeInsets.symmetric(vertical: 5),
+                  onPress: () {
+                    Navigator.pop(context);
+                  },
                 ),
               ],
             ),
