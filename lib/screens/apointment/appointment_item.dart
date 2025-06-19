@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:mypsy_app/resources/services/appointment_service.dart';
 import 'package:mypsy_app/resources/services/auth_service.dart';
+import 'package:mypsy_app/resources/services/signalling.service.dart';
+import 'package:mypsy_app/screens/consultation/ConsultationLauncherScreenPsy.dart';
 import 'package:mypsy_app/screens/consultation/consultationLauncherScreen.dart';
 import 'package:mypsy_app/shared/routes.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';
@@ -407,6 +409,10 @@ class _AppointmentCardState extends State<AppointmentCard> {
     }
 
     if (canAccess) {
+      SignallingService.instance.init(
+        websocketUrl: 'http://10.225.1.87:3001',
+        selfCallerID: '1004',
+      );
       return ElevatedButton.icon(
         onPressed: () async {
           final userRole = await AuthService().getUserRole();
@@ -418,13 +424,21 @@ class _AppointmentCardState extends State<AppointmentCard> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => ConsultationLauncherScreen(
-                peerId: receiverId.toString(),
-                peerName: widget.name,
-                appointmentId: widget.id,
-                mode: 'chat',
-                // ne pas mettre de mode ici → ConsultationLauncherScreen le détecte
-              ),
+              builder: (_) => userRole == 'psychiatrist'
+                  ? ConsultationLauncherScreenPsy(
+                      peerId: receiverId.toString(),
+                      peerName: widget.name,
+                      appointmentId: widget.id,
+                      mode: 'chat',
+                      // ne pas mettre de mode ici → ConsultationLauncherScreen le détecte
+                    )
+                  : ConsultationLauncherScreen(
+                      peerId: receiverId.toString(),
+                      peerName: widget.name,
+                      appointmentId: widget.id,
+                      mode: 'chat',
+                      // ne pas mettre de mode ici → ConsultationLauncherScreen le détecte
+                    ),
             ),
           );
         },
