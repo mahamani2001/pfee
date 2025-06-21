@@ -22,6 +22,21 @@ SizedBox spacerXLarge = const SizedBox(
 SizedBox spaceBetweenInput = const SizedBox(
   height: 14,
 );
+showComingSoon(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (_) => AlertDialog(
+      title: const Text('Fonctionnalité en cours'),
+      content: const Text('Cette fonctionnalité sera bientôt disponible ! 🎯'),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('OK'),
+        ),
+      ],
+    ),
+  );
+}
 
 BoxDecoration mainDecorationBorder = BoxDecoration(
   borderRadius: BorderRadius.circular(12),

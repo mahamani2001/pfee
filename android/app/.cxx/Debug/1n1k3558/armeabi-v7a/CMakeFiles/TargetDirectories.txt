@@ -1,0 +1,2 @@
+/Users/mounamani/Desktop/mahepfe/pfee/android/app/.cxx/Debug/1n1k3558/armeabi-v7a/CMakeFiles/edit_cache.dir
+/Users/mounamani/Desktop/mahepfe/pfee/android/app/.cxx/Debug/1n1k3558/armeabi-v7a/CMakeFiles/rebuild_cache.dir

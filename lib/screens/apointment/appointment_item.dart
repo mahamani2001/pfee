@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:mypsy_app/resources/services/appointment_service.dart';
 import 'package:mypsy_app/resources/services/auth_service.dart';
+import 'package:mypsy_app/resources/services/consultation_service.dart';
+import 'package:mypsy_app/screens/consultation/ConsultationLauncherScreenPsy.dart';
 import 'package:mypsy_app/screens/consultation/consultationLauncherScreen.dart';
 import 'package:mypsy_app/shared/routes.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';
@@ -413,18 +415,29 @@ class _AppointmentCardState extends State<AppointmentCard> {
           final receiverId = userRole == 'psychiatrist'
               ? widget.patientId
               : widget.psychiatristId;
+          final data = await ConsultationService().joinConsultation(widget.id);
+          if (data == null) throw Exception("Consultation introuvable");
 
+          final consultation = data['consultation'];
+          final consultationId = consultation['id'];
+          final type = consultation['type'];
           // Redirection dynamique en fonction du rôle
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => ConsultationLauncherScreen(
-                peerId: receiverId.toString(),
-                peerName: widget.name,
-                appointmentId: widget.id,
-                mode: 'chat',
-                // ne pas mettre de mode ici → ConsultationLauncherScreen le détecte
-              ),
+              builder: (_) => userRole == 'psychiatrist'
+                  ? ConsultationLauncherScreenPsy(
+                      peerId: receiverId.toString(),
+                      peerName: widget.name,
+                      appointmentId: widget.id,
+                      consultationId: consultationId,
+                      mode: type)
+                  : ConsultationLauncherScreen(
+                      peerId: receiverId.toString(),
+                      peerName: widget.name,
+                      appointmentId: widget.id,
+                      consultationId: consultationId,
+                    ),
             ),
           );
         },
