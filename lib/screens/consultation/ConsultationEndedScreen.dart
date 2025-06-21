@@ -42,7 +42,7 @@ class _ConsultationEndedScreenState extends State<ConsultationEndedScreen> {
   @override
   void initState() {
     super.initState();
-    _checkUserRole(); // ✅ vérifie le rôle à l'ouverture de l'écran
+    _checkUserRole(); 
   }
 
   void _checkUserRole() async {

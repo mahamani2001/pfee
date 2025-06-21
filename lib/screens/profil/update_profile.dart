@@ -46,7 +46,8 @@ class _UpdateProfileState extends State<UpdateProfile> {
     "En recherche d'emploi": "En recherche d'emploi",
   };
   final Map<String, String> _displayToBackendSpec = {
-    'Psy': 'psy',
+    'Neuropsychiatre': 'Neuropsychiatre',
+    
   };
   List<String> get _options => _displayToBackend.keys.toList();
   List<String> get _optionsSpecialite => _displayToBackendSpec.keys.toList();

@@ -110,13 +110,13 @@ class ConsultationLauncherScreen extends StatelessWidget {
               appointmentId: appointmentId,
               consultationId: consultationId,
               isCaller: true,
-              isAudioOnly: true, // 👈 important
+              isAudioOnly: true,
             ),
           ),
         );
       }
     } catch (e) {
-      print("❌ Erreur lancement $selectedMode: $e");
+      print(" Erreur lancement $selectedMode: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Impossible de démarrer la consultation")),
       );
@@ -162,7 +162,7 @@ class ConsultationLauncherScreen extends StatelessWidget {
         _showComingSoon(context);
       }
     } catch (e) {
-      print("❌ Erreur redirection psy: $e");
+      print(" Erreur redirection psy: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
             content: Text("Impossible de rejoindre la consultation")),
