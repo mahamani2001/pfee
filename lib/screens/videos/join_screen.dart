@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:mypsy_app/resources/services/auth_service.dart';
 import 'package:mypsy_app/resources/services/signalling.service.dart';
 import 'call_screen.dart';
 
 class JoinScreen extends StatefulWidget {
   final String selfCallerId;
 
-  const JoinScreen({super.key, required this.selfCallerId});
+  const JoinScreen({
+    super.key,
+    required this.selfCallerId,
+  });
 
   @override
   State<JoinScreen> createState() => _JoinScreenState();
@@ -13,12 +17,12 @@ class JoinScreen extends StatefulWidget {
 
 class _JoinScreenState extends State<JoinScreen> {
   dynamic incomingSDPOffer;
+
   final remoteCallerIdTextEditingController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-
     // listen for incoming video call
     SignallingService.instance.socket!.on("newCall", (data) {
       if (mounted) {
@@ -34,12 +38,13 @@ class _JoinScreenState extends State<JoinScreen> {
     required String calleeId,
     dynamic offer,
   }) {
+    print(' callllllll pushj hereeeeee');
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => CallScreen(
-          callerId: callerId,
-          calleeId: calleeId,
+          callerId: callerId.toString(),
+          calleeId: calleeId.toString(),
           offer: offer,
         ),
       ),
@@ -94,7 +99,7 @@ class _JoinScreenState extends State<JoinScreen> {
                           side: const BorderSide(color: Colors.white30),
                         ),
                         child: const Text(
-                          "start concultation",
+                          "Invite",
                           style: TextStyle(
                             fontSize: 18,
                             color: Colors.white,
@@ -115,7 +120,7 @@ class _JoinScreenState extends State<JoinScreen> {
                 Positioned(
                   child: ListTile(
                     title: Text(
-                      "Incoming Call from ${incomingSDPOffer["callerId"]}",
+                      "--->Incoming Call from ${incomingSDPOffer["callerId"]}",
                     ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -131,8 +136,11 @@ class _JoinScreenState extends State<JoinScreen> {
                           icon: const Icon(Icons.call),
                           color: Colors.greenAccent,
                           onPressed: () {
+                            print(
+                                ' Caller is  ${incomingSDPOffer["callerId"]} -- and me ${widget.selfCallerId}  - ');
+
                             _joinCall(
-                              callerId: incomingSDPOffer["callerId"]!,
+                              callerId: incomingSDPOffer["callerId"].toString(),
                               calleeId: widget.selfCallerId,
                               offer: incomingSDPOffer["sdpOffer"],
                             );

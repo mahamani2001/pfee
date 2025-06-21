@@ -1,12 +1,9 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
+import 'package:mypsy_app/helpers/app_config.dart';
 import 'package:mypsy_app/resources/services/auth_service.dart';
-import 'package:mypsy_app/resources/services/consultation_service.dart';
 import 'package:mypsy_app/resources/services/signalling.service.dart';
 import 'package:mypsy_app/resources/services/socket_service.dart';
 import 'package:mypsy_app/screens/consultation/chatconsultation.dart';
-import 'package:mypsy_app/screens/consultation/video_call_screen.dart';
 import 'package:mypsy_app/screens/layouts/top_bar_subpage.dart';
 import 'package:mypsy_app/screens/videos/call_screen.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';
@@ -16,14 +13,14 @@ class ConsultationLauncherScreen extends StatefulWidget {
   final String peerId;
   final String peerName;
   final int appointmentId;
-  final String mode; // optionnel côté patient
+  final int consultationId;
 
   const ConsultationLauncherScreen({
     super.key,
     required this.peerId,
     required this.peerName,
     required this.appointmentId,
-    this.mode = '', // par défaut vide
+    required this.consultationId,
   });
 
   @override
@@ -42,6 +39,10 @@ class _ConsultationLauncherScreenState
     super.initState();
     SocketService().connectSocket();
     // listen for incoming video call
+    SignallingService.instance.init(
+      websocketUrl: AppConfig.instance()!.socketUrl!,
+    );
+
     SignallingService.instance.socket!.on("newCall", (data) {
       if (mounted) {
         // set SDP Offer of incoming call
@@ -53,16 +54,11 @@ class _ConsultationLauncherScreenState
   Future<void> _handlePatientMode(
       BuildContext context, String selectedMode) async {
     try {
-      final consultation = await ConsultationService().startConsultation(
-        appointmentId: widget.appointmentId,
-        type: selectedMode,
-      );
-
-      if (consultation == null) throw Exception("Consultation non trouvée");
-
-      final consultationId =
-          consultation['id'] ?? consultation['consultationId'];
-
+      final fullName = await AuthService().getUserFullName();
+      final userRole = await AuthService().getUserRole();
+      final userId = await AuthService().getUserId();
+      final callerName =
+          userRole == 'psychiatrist' ? 'Dr. $fullName' : fullName;
       if (selectedMode == 'chat') {
         Navigator.push(
           context,
@@ -71,65 +67,31 @@ class _ConsultationLauncherScreenState
               peerId: widget.peerId,
               peerName: widget.peerName,
               appointmentId: widget.appointmentId,
-              consultationId: consultationId,
-              roomId: 'room-$consultationId',
+              consultationId: widget.consultationId,
+              roomId: 'room-${widget.consultationId}',
             ),
           ),
         );
       } else if (selectedMode == 'video') {
-        final fullName = await AuthService().getUserFullName();
-        final userRole = await AuthService().getUserRole();
-        final callerName =
-            userRole == 'psychiatrist' ? 'Dr. $fullName' : fullName;
+        print('User Id $userId Called Id : ${widget.peerId}');
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (_) => CallScreen(
-              callerId: '1004',
-              calleeId: '1002',
+              callerId: userId.toString(),
+              calleeId: widget.peerId.toString(),
+              isVideoOn: true,
             ),
           ),
         );
-        /* SocketService().emit('incoming_call', {
-          'to': peerId,
-          'appointmentId': appointmentId,
-          'callerName': callerName,
-        });*/
-
-        /* Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => VideoCallScreen(
-              roomId: 'room-$consultationId',
-              peerName: peerName,
-              appointmentId: appointmentId,
-              consultationId: consultationId,
-              isCaller: true,
-            ),
-          ),
-        );*/
       } else if (selectedMode == 'audio') {
-        final fullName = await AuthService().getUserFullName();
-        final userRole = await AuthService().getUserRole();
-        final callerName =
-            userRole == 'psychiatrist' ? 'Dr. $fullName' : fullName;
-
-        SocketService().emit('incoming_call', {
-          'to': widget.peerId,
-          'appointmentId': widget.appointmentId,
-          'callerName': callerName,
-        });
-
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => VideoCallScreen(
-              roomId: 'room-$consultationId',
-              peerName: widget.peerName,
-              appointmentId: widget.appointmentId,
-              consultationId: consultationId,
-              isCaller: true,
-              isAudioOnly: true, // 👈 important
+            builder: (_) => CallScreen(
+              callerId: userId.toString(),
+              calleeId: widget.peerId.toString(),
+              isVideoOn: false,
             ),
           ),
         );

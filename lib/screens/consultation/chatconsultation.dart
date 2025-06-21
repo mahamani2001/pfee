@@ -694,7 +694,6 @@ class _ChatScreenState extends State<ChatScreen> {
           toolbarHeight: 70,
           title: headerInfo(isPeerOnline, peerName),
           actions: [
-            // 🔥 Seulement si psy
             IconButton(
               icon: const Icon(Icons.call, color: Colors.white),
               onPressed: () {

@@ -4,6 +4,7 @@ import 'package:mypsy_app/resources/services/auth_service.dart';
 import 'package:mypsy_app/resources/services/quiz_service.dart';
 import 'package:mypsy_app/resources/services/appointment_service.dart';
 import 'package:mypsy_app/screens/layouts/main_screen.dart';
+import 'package:mypsy_app/screens/videos/test.dart';
 import 'package:mypsy_app/shared/routes.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';
 import 'package:mypsy_app/shared/themes/app_theme.dart';
@@ -18,6 +19,7 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   String userName = '';
+  int? userId;
   int quizCount = 0;
   String anxietyLevel = '';
   double? anxietyScore;
@@ -49,6 +51,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
 
   Future<void> _loadUserData() async {
     final name = await AuthService().getUserFullName();
+    final userIds = await AuthService().getUserId();
     final history = await QuizService().getHistory();
     final appointments =
         await AppointmentService().getAppointmentsByStatus('confirmed');
@@ -67,6 +70,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     setState(() {
       userName = name ?? '👤';
       quizCount = history.length;
+      userId = userIds ?? 0;
       if (history.isNotEmpty) {
         anxietyLevel = history.last['category'];
         anxietyScore = history.last['score'];
@@ -212,6 +216,21 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         padding: const EdgeInsets.symmetric(horizontal: 20.0),
         child: Row(
           children: [
+            /* Expanded(
+              child: AnimatedScaleButton(
+                child: blocInfo("Test call $userId", Icons.calendar_today),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => VideoCallApp(
+                        callerId: userId.toString(),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),*/
             Expanded(
               child: AnimatedScaleButton(
                 child: blocInfo("Mes rendez-vous", Icons.calendar_today),

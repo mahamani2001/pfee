@@ -4,49 +4,45 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:socket_io_client/socket_io_client.dart';
 
 class SignallingService {
-  // instance of Socket
   Socket? socket;
 
   SignallingService._();
   static final instance = SignallingService._();
 
-  init({required String websocketUrl, required String selfCallerID}) {
-    // init Socket
-    socket = io(websocketUrl, {
-      "transports": ['websocket'],
-      "query": {"callerId": selfCallerID}
-    });
-
-    // listen onConnect event
-    socket!.onConnect((data) async {
-      if (socket != null && socket!.connected) {
-        print('🟢 Socket déjà connecté.');
+  Future<void> init({
+    required String websocketUrl,
+  }) async {
+    // Get or refresh token BEFORE creating socket
+    String? token = await AuthService().getJwtToken();
+    if (token == null || AuthService.isTokenExpired(token)) {
+      print('🔁 Token expiré. Tentative de refresh...');
+      final refreshedToken = await AuthService().refreshToken();
+      if (refreshedToken != null) {
+        token = refreshedToken;
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('jwt', refreshedToken);
+        print('✅ Token rafraîchi avec succès pour le socket');
+      } else {
+        print('❌ Impossible de rafraîchir le token. Déconnexion forcée.');
         return;
       }
-
-      var token = await AuthService().getJwtToken();
-      if (token == null || AuthService.isTokenExpired(token)) {
-        print('🔁 Token expiré. Tentative de refresh...');
-        final refreshedToken = await AuthService().refreshToken();
-        if (refreshedToken != null) {
-          token = refreshedToken;
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('jwt', refreshedToken);
-          print('✅ Token rafraîchi avec succès pour le socket');
-        } else {
-          print('❌ Impossible de rafraîchir le token. Déconnexion forcée.');
-          return;
-        }
-      }
-      log("Socket connected !!");
+    }
+    final userId = await AuthService().getUserId();
+    // Now connect the socket with token in auth
+    socket = io(websocketUrl, {
+      "transports": ['websocket'],
+      "query": {"callerId": userId},
+      "auth": {"token": token},
     });
 
-    // listen onConnectError event
+    socket!.onConnect((data) {
+      log("✅ Socket connected with token.");
+    });
+
     socket!.onConnectError((data) {
-      log("Connect Error $data");
+      log("❌ Connect Error: $data");
     });
 
-    // connect socket
     socket!.connect();
   }
 }

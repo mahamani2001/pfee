@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:mypsy_app/resources/services/signalling.service.dart';
+import 'package:mypsy_app/screens/layouts/top_bar_subpage.dart';
 
 class CallScreen extends StatefulWidget {
   final String callerId, calleeId;
   final dynamic offer;
-  const CallScreen({
+  bool isVideoOn;
+  CallScreen({
     super.key,
     this.offer,
     required this.callerId,
     required this.calleeId,
+    this.isVideoOn = true,
   });
 
   @override
@@ -17,25 +20,34 @@ class CallScreen extends StatefulWidget {
 }
 
 class _CallScreenState extends State<CallScreen> {
+  // socket instance
   final socket = SignallingService.instance.socket;
 
+  // videoRenderer for localPeer
   final _localRTCVideoRenderer = RTCVideoRenderer();
 
+  // videoRenderer for remotePeer
   final _remoteRTCVideoRenderer = RTCVideoRenderer();
 
+  // mediaStream for localPeer
   MediaStream? _localStream;
 
+  // RTC peer connection
   RTCPeerConnection? _rtcPeerConnection;
 
+  // list of rtcCandidates to be sent over signalling
   List<RTCIceCandidate> rtcIceCadidates = [];
 
-  bool isAudioOn = true, isVideoOn = true, isFrontCameraSelected = true;
+  // media status
+  bool isAudioOn = true, isFrontCameraSelected = true;
 
   @override
   void initState() {
+    // initializing renderers
     _localRTCVideoRenderer.initialize();
     _remoteRTCVideoRenderer.initialize();
 
+    // setup Peer Connection
     _setupPeerConnection();
     super.initState();
   }
@@ -48,6 +60,7 @@ class _CallScreenState extends State<CallScreen> {
   }
 
   _setupPeerConnection() async {
+    // create peer connection
     _rtcPeerConnection = await createPeerConnection({
       'iceServers': [
         {
@@ -59,31 +72,39 @@ class _CallScreenState extends State<CallScreen> {
       ]
     });
 
+    // listen for remotePeer mediaTrack event
     _rtcPeerConnection!.onTrack = (event) {
       _remoteRTCVideoRenderer.srcObject = event.streams[0];
       setState(() {});
     };
 
+    // get localStream
     _localStream = await navigator.mediaDevices.getUserMedia({
       'audio': isAudioOn,
-      'video': isVideoOn
+      'video': widget.isVideoOn
           ? {'facingMode': isFrontCameraSelected ? 'user' : 'environment'}
           : false,
     });
 
+    // add mediaTrack to peerConnection
     _localStream!.getTracks().forEach((track) {
       _rtcPeerConnection!.addTrack(track, _localStream!);
     });
 
+    // set source for local video renderer
     _localRTCVideoRenderer.srcObject = _localStream;
     setState(() {});
 
+    // for Incoming call
     if (widget.offer != null) {
+      print('we are on widget.offer not nulllllll');
+      // listen for Remote IceCandidate
       socket!.on("IceCandidate", (data) {
         String candidate = data["iceCandidate"]["candidate"];
         String sdpMid = data["iceCandidate"]["id"];
         int sdpMLineIndex = data["iceCandidate"]["label"];
 
+        // add iceCandidate
         _rtcPeerConnection!.addCandidate(RTCIceCandidate(
           candidate,
           sdpMid,
@@ -91,14 +112,18 @@ class _CallScreenState extends State<CallScreen> {
         ));
       });
 
+      // set SDP offer as remoteDescription for peerConnection
       await _rtcPeerConnection!.setRemoteDescription(
         RTCSessionDescription(widget.offer["sdp"], widget.offer["type"]),
       );
 
+      // create SDP answer
       RTCSessionDescription answer = await _rtcPeerConnection!.createAnswer();
 
+      // set SDP answer as localDescription for peerConnection
       _rtcPeerConnection!.setLocalDescription(answer);
 
+      // send SDP answer to remote peer over signalling
       socket!.emit("answerCall", {
         "callerId": widget.callerId,
         "sdpAnswer": answer.toMap(),
@@ -163,11 +188,11 @@ class _CallScreenState extends State<CallScreen> {
 
   _toggleCamera() {
     // change status
-    isVideoOn = !isVideoOn;
+    widget.isVideoOn = !widget.isVideoOn;
 
     // enable or disable video track
     _localStream?.getVideoTracks().forEach((track) {
-      track.enabled = isVideoOn;
+      track.enabled = widget.isVideoOn;
     });
     setState(() {});
   }
@@ -187,8 +212,9 @@ class _CallScreenState extends State<CallScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
         backgroundColor: Theme.of(context).colorScheme.background,
-        appBar: AppBar(
-          title: const Text("P2P Call App"),
+        appBar: TopBarSubPage(
+          title:
+              "${widget.isVideoOn ? 'Appel Video' : 'Appel'} avec ${widget.callerId} en cours ",
         ),
         body: SafeArea(
           child: Column(
@@ -234,8 +260,9 @@ class _CallScreenState extends State<CallScreen> {
                       onPressed: _switchCamera,
                     ),
                     IconButton(
-                      icon:
-                          Icon(isVideoOn ? Icons.videocam : Icons.videocam_off),
+                      icon: Icon(widget.isVideoOn
+                          ? Icons.videocam
+                          : Icons.videocam_off),
                       onPressed: _toggleCamera,
                     ),
                   ],

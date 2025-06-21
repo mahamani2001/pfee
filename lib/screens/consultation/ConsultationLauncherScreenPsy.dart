@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:mypsy_app/resources/services/auth_service.dart';
-import 'package:mypsy_app/resources/services/consultation_service.dart';
+import 'package:mypsy_app/helpers/app_config.dart';
 import 'package:mypsy_app/resources/services/signalling.service.dart';
-import 'package:mypsy_app/resources/services/socket_service.dart';
 import 'package:mypsy_app/screens/consultation/chatconsultation.dart';
 import 'package:mypsy_app/screens/layouts/top_bar_subpage.dart';
 import 'package:mypsy_app/screens/videos/call_screen.dart';
@@ -14,14 +12,16 @@ class ConsultationLauncherScreenPsy extends StatefulWidget {
   final String peerId;
   final String peerName;
   final int appointmentId;
-  final String mode; // optionnel côté patient
+  final int consultationId;
+  final String mode;
 
   const ConsultationLauncherScreenPsy({
     super.key,
     required this.peerId,
     required this.peerName,
     required this.appointmentId,
-    this.mode = '', // par défaut vide
+    required this.consultationId,
+    required this.mode,
   });
 
   @override
@@ -38,12 +38,12 @@ class _ConsultationLauncherScreenPsyState
   @override
   void initState() {
     super.initState();
-    print('listing new call');
 
-    // listen for incoming video call
+    SignallingService.instance.init(
+      websocketUrl: AppConfig.instance()!.socketUrl!,
+    );
     SignallingService.instance.socket!.on("newCall", (data) {
       if (mounted) {
-        // set SDP Offer of incoming call
         setState(() => incomingSDPOffer = data);
       }
     });
@@ -51,15 +51,7 @@ class _ConsultationLauncherScreenPsyState
 
   Future<void> _handlePsychiatristJoin(BuildContext context) async {
     try {
-      final data =
-          await ConsultationService().joinConsultation(widget.appointmentId);
-      if (data == null) throw Exception("Consultation introuvable");
-
-      final consultation = data['consultation'];
-      final consultationId = consultation['id'];
-      final type = consultation['type'];
-
-      if (type == 'chat') {
+      if (widget.mode == 'chat') {
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -67,25 +59,23 @@ class _ConsultationLauncherScreenPsyState
               peerId: widget.peerId,
               peerName: widget.peerName,
               appointmentId: widget.appointmentId,
-              consultationId: consultationId,
-              roomId: 'room-$consultationId',
+              consultationId: widget.consultationId,
+              roomId: 'room-${widget.consultationId}',
             ),
           ),
         );
-      } else if (type == 'video') {
-        /*Navigator.push(
+      } else if (widget.mode == 'video') {
+        Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => VideoCallScreen(
-              roomId: 'room-$consultationId',
-              peerName: widget.peerName,
-              appointmentId: widget.appointmentId,
-              consultationId: consultationId,
-              isCaller: false,
+            builder: (_) => CallScreen(
+              callerId: incomingSDPOffer["callerId"].toString(),
+              calleeId: widget.peerId,
+              offer: incomingSDPOffer["sdpOffer"],
             ),
           ),
-        );*/
-      } else if (type == 'audio') {
+        );
+      } else if (widget.mode == 'audio') {
         showComingSoon(context);
       }
     } catch (e) {
@@ -115,54 +105,59 @@ class _ConsultationLauncherScreenPsyState
                         size: 23, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 40),
                 ElevatedButton.icon(
-                  onPressed: () => _handlePsychiatristJoin(context),
+                  onPressed: () => {
+                    (incomingSDPOffer != null || widget.mode == 'chat')
+                        ? _handlePsychiatristJoin(context)
+                        : null
+                  },
                   icon: const Icon(Icons.login),
-                  label: Text("Rejoindre la consultation $incomingSDPOffer"),
+                  label:
+                      Text("Rejoindre la consultation en mode ${widget.mode}"),
                   style: ElevatedButton.styleFrom(
                     elevation: 0,
                     textStyle: AppThemes.appbarSubPageTitleStyle,
                     foregroundColor: AppColors.mypsyBgApp,
-                    backgroundColor: AppColors.mypsyDarkBlue,
+                    backgroundColor:
+                        (incomingSDPOffer != null || widget.mode == 'chat')
+                            ? AppColors.mypsyDarkBlue
+                            : AppColors.mypsyGrey,
                     minimumSize: const Size(double.infinity, 60),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
                   ),
                 ),
                 if (incomingSDPOffer != null)
-                  Positioned(
-                    child: ListTile(
-                      title: Text(
-                        "Incoming Call from ${incomingSDPOffer["callerId"]}",
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text("Appel depuis ${incomingSDPOffer["callerId"]}"),
+                      IconButton(
+                        icon: const Icon(Icons.call_end),
+                        color: Colors.redAccent,
+                        onPressed: () {
+                          setState(() => incomingSDPOffer = null);
+                        },
                       ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.call_end),
-                            color: Colors.redAccent,
-                            onPressed: () {
-                              setState(() => incomingSDPOffer = null);
-                            },
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.call),
-                            color: Colors.greenAccent,
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => CallScreen(
-                                    callerId: incomingSDPOffer["callerId"]!,
-                                    calleeId: '1004',
-                                    offer: incomingSDPOffer["sdpOffer"],
-                                  ),
-                                ),
-                              );
-                            },
-                          )
-                        ],
-                      ),
-                    ),
+                      IconButton(
+                        icon: const Icon(Icons.call),
+                        color: Colors.greenAccent,
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => CallScreen(
+                                callerId:
+                                    incomingSDPOffer["callerId"].toString(),
+                                calleeId: widget.peerId,
+                                offer: incomingSDPOffer["sdpOffer"],
+                                isVideoOn:
+                                    widget.mode == 'audio' ? false : true,
+                              ),
+                            ),
+                          );
+                        },
+                      )
+                    ],
                   ),
               ]),
             ],

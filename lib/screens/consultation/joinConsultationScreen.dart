@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:mypsy_app/resources/services/auth_service.dart';
 import 'package:mypsy_app/resources/services/consultation_service.dart';
 import 'package:mypsy_app/screens/consultation/chatconsultation.dart';
 import 'package:mypsy_app/screens/consultation/video_call_screen.dart';

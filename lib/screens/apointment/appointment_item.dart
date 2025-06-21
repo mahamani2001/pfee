@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:mypsy_app/resources/services/appointment_service.dart';
 import 'package:mypsy_app/resources/services/auth_service.dart';
-import 'package:mypsy_app/resources/services/signalling.service.dart';
+import 'package:mypsy_app/resources/services/consultation_service.dart';
 import 'package:mypsy_app/screens/consultation/ConsultationLauncherScreenPsy.dart';
 import 'package:mypsy_app/screens/consultation/consultationLauncherScreen.dart';
 import 'package:mypsy_app/shared/routes.dart';
@@ -409,17 +409,18 @@ class _AppointmentCardState extends State<AppointmentCard> {
     }
 
     if (canAccess) {
-      SignallingService.instance.init(
-        websocketUrl: 'http://10.225.1.87:3001',
-        selfCallerID: '1004',
-      );
       return ElevatedButton.icon(
         onPressed: () async {
           final userRole = await AuthService().getUserRole();
           final receiverId = userRole == 'psychiatrist'
               ? widget.patientId
               : widget.psychiatristId;
+          final data = await ConsultationService().joinConsultation(widget.id);
+          if (data == null) throw Exception("Consultation introuvable");
 
+          final consultation = data['consultation'];
+          final consultationId = consultation['id'];
+          final type = consultation['type'];
           // Redirection dynamique en fonction du rôle
           Navigator.push(
             context,
@@ -429,15 +430,13 @@ class _AppointmentCardState extends State<AppointmentCard> {
                       peerId: receiverId.toString(),
                       peerName: widget.name,
                       appointmentId: widget.id,
-                      mode: 'chat',
-                      // ne pas mettre de mode ici → ConsultationLauncherScreen le détecte
-                    )
+                      consultationId: consultationId,
+                      mode: type)
                   : ConsultationLauncherScreen(
                       peerId: receiverId.toString(),
                       peerName: widget.name,
                       appointmentId: widget.id,
-                      mode: 'chat',
-                      // ne pas mettre de mode ici → ConsultationLauncherScreen le détecte
+                      consultationId: consultationId,
                     ),
             ),
           );
