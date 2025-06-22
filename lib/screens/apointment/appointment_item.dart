@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:mypsy_app/resources/services/appointment_service.dart';
 import 'package:mypsy_app/resources/services/auth_service.dart';
 import 'package:mypsy_app/resources/services/consultation_service.dart';
+import 'package:mypsy_app/screens/consultation/ConsultationLauncherScreen.dart';
 import 'package:mypsy_app/screens/consultation/ConsultationLauncherScreenPsy.dart';
-import 'package:mypsy_app/screens/consultation/consultationLauncherScreen.dart';
 import 'package:mypsy_app/shared/routes.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';
 import 'package:mypsy_app/shared/themes/app_theme.dart';
@@ -404,6 +404,8 @@ class _AppointmentCardState extends State<AppointmentCard> {
       );
 
   Widget _buildJoinButton(BuildContext context) {
+    int? consultationId;
+    String? type;
     if (widget.status == 'cancelled') {
       return const SizedBox();
     }
@@ -415,12 +417,18 @@ class _AppointmentCardState extends State<AppointmentCard> {
           final receiverId = userRole == 'psychiatrist'
               ? widget.patientId
               : widget.psychiatristId;
-          final data = await ConsultationService().joinConsultation(widget.id);
-          if (data == null) throw Exception("Consultation introuvable");
-
-          final consultation = data['consultation'];
-          final consultationId = consultation['id'];
-          final type = consultation['type'];
+          if (userRole == 'psychiatrist') {
+            final data =
+                await ConsultationService().joinConsultation(widget.id);
+            if (data == null)
+              throw Exception("Consultation introuvable");
+            else {
+              print('data not null ');
+            }
+            final consultation = data['consultation'];
+            consultationId = consultation['id'];
+            type = consultation['type'];
+          }
           // Redirection dynamique en fonction du rôle
           Navigator.push(
             context,
@@ -430,13 +438,12 @@ class _AppointmentCardState extends State<AppointmentCard> {
                       peerId: receiverId.toString(),
                       peerName: widget.name,
                       appointmentId: widget.id,
-                      consultationId: consultationId,
-                      mode: type)
+                      type: type!,
+                      consultId: consultationId!)
                   : ConsultationLauncherScreen(
                       peerId: receiverId.toString(),
                       peerName: widget.name,
                       appointmentId: widget.id,
-                      consultationId: consultationId,
                     ),
             ),
           );

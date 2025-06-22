@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mypsy_app/helpers/app_config.dart';
 import 'package:mypsy_app/resources/services/auth_service.dart';
+import 'package:mypsy_app/resources/services/consultation_service.dart';
 import 'package:mypsy_app/resources/services/signalling.service.dart';
 import 'package:mypsy_app/resources/services/socket_service.dart';
 import 'package:mypsy_app/screens/consultation/chatconsultation.dart';
@@ -13,14 +14,12 @@ class ConsultationLauncherScreen extends StatefulWidget {
   final String peerId;
   final String peerName;
   final int appointmentId;
-  final int consultationId;
 
   const ConsultationLauncherScreen({
     super.key,
     required this.peerId,
     required this.peerName,
     required this.appointmentId,
-    required this.consultationId,
   });
 
   @override
@@ -59,6 +58,17 @@ class _ConsultationLauncherScreenState
       final userId = await AuthService().getUserId();
       final callerName =
           userRole == 'psychiatrist' ? 'Dr. $fullName' : fullName;
+
+      final consultation = await ConsultationService().startConsultation(
+        appointmentId: widget.appointmentId,
+        type: selectedMode,
+      );
+
+      if (consultation == null) throw Exception("Consultation non trouvée");
+
+      final consultationId =
+          consultation['id'] ?? consultation['consultationId'];
+
       if (selectedMode == 'chat') {
         Navigator.push(
           context,
@@ -67,8 +77,8 @@ class _ConsultationLauncherScreenState
               peerId: widget.peerId,
               peerName: widget.peerName,
               appointmentId: widget.appointmentId,
-              consultationId: widget.consultationId,
-              roomId: 'room-${widget.consultationId}',
+              consultationId: consultationId,
+              roomId: 'room-${consultationId}',
             ),
           ),
         );

@@ -6,22 +6,21 @@ import 'package:mypsy_app/screens/layouts/top_bar_subpage.dart';
 import 'package:mypsy_app/screens/videos/call_screen.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';
 import 'package:mypsy_app/shared/themes/app_theme.dart';
-import 'package:mypsy_app/shared/ui/commun_widget.dart';
 
 class ConsultationLauncherScreenPsy extends StatefulWidget {
   final String peerId;
   final String peerName;
   final int appointmentId;
-  final int consultationId;
-  final String mode;
+  final String type;
+  final int consultId;
 
   const ConsultationLauncherScreenPsy({
     super.key,
     required this.peerId,
     required this.peerName,
     required this.appointmentId,
-    required this.consultationId,
-    required this.mode,
+    required this.type,
+    required this.consultId,
   });
 
   @override
@@ -51,7 +50,7 @@ class _ConsultationLauncherScreenPsyState
 
   Future<void> _handlePsychiatristJoin(BuildContext context) async {
     try {
-      if (widget.mode == 'chat') {
+      if (widget.type == 'chat') {
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -59,12 +58,12 @@ class _ConsultationLauncherScreenPsyState
               peerId: widget.peerId,
               peerName: widget.peerName,
               appointmentId: widget.appointmentId,
-              consultationId: widget.consultationId,
-              roomId: 'room-${widget.consultationId}',
+              consultationId: widget.consultId,
+              roomId: 'room-${widget.consultId}',
             ),
           ),
         );
-      } else if (widget.mode == 'video') {
+      } else if (widget.type == 'video') {
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -75,8 +74,18 @@ class _ConsultationLauncherScreenPsyState
             ),
           ),
         );
-      } else if (widget.mode == 'audio') {
-        showComingSoon(context);
+      } else if (widget.type == 'audio') {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => CallScreen(
+              callerId: incomingSDPOffer["callerId"].toString(),
+              calleeId: widget.peerId,
+              offer: incomingSDPOffer["sdpOffer"],
+              isVideoOn: false,
+            ),
+          ),
+        );
       }
     } catch (e) {
       print("❌ Erreur redirection psy: $e");
@@ -106,19 +115,19 @@ class _ConsultationLauncherScreenPsyState
                 const SizedBox(height: 40),
                 ElevatedButton.icon(
                   onPressed: () => {
-                    (incomingSDPOffer != null || widget.mode == 'chat')
+                    (incomingSDPOffer != null || widget.type == 'chat')
                         ? _handlePsychiatristJoin(context)
                         : null
                   },
                   icon: const Icon(Icons.login),
                   label:
-                      Text("Rejoindre la consultation en mode ${widget.mode}"),
+                      Text("Rejoindre la consultation en mode  ${widget.type}"),
                   style: ElevatedButton.styleFrom(
                     elevation: 0,
                     textStyle: AppThemes.appbarSubPageTitleStyle,
                     foregroundColor: AppColors.mypsyBgApp,
                     backgroundColor:
-                        (incomingSDPOffer != null || widget.mode == 'chat')
+                        (incomingSDPOffer != null || widget.type == 'chat')
                             ? AppColors.mypsyDarkBlue
                             : AppColors.mypsyGrey,
                     minimumSize: const Size(double.infinity, 60),
@@ -151,7 +160,7 @@ class _ConsultationLauncherScreenPsyState
                                 calleeId: widget.peerId,
                                 offer: incomingSDPOffer["sdpOffer"],
                                 isVideoOn:
-                                    widget.mode == 'audio' ? false : true,
+                                    widget.type == 'audio' ? false : true,
                               ),
                             ),
                           );

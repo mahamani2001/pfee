@@ -9,7 +9,7 @@ class CryptoService {
   final aesGcm = AesGcm.with256bits();
   final storage = const FlutterSecureStorage();
 
-  String baseUrl = '${AppConfig.instance()!.baseUrl!}auth';
+  final String baseUrl = '${AppConfig.instance()!.baseUrl!}auth';
 
   // 🔐 Générer et stocker la paire de clés X25519 si non existante
   Future<void> generateAndStoreKeyPair() async {
@@ -56,13 +56,18 @@ class CryptoService {
       remotePublicKey: peerPublicKey,
     );
 
-    final nonce = aesGcm.newNonce();
+    final nonce = aesGcm
+        .newNonce(); // 👈 correct, reste identique pour chiffrer/déchiffrer
 
     final secretBox = await aesGcm.encrypt(
       utf8.encode(plainText),
       secretKey: sharedSecret,
       nonce: nonce,
     );
+    print("🔐 Encrypted:");
+    print("cipherText: ${base64Encode(secretBox.cipherText)}");
+    print("nonce: ${base64Encode(secretBox.nonce)}");
+    print("mac: ${base64Encode(secretBox.mac.bytes)}");
 
     return {
       'cipherText': base64Encode(secretBox.cipherText),
@@ -95,6 +100,10 @@ class CryptoService {
       secretBox,
       secretKey: sharedSecret,
     );
+    print("🧩 Decrypting with:");
+    print("cipherText: $cipherTextBase64");
+    print("nonce: $nonceBase64");
+    print("mac: $macBase64");
 
     return utf8.decode(decrypted);
   }
