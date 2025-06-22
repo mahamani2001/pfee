@@ -3,6 +3,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:mypsy_app/helpers/app_config.dart';
 import 'package:mypsy_app/resources/services/appointment_service.dart';
+import 'package:mypsy_app/resources/services/consultation_service.dart';
 import 'package:mypsy_app/resources/services/http_service.dart';
 import 'package:mypsy_app/resources/services/socket_service.dart';
 import 'package:mypsy_app/resources/services/auth_service.dart';
@@ -15,6 +16,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'dart:io';
 import 'package:mypsy_app/utils/functions.dart';
+import 'package:mypsy_app/resources/services/consultation_service.dart';
 
 class ChatScreen extends StatefulWidget {
   final String peerId;
@@ -70,6 +72,13 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> initConsultationTiming() async {
     print("🚀 initConsultationTiming lancé");
     final data = await AppointmentService().getAppointmentById(appointmentId);
+
+    print("Data Info Appointment $appointmentId: $data ");
+
+    dynamic datConstuk = await ConsultationService()
+        .getConsultationById(consultationId: widget.consultationId);
+    print('Data Info Consultation ${widget.consultationId} : $datConstuk');
+
     print(
         "🔍 Appointment ID juste avant initConsultationTiming : $appointmentId");
 
@@ -267,6 +276,8 @@ class _ChatScreenState extends State<ChatScreen> {
 
         final newData =
             await AppointmentService().getAppointmentById(appointmentId);
+
+        print('New data : $newData');
         if (newData == null) return;
 
         final dateStr = newData['date'];

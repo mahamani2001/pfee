@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:googleapis/driveactivity/v2.dart';
 import 'package:http/http.dart' as http;
 import 'package:mypsy_app/helpers/app_config.dart';
 import 'package:mypsy_app/resources/services/auth_service.dart';
@@ -99,6 +100,7 @@ class AppointmentService {
     if (response.statusCode == 200) {
       final decoded = jsonDecode(response.body);
       if (decoded is List) {
+        print('get decoded ${decoded}');
         return decoded;
       } else {
         print('❌ Structure inattendue : $decoded');
@@ -180,6 +182,7 @@ class AppointmentService {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
+      print('dat can access ??? $data');
       return data['access'] == true;
     } else {
       return false;
@@ -210,6 +213,16 @@ class AppointmentService {
 
     print("🔴 Reject response: ${response.statusCode} | ${response.body}");
     return response.statusCode == 200;
+  }
+
+  Future<void> extendAppointment(
+      {required int appointmentId, required int extraMinutes}) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/$appointmentId/extend'),
+      headers: {'Authorization': 'Bearer ${await AuthService().getToken()}'},
+      body: jsonEncode({'extraMinutes': extraMinutes}),
+    );
+    if (response.statusCode != 200) throw Exception('Échec de la prolongation');
   }
 
   Future<Map<String, dynamic>?> getAppointmentById(int appointmentId) async {
@@ -265,17 +278,5 @@ class AppointmentService {
     if (response.statusCode != 200) {
       throw Exception("Erreur lors de la prolongation de la consultation");
     }
-  }
-
-  Future<void> extendAppointment(
-      {required int appointmentId, required int extraMinutes}) async {
-    final response = await HttpService().request(
-      url: '$baseUrl/$appointmentId/extend',
-      method: 'PUT',
-      headers: {'Authorization': 'Bearer ${await AuthService().getToken()}'},
-      body: {'extraMinutes': extraMinutes},
-    );
-
-    if (response.statusCode != 200) throw Exception('Échec de la prolongation');
   }
 }
