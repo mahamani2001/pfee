@@ -65,6 +65,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final flutterSoundHelper = FlutterSoundHelper();
   final Set<String> _processedMessageIds = {};
   final messageId = DateTime.now().millisecondsSinceEpoch.toString();
+  bool isExtending = false; // 👈 global, au même niveau que isConsultationEnded
 
   Future<void> initConsultationTiming() async {
     print("🚀 initConsultationTiming lancé");
@@ -365,11 +366,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
       final remaining = endTime.difference(now);
 
-      if (remaining <= Duration.zero && !isConsultationEnded) {
+      if (remaining <= Duration.zero && !isConsultationEnded && !isExtending) {
         _timer?.cancel();
-        isConsultationEnded = true; // ⚠️ PAS de setState ici
-
-        if (!mounted) return;
+        isConsultationEnded = true;
 
         Navigator.pushReplacement(
           context,
@@ -432,13 +431,39 @@ class _ChatScreenState extends State<ChatScreen> {
                   style: const TextStyle(fontSize: 16),
                 ),
                 onTap: () async {
-                  await AppointmentService().extendAppointment(
-                    appointmentId: appointmentId,
-                    extraMinutes: minutes,
-                  );
-                  setState(() {
-                    consultationDuration += Duration(minutes: minutes);
-                  });
+                  try {
+                    setState(() => isExtending = true);
+                    await AppointmentService().extendAppointment(
+                      appointmentId: appointmentId,
+                      extraMinutes: minutes,
+                    );
+                    await AppointmentService().extendConsultation(
+                      consultationId: consultationId,
+                      extraMinutes: minutes,
+                    );
+
+                    setState(() {
+                      consultationDuration += Duration(minutes: minutes);
+                      remainingTime += Duration(minutes: minutes);
+                    });
+
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                            '✅ Consultation prolongée de $minutes minutes.'),
+                      ),
+                    );
+                  } catch (e) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('❌ Échec de la prolongation'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
