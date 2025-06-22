@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:mypsy_app/resources/services/auth_service.dart';
 import 'package:mypsy_app/resources/services/signalling.service.dart';
 import 'call_screen.dart';
 
 class JoinScreen extends StatefulWidget {
   final String selfCallerId;
-
-  const JoinScreen({
-    super.key,
-    required this.selfCallerId,
-  });
+  final int appointmentId;
+  const JoinScreen(
+      {super.key, required this.selfCallerId, required this.appointmentId});
 
   @override
   State<JoinScreen> createState() => _JoinScreenState();
@@ -46,6 +43,7 @@ class _JoinScreenState extends State<JoinScreen> {
           callerId: callerId.toString(),
           calleeId: calleeId.toString(),
           offer: offer,
+          appointmentId: widget.appointmentId,
         ),
       ),
     );

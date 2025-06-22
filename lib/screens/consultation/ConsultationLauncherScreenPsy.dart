@@ -71,6 +71,7 @@ class _ConsultationLauncherScreenPsyState
               callerId: incomingSDPOffer["callerId"].toString(),
               calleeId: widget.peerId,
               offer: incomingSDPOffer["sdpOffer"],
+              appointmentId: widget.appointmentId,
             ),
           ),
         );
@@ -83,6 +84,8 @@ class _ConsultationLauncherScreenPsyState
               calleeId: widget.peerId,
               offer: incomingSDPOffer["sdpOffer"],
               isVideoOn: false,
+              isPatient: false,
+              appointmentId: widget.appointmentId,
             ),
           ),
         );
@@ -155,6 +158,7 @@ class _ConsultationLauncherScreenPsyState
                             context,
                             MaterialPageRoute(
                               builder: (_) => CallScreen(
+                                appointmentId: widget.appointmentId,
                                 callerId:
                                     incomingSDPOffer["callerId"].toString(),
                                 calleeId: widget.peerId,

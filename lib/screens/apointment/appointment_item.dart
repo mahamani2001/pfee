@@ -61,6 +61,7 @@ class _AppointmentCardState extends State<AppointmentCard> {
 
   Future<void> _checkAccess() async {
     final access = await AppointmentService().checkAccess(widget.id);
+    print(' let s get access from ${widget.id}');
     if (mounted) {
       setState(() {
         canAccess = access;
@@ -409,6 +410,8 @@ class _AppointmentCardState extends State<AppointmentCard> {
     if (widget.status == 'cancelled') {
       return const SizedBox();
     }
+
+    print('canAccess ----> $canAccess');
 
     if (canAccess) {
       return ElevatedButton.icon(

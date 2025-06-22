@@ -32,6 +32,9 @@ class _AppointmentListState extends State<AppointmentList> {
     ));
 
     final now = DateTime.now();
+
+    print(
+        'Stilll ??? ${now.isAfter(startDateTime) && now.isBefore(endDateTime)}');
     return now.isAfter(startDateTime) && now.isBefore(endDateTime);
   }
 

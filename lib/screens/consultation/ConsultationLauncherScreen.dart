@@ -64,6 +64,8 @@ class _ConsultationLauncherScreenState
         type: selectedMode,
       );
 
+      print('Consultation created ${consultation.toString()}');
+
       if (consultation == null) throw Exception("Consultation non trouvée");
 
       final consultationId =
@@ -88,9 +90,10 @@ class _ConsultationLauncherScreenState
           context,
           MaterialPageRoute(
             builder: (_) => CallScreen(
-              callerId: userId.toString(),
+              callerId: userId.toString(), // PATIENT
               calleeId: widget.peerId.toString(),
-              isVideoOn: true,
+              isPatient: true,
+              appointmentId: widget.appointmentId,
             ),
           ),
         );
@@ -102,6 +105,8 @@ class _ConsultationLauncherScreenState
               callerId: userId.toString(),
               calleeId: widget.peerId.toString(),
               isVideoOn: false,
+              isPatient: true,
+              appointmentId: widget.appointmentId,
             ),
           ),
         );
