@@ -5,8 +5,13 @@ import 'call_screen.dart';
 class JoinScreen extends StatefulWidget {
   final String selfCallerId;
   final int appointmentId;
+  final int consultationId;
+
   const JoinScreen(
-      {super.key, required this.selfCallerId, required this.appointmentId});
+      {super.key,
+      required this.selfCallerId,
+      required this.appointmentId,
+      required this.consultationId});
 
   @override
   State<JoinScreen> createState() => _JoinScreenState();
@@ -40,11 +45,11 @@ class _JoinScreenState extends State<JoinScreen> {
       context,
       MaterialPageRoute(
         builder: (_) => CallScreen(
-          callerId: callerId.toString(),
-          calleeId: calleeId.toString(),
-          offer: offer,
-          appointmentId: widget.appointmentId,
-        ),
+            callerId: callerId.toString(),
+            calleeId: calleeId.toString(),
+            offer: offer,
+            appointmentId: widget.appointmentId,
+            consultationId: widget.consultationId),
       ),
     );
   }

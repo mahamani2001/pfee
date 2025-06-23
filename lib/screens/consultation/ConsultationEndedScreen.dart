@@ -18,14 +18,18 @@ class ConsultationEndedScreen extends StatefulWidget {
   final int appointmentId;
   final DateTime startTime;
   final Duration duration;
+  final int? patientId;
+  final int consultationId;
 
   const ConsultationEndedScreen({
     super.key,
     required this.peerName,
     required this.psychiatristId,
     required this.appointmentId,
+    required this.consultationId,
     required this.startTime,
     required this.duration,
+    this.patientId,
   });
 
   @override
@@ -33,16 +37,19 @@ class ConsultationEndedScreen extends StatefulWidget {
       _ConsultationEndedScreenState();
 }
 
+final TextEditingController _feedbackController = TextEditingController();
+
 class _ConsultationEndedScreenState extends State<ConsultationEndedScreen> {
   double _rating = 4.0;
   bool _loading = false;
   bool isPsychiatrist = false;
   String baseUrl = AppConfig.instance()!.baseUrl!;
+  final TextEditingController _feedbackController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _checkUserRole(); 
+    _checkUserRole();
   }
 
   void _checkUserRole() async {
@@ -53,6 +60,8 @@ class _ConsultationEndedScreenState extends State<ConsultationEndedScreen> {
   }
 
   void _showRatingDialog() {
+    final TextEditingController _commentController = TextEditingController();
+
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -78,6 +87,14 @@ class _ConsultationEndedScreenState extends State<ConsultationEndedScreen> {
                   setStateDialog(() {}); // pour mettre à jour l’UI du dialog
                 },
               ),
+              TextField(
+                controller: _commentController,
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  labelText: "Commentaire (facultatif)",
+                  border: OutlineInputBorder(),
+                ),
+              ),
               const SizedBox(height: 20),
               _loading
                   ? const CircularProgressIndicator()
@@ -91,6 +108,7 @@ class _ConsultationEndedScreenState extends State<ConsultationEndedScreen> {
                             psychiatristId: widget.psychiatristId,
                             appointmentId: widget.appointmentId,
                             rating: _rating,
+                            comment: _commentController.text.trim(),
                           );
                           Navigator.of(context).pop();
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -111,6 +129,55 @@ class _ConsultationEndedScreenState extends State<ConsultationEndedScreen> {
                     ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  void _showFeedbackDialog() {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("📝 Feedback de consultation"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _feedbackController,
+              maxLines: 4,
+              decoration: const InputDecoration(
+                hintText: "Écrivez vos remarques...",
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: () async {
+                final feedback = _feedbackController.text.trim();
+                if (feedback.isEmpty) return;
+
+                /*  try {
+                  await RatingService().submitFeedback(
+                    psychiatristId: widget.psychiatristId,
+                    consultationId: widget.consultationId,
+                    patientId: widget.patientId!,
+                    feedback: feedback,
+                  );
+                  Navigator.of(context).pop(); // ferme le pop-up
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("✅ Feedback enregistré")),
+                  );
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("❌ Erreur : $e")),
+                  );
+                } */
+              },
+              icon: const Icon(Icons.send),
+              label: const Text("Envoyer"),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
+            ),
+          ],
         ),
       ),
     );
@@ -167,6 +234,16 @@ class _ConsultationEndedScreenState extends State<ConsultationEndedScreen> {
                 ],
               ),
             ),
+            if (isPsychiatrist)
+              ElevatedButton.icon(
+                onPressed: _showFeedbackDialog,
+                icon: const Icon(Icons.edit_note),
+                label: const Text("Ajouter un feedback"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.teal,
+                  minimumSize: const Size.fromHeight(45),
+                ),
+              ),
             const Spacer(),
             ElevatedButton.icon(
               onPressed: () {

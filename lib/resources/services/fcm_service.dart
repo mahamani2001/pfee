@@ -5,7 +5,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:http/http.dart' as http;
 import 'package:mypsy_app/helpers/app_config.dart';
 import 'package:mypsy_app/screens/consultation/chatconsultation.dart';
-import 'package:mypsy_app/screens/consultation/video_call_screen.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -210,12 +210,12 @@ class FCMService {
                     consultationId: consultationId,
                     roomId: 'room-$consultationId',
                   )
-                : VideoCallScreen(
-                    roomId: 'room-$consultationId',
-                    peerName: peerName,
+                : ChatScreen(
                     appointmentId: appointmentId,
+                    peerName: peerName,
+                    peerId: peerId,
                     consultationId: consultationId,
-                    isCaller: false, // on suppose que c'est le récepteur ici
+                    roomId: 'room-$consultationId',
                   ),
           ),
         );
@@ -273,12 +273,12 @@ class FCMService {
                 consultationId: consultationId,
                 roomId: 'room-$consultationId',
               )
-            : VideoCallScreen(
-                roomId: 'room-$consultationId',
-                peerName: peerName,
+            : ChatScreen(
                 appointmentId: appointmentId,
+                peerName: peerName,
+                peerId: peerId,
                 consultationId: consultationId,
-                isCaller: false,
+                roomId: 'room-$consultationId',
               );
 
         Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen));

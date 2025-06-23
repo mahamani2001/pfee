@@ -430,6 +430,7 @@ class _AppointmentCardState extends State<AppointmentCard> {
             }
             final consultation = data['consultation'];
             consultationId = consultation['id'];
+            print(consultationId);
             type = consultation['type'];
           }
           // Redirection dynamique en fonction du rôle
@@ -447,6 +448,7 @@ class _AppointmentCardState extends State<AppointmentCard> {
                       peerId: receiverId.toString(),
                       peerName: widget.name,
                       appointmentId: widget.id,
+                      
                     ),
             ),
           );

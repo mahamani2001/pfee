@@ -94,6 +94,7 @@ class _ConsultationLauncherScreenState
               calleeId: widget.peerId.toString(),
               isPatient: true,
               appointmentId: widget.appointmentId,
+              consultationId: consultationId,
             ),
           ),
         );
@@ -107,6 +108,7 @@ class _ConsultationLauncherScreenState
               isVideoOn: false,
               isPatient: true,
               appointmentId: widget.appointmentId,
+              consultationId: consultationId,
             ),
           ),
         );

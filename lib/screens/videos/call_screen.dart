@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:mypsy_app/resources/services/appointment_service.dart';
-import 'package:mypsy_app/resources/services/consultation_service.dart';
 import 'package:mypsy_app/resources/services/signalling.service.dart';
 import 'package:mypsy_app/screens/consultation/ConsultationEndedScreen.dart';
 import 'package:mypsy_app/screens/layouts/top_bar_subpage.dart';
@@ -16,6 +15,7 @@ class CallScreen extends StatefulWidget {
   bool isVideoOn;
   bool isPatient;
   final int appointmentId;
+  final int consultationId;
   CallScreen(
       {super.key,
       this.offer,
@@ -23,7 +23,8 @@ class CallScreen extends StatefulWidget {
       required this.calleeId,
       this.isVideoOn = true,
       this.isPatient = true,
-      required this.appointmentId});
+      required this.appointmentId,
+      required this.consultationId});
 
   @override
   State<CallScreen> createState() => _CallScreenState();
@@ -114,12 +115,13 @@ class _CallScreenState extends State<CallScreen> {
               context,
               MaterialPageRoute(
                 builder: (_) => ConsultationEndedScreen(
-                  peerName: widget.calleeId,
-                  startTime: start,
-                  duration: duration,
-                  psychiatristId: int.parse(data['psychiatrist_id'].toString()),
-                  appointmentId: data['id'],
-                ),
+                    peerName: widget.calleeId,
+                    startTime: start,
+                    duration: duration,
+                    psychiatristId:
+                        int.parse(data['psychiatrist_id'].toString()),
+                    appointmentId: data['id'],
+                    consultationId: widget.consultationId),
               ),
             );
           }
@@ -159,12 +161,12 @@ class _CallScreenState extends State<CallScreen> {
           context,
           MaterialPageRoute(
             builder: (_) => ConsultationEndedScreen(
-              peerName: widget.calleeId,
-              startTime: startTime,
-              duration: consultationDuration,
-              psychiatristId: int.parse(widget.calleeId),
-              appointmentId: widget.appointmentId,
-            ),
+                peerName: widget.calleeId,
+                startTime: startTime,
+                duration: consultationDuration,
+                psychiatristId: int.parse(widget.calleeId),
+                appointmentId: widget.appointmentId,
+                consultationId: widget.consultationId),
           ),
         );
       } else {

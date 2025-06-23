@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:mypsy_app/resources/services/appointment_service.dart';
@@ -350,7 +351,15 @@ class _BookingPageState extends State<BookingPage> {
                   "Proposer une heure personnalisée",
                   style: AppThemes.getTextStyle(),
                 ),
-                onPressed: () async {
+                onPressed: () {
+                  showCustomTimePicker(context, (pickedTime) {
+                    print("Time selected: ${pickedTime.format(context)}");
+                    setState(() {
+                      _selectedTime = pickedTime.format(context);
+                    });
+                  });
+                },
+                /*  onPressed: () async {
                   final pickedTime = await showTimePicker(
                     context: context,
                     initialTime: TimeOfDay.now(),
@@ -360,7 +369,7 @@ class _BookingPageState extends State<BookingPage> {
                       _selectedTime = pickedTime.format(context);
                     });
                   }
-                },
+                }, */
               ),
               const SizedBox(height: 10),
               mypsyButton(
@@ -413,4 +422,102 @@ class _BookingPageState extends State<BookingPage> {
           );
         }).toList(),
       );
+}
+
+void showCustomTimePicker(
+  BuildContext context,
+  Function(TimeOfDay) onTimePicked,
+) {
+  final List<int> allowedMinutes = [0, 15, 30];
+
+  final now = TimeOfDay.now();
+  final int initialHour = now.hour;
+
+  // Round current minutes to the nearest valid option
+  int roundedMinute = allowedMinutes.reduce(
+      (a, b) => (now.minute - a).abs() < (now.minute - b).abs() ? a : b);
+
+  int selectedHour = initialHour;
+  int selectedMinute = roundedMinute;
+
+  int initialMinuteIndex = allowedMinutes.indexOf(roundedMinute);
+
+  showModalBottomSheet(
+    context: context,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    backgroundColor: Colors.white,
+    builder: (context) => StatefulBuilder(
+      builder: (context, setState) => SizedBox(
+        height: 300,
+        child: Column(
+          children: [
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Text('Sélectionner une heure',
+                  style: TextStyle(fontSize: 18)),
+            ),
+            Expanded(
+              child: Row(
+                children: [
+                  // Hour picker
+                  Expanded(
+                    child: CupertinoPicker(
+                      scrollController:
+                          FixedExtentScrollController(initialItem: initialHour),
+                      itemExtent: 40,
+                      onSelectedItemChanged: (value) {
+                        setState(() => selectedHour = value);
+                      },
+                      children: List.generate(
+                          24,
+                          (index) => Center(
+                              child: Text(index.toString().padLeft(2, '0')))),
+                    ),
+                  ),
+                  const Text(":", style: TextStyle(fontSize: 24)),
+                  // Minute picker
+                  Expanded(
+                    child: CupertinoPicker(
+                      scrollController: FixedExtentScrollController(
+                          initialItem: initialMinuteIndex),
+                      itemExtent: 40,
+                      onSelectedItemChanged: (value) {
+                        setState(() => selectedMinute = allowedMinutes[value]);
+                      },
+                      children: allowedMinutes
+                          .map((min) => Center(
+                              child: Text(min.toString().padLeft(2, '0'))))
+                          .toList(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  TextButton(
+                    child: Text("Annuler"),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                  ElevatedButton(
+                    child: Text("OK"),
+                    onPressed: () {
+                      onTimePicked(TimeOfDay(
+                          hour: selectedHour, minute: selectedMinute));
+                      Navigator.pop(context);
+                    },
+                  ),
+                ],
+              ),
+            )
+          ],
+        ),
+      ),
+    ),
+  );
 }

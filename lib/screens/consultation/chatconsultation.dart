@@ -67,7 +67,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final flutterSoundHelper = FlutterSoundHelper();
   final Set<String> _processedMessageIds = {};
   final messageId = DateTime.now().millisecondsSinceEpoch.toString();
-  bool isExtending = false; // 👈 global, au même niveau que isConsultationEnded
+  bool isExtending = false;
 
   Future<void> initConsultationTiming() async {
     print("🚀 initConsultationTiming lancé");
@@ -136,10 +136,11 @@ class _ChatScreenState extends State<ChatScreen> {
               MaterialPageRoute(
                 builder: (_) => ConsultationEndedScreen(
                   peerName: peerName,
-                  startTime: start,
-                  duration: duration,
-                  psychiatristId: int.parse(data['psychiatrist_id'].toString()),
-                  appointmentId: data['id'],
+                  startTime: startTime,
+                  duration: consultationDuration,
+                  psychiatristId: int.parse(peerId),
+                  appointmentId: appointmentId,
+                  consultationId: consultationId,
                 ),
               ),
             );
@@ -377,9 +378,11 @@ class _ChatScreenState extends State<ChatScreen> {
 
       final remaining = endTime.difference(now);
 
-      if (remaining <= Duration.zero && !isConsultationEnded && !isExtending) {
+      if (remaining <= Duration.zero && !isConsultationEnded) {
         _timer?.cancel();
-        isConsultationEnded = true;
+        isConsultationEnded = true; // ⚠️ PAS de setState ici
+
+        if (!mounted) return;
 
         Navigator.pushReplacement(
           context,
@@ -390,6 +393,7 @@ class _ChatScreenState extends State<ChatScreen> {
               duration: consultationDuration,
               psychiatristId: int.parse(peerId),
               appointmentId: appointmentId,
+              consultationId: consultationId,
             ),
           ),
         );
@@ -442,38 +446,22 @@ class _ChatScreenState extends State<ChatScreen> {
                   style: const TextStyle(fontSize: 16),
                 ),
                 onTap: () async {
-                  try {
-                    setState(() => isExtending = true);
-                    await AppointmentService().extendAppointment(
-                      appointmentId: appointmentId,
-                      extraMinutes: minutes,
-                    );
-                    await AppointmentService().extendConsultation(
-                      consultationId: consultationId,
-                      extraMinutes: minutes,
-                    );
+                  setState(() => isExtending = true); // 🔐 empêche redirection
 
-                    setState(() {
-                      consultationDuration += Duration(minutes: minutes);
-                      remainingTime += Duration(minutes: minutes);
-                    });
+                  await AppointmentService().extendAppointment(
+                    appointmentId: appointmentId,
+                    extraMinutes: minutes,
+                  );
+                  await AppointmentService().extendConsultation(
+                    consultationId: consultationId,
+                    extraMinutes: minutes,
+                  );
 
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                            '✅ Consultation prolongée de $minutes minutes.'),
-                      ),
-                    );
-                  } catch (e) {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('❌ Échec de la prolongation'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
+                  setState(() {
+                    consultationDuration += Duration(minutes: minutes);
+                    remainingTime += Duration(minutes: minutes);
+                    isExtending = false; // 🔓 re-permet redirection
+                  });
 
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(

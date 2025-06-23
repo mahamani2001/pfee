@@ -72,6 +72,7 @@ class _ConsultationLauncherScreenPsyState
               calleeId: widget.peerId,
               offer: incomingSDPOffer["sdpOffer"],
               appointmentId: widget.appointmentId,
+              consultationId: widget.consultId,
             ),
           ),
         );
@@ -86,6 +87,7 @@ class _ConsultationLauncherScreenPsyState
               isVideoOn: false,
               isPatient: false,
               appointmentId: widget.appointmentId,
+              consultationId: widget.consultId,
             ),
           ),
         );
@@ -165,6 +167,7 @@ class _ConsultationLauncherScreenPsyState
                                 offer: incomingSDPOffer["sdpOffer"],
                                 isVideoOn:
                                     widget.type == 'audio' ? false : true,
+                                consultationId: widget.consultId,
                               ),
                             ),
                           );
