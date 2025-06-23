@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:mypsy_app/resources/services/appointment_service.dart';
-import 'package:mypsy_app/resources/services/consultation_service.dart';
 import 'package:mypsy_app/resources/services/signalling.service.dart';
 import 'package:mypsy_app/screens/consultation/ConsultationEndedScreen.dart';
 import 'package:mypsy_app/screens/layouts/top_bar_subpage.dart';

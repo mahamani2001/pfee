@@ -11,7 +11,7 @@
     <uses-permission android:name="android.permission.READ_CALENDAR"/>
 
     <application
-        android:label="mypsy_app"
+        android:label="My Psy"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

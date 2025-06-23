@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:mypsy_app/helpers/app_config.dart';
 import 'package:mypsy_app/resources/services/signalling.service.dart';
@@ -72,6 +73,7 @@ class _ConsultationLauncherScreenPsyState
               calleeId: widget.peerId,
               offer: incomingSDPOffer["sdpOffer"],
               appointmentId: widget.appointmentId,
+              isPatient: false,
             ),
           ),
         );
@@ -109,6 +111,7 @@ class _ConsultationLauncherScreenPsyState
           child: Stack(
             children: [
               Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Text(widget.appointmentId.toString()),
                 Text("Consultation avec : ",
                     style: AppThemes.getTextStyle(size: 15)),
                 const SizedBox(height: 8),

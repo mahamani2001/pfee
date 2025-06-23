@@ -431,6 +431,7 @@ class _AppointmentCardState extends State<AppointmentCard> {
             final consultation = data['consultation'];
             consultationId = consultation['id'];
             type = consultation['type'];
+            print('Consulation details ${consultation}');
           }
           // Redirection dynamique en fonction du rôle
           Navigator.push(
