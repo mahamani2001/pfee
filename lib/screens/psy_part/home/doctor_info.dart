@@ -71,6 +71,7 @@ class DoctorDetailScreen extends StatelessWidget {
               Routes.booking,
               arguments: {
                 'psychiatristId': psychiatrist['id'],
+                
               },
             );
           },

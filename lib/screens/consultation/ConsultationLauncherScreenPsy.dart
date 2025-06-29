@@ -60,6 +60,7 @@ class _ConsultationLauncherScreenPsyState
               appointmentId: widget.appointmentId,
               consultationId: widget.consultId,
               roomId: 'room-${widget.consultId}',
+              
             ),
           ),
         );

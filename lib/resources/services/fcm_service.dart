@@ -209,6 +209,7 @@ class FCMService {
                     peerId: peerId,
                     consultationId: consultationId,
                     roomId: 'room-$consultationId',
+                    
                   )
                 : ChatScreen(
                     appointmentId: appointmentId,

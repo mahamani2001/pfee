@@ -105,6 +105,7 @@ class SocketService {
                 appointmentId: appointmentId,
                 consultationId: consultationId,
                 roomId: roomId,
+                
               ),
             ),
           );

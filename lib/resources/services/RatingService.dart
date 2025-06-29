@@ -4,31 +4,7 @@ import 'package:mypsy_app/helpers/app_config.dart';
 import 'package:mypsy_app/resources/services/auth_service.dart';
 
 class RatingService {
-  Future<void> submitFeedback({
-    required int consultationId,
-    required int patientId,
-    required String feedback,
-  }) async {
-    final url = "${AppConfig.instance()!.baseUrl!}/consultation/feedbacks";
-    final token = await AuthService().getToken();
-
-    final response = await http.post(
-      Uri.parse(url),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({
-        'consultationId': consultationId,
-        'patientId': patientId,
-        'note': feedback,
-      }),
-    );
-
-    if (response.statusCode != 201) {
-      throw Exception('Erreur lors de l’envoi du feedback');
-    }
-  }
+  final baseUrl = AppConfig.instance()!.baseUrl!;
 
   Future<void> submitRating({
     required int psychiatristId,
@@ -61,6 +37,109 @@ class RatingService {
     } catch (e) {
       print("❌ Erreur dans submitRating : $e");
       rethrow;
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getPsychiatristRatings(
+      int psychiatristId) async {
+    try {
+      final token = await AuthService().getToken();
+
+      final response = await http.get(
+        Uri.parse('${baseUrl}appointments/ratings/$psychiatristId'),
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List data = jsonDecode(response.body);
+        return data.cast<Map<String, dynamic>>();
+      } else {
+        throw Exception("Erreur lors de la récupération des notes");
+      }
+    } catch (e) {
+      print("❌ Erreur dans getPsychiatristRatings : $e");
+      rethrow;
+    }
+  }
+
+  Future<double> getAverageRating(int psychiatristId) async {
+    final response = await http.get(
+      Uri.parse('${baseUrl}appointments/ratings/$psychiatristId/average'),
+    );
+
+    if (response.statusCode == 200) {
+      final jsonBody = json.decode(response.body);
+      return double.tryParse(jsonBody['averageRating']?.toString() ?? '0') ??
+          0.0;
+    } else {
+      throw Exception('Échec du chargement de la note moyenne');
+    }
+  }
+
+  Future<void> addOrUpdateNote({
+    required int appointmentId,
+    required String note,
+  }) async {
+    print("📩 Tentative d'envoi de note...");
+    print("🧾 appointmentId: $appointmentId");
+    print("🧾 note: $note");
+
+    final token = await AuthService().getToken();
+    print("🔐 Token récupéré : $token");
+
+    if (token == null) {
+      throw Exception('Token JWT introuvable. Veuillez vous reconnecter.');
+    }
+
+    final url = '${AppConfig.instance()!.baseUrl!}appointments/notes';
+
+    final body = {
+      'appointmentId': appointmentId,
+      'note': note, // ✅ patientId supprimé
+    };
+
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(body),
+    );
+
+    print("📥 Status code: ${response.statusCode}");
+    print("📥 Response body: ${response.body}");
+
+    if (response.statusCode != 200) {
+      throw Exception('Erreur enregistrement note : ${response.body}');
+    }
+
+    print("✅ Note envoyée avec succès !");
+  }
+
+  Future<String?> getPsyNote(int appointmentId) async {
+    final token = await AuthService().getToken();
+    if (token == null) {
+      throw Exception('Token JWT introuvable. Veuillez vous reconnecter.');
+    }
+
+    final response = await http.get(
+      Uri.parse(
+          '${AppConfig.instance()!.baseUrl}appointments/notes/$appointmentId'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return data['note'];
+    } else {
+      print('getPsyNote Error: ${response.body}');
+      return null;
     }
   }
 }

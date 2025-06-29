@@ -83,7 +83,10 @@ class _AppointmentCardState extends State<AppointmentCard> {
               context,
               Routes.patientInfo,
               arguments: {
-                'patient': widget.appt,
+                'patient': {
+                  ...widget.appt,
+                  'appointment_id': widget.id, // ✅ injecté dans patient
+                },
               },
             );
           },
@@ -432,6 +435,7 @@ class _AppointmentCardState extends State<AppointmentCard> {
             consultationId = consultation['id'];
             print(consultationId);
             type = consultation['type'];
+            print('Consulation details ${consultation}');
           }
           // Redirection dynamique en fonction du rôle
           Navigator.push(
@@ -448,7 +452,6 @@ class _AppointmentCardState extends State<AppointmentCard> {
                       peerId: receiverId.toString(),
                       peerName: widget.name,
                       appointmentId: widget.id,
-                      
                     ),
             ),
           );

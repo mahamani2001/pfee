@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mypsy_app/resources/services/RatingService.dart';
 
 import 'package:mypsy_app/shared/routes.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';
@@ -110,21 +111,24 @@ class DoctorCard extends StatelessWidget {
           ),*/
         ],
       );
+  Widget ratingUi() {
+    return FutureBuilder<double>(
+      future: RatingService().getAverageRating(doctor['id']),
+      builder: (context, snapshot) {
+        final rating = snapshot.data ?? 0.0;
 
-  Widget ratingUi() => Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.star, size: 18, color: Colors.orange),
-              const SizedBox(width: 3),
-              Text(
-                (doctor['rating'] ?? '(0)').toString(),
-                style: AppThemes.getTextStyle(
-                    size: 11, fontWeight: FontWeight.w500),
-              ),
-            ],
-          ),
-        ],
-      );
+        return Row(
+          children: [
+            const Icon(Icons.star, size: 18, color: Colors.orange),
+            const SizedBox(width: 3),
+            Text(
+              rating.toStringAsFixed(1),
+              style:
+                  AppThemes.getTextStyle(size: 11, fontWeight: FontWeight.w500),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }

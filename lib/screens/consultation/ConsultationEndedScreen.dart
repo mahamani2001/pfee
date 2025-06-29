@@ -50,6 +50,7 @@ class _ConsultationEndedScreenState extends State<ConsultationEndedScreen> {
   void initState() {
     super.initState();
     _checkUserRole();
+    print("🧾 patientId reçu : ${widget.patientId}");
   }
 
   void _checkUserRole() async {
@@ -138,7 +139,7 @@ class _ConsultationEndedScreenState extends State<ConsultationEndedScreen> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text("📝 Feedback de consultation"),
+        title: const Text("📝 Note sur le patient"),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -146,35 +147,33 @@ class _ConsultationEndedScreenState extends State<ConsultationEndedScreen> {
               controller: _feedbackController,
               maxLines: 4,
               decoration: const InputDecoration(
-                hintText: "Écrivez vos remarques...",
+                hintText: "Rédigez une note confidentielle...",
                 border: OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 20),
             ElevatedButton.icon(
               onPressed: () async {
-                final feedback = _feedbackController.text.trim();
-                if (feedback.isEmpty) return;
+                final note = _feedbackController.text.trim();
 
-                /*  try {
-                  await RatingService().submitFeedback(
-                    psychiatristId: widget.psychiatristId,
-                    consultationId: widget.consultationId,
-                    patientId: widget.patientId!,
-                    feedback: feedback,
+                try {
+                  await RatingService().addOrUpdateNote(
+                    appointmentId: widget.appointmentId,
+                    note: note,
                   );
-                  Navigator.of(context).pop(); // ferme le pop-up
+                  Navigator.of(context).pop();
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("✅ Feedback enregistré")),
+                    const SnackBar(content: Text("✅ Note enregistrée")),
                   );
                 } catch (e) {
+                  Navigator.of(context).pop();
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text("❌ Erreur : $e")),
                   );
-                } */
+                }
               },
               icon: const Icon(Icons.send),
-              label: const Text("Envoyer"),
+              label: const Text("Enregistrer"),
               style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
             ),
           ],
@@ -238,7 +237,7 @@ class _ConsultationEndedScreenState extends State<ConsultationEndedScreen> {
               ElevatedButton.icon(
                 onPressed: _showFeedbackDialog,
                 icon: const Icon(Icons.edit_note),
-                label: const Text("Ajouter un feedback"),
+                label: const Text("Ajouter une note confidentielle"),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.teal,
                   minimumSize: const Size.fromHeight(45),

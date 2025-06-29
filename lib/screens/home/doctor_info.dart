@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mypsy_app/resources/services/RatingService.dart';
 import 'package:mypsy_app/screens/layouts/top_bar_subpage.dart';
 import 'package:mypsy_app/screens/psys/item_doctor.dart';
 import 'package:mypsy_app/shared/routes.dart';
@@ -56,6 +57,96 @@ class DoctorDetailScreen extends StatelessWidget {
                 ],
               ),
             ),
+            // 👇 AJOUTE CE BLOC
+            Container(
+              margin: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                      color: Colors.black12.withOpacity(0.05), blurRadius: 6),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  FutureBuilder<List<Map<String, dynamic>>>(
+                    future: RatingService()
+                        .getPsychiatristRatings(psychiatrist['id']),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      } else if (snapshot.hasError) {
+                        return const Text("Erreur lors du chargement des avis");
+                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return const Text("Aucun avis pour le moment.");
+                      }
+
+                      final ratings = snapshot.data!;
+                      return Column(
+                        children: ratings.map((review) {
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 10),
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade100,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Icon(Icons.person,
+                                    size: 30, color: Colors.teal),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        review['patient_name'] ?? 'Patient',
+                                        style: AppThemes.getTextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          size: 13,
+                                        ),
+                                      ),
+                                      Row(
+                                        children: List.generate(5, (i) {
+                                          return Icon(
+                                            i <
+                                                    (review['rating'] as num)
+                                                        .floor()
+                                                ? Icons.star
+                                                : Icons.star_border,
+                                            size: 16,
+                                            color: Colors.orange,
+                                          );
+                                        }),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        review['comment'] ?? 'Sans commentaire',
+                                        style: AppThemes.getTextStyle(size: 12),
+                                        maxLines: 3,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                ],
+              ),
+            ),
+
             const SizedBox(height: 100),
           ],
         ),

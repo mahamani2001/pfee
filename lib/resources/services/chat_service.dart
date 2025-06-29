@@ -23,7 +23,6 @@ class ChatService {
     }
   }
 
-  // ✅ Enregistrer un message chiffré
   Future<void> saveMessage({
     required int consultationId,
     required String iv,

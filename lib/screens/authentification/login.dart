@@ -26,7 +26,7 @@ class _LoginState extends State<Login> {
   final TextEditingController _emailController = TextEditingController(
       text: "slimen@example.com"); //test@gmail.com slimen@example.com
   final TextEditingController _passwordController = TextEditingController(
-      text: "noveauMotDePasse1234"); //MAHAmani180801 nouveauMotDePasse1234
+      text: "nouveauMotDePasse1234"); //MAHAmani180801 nouveauMotDePasse1234
   bool _obscurePwd = true, ispressed = false;
   String customerID = '';
   bool showError = false;

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mypsy_app/resources/services/RatingService.dart';
 import 'package:mypsy_app/screens/layouts/top_bar_subpage.dart';
 import 'package:mypsy_app/shared/routes.dart';
 import 'package:mypsy_app/shared/themes/app_colors.dart';
@@ -17,6 +18,18 @@ class PatientDetailScreen extends StatelessWidget {
     final patient = args['patient'];
     print(patient);
     final dateFr = formatDateFr(patient["date"]);
+    final dateOfBirth = patient['date_of_birth'];
+
+    final ageText = (dateOfBirth != null && dateOfBirth.toString().isNotEmpty)
+        ? "${calculateAge(dateOfBirth)} ans"
+        : "Non renseigné";
+    final gender = patient['gender'];
+    final genderText = (gender != null && gender.toString().isNotEmpty)
+        ? (gender == 'male' ? 'Homme' : 'Femme')
+        : "Non renseigné";
+
+    print("Date de naissance : ${patient['date_of_birth']}");
+    print("Genre : ${patient['gender']}");
 
     return Scaffold(
       backgroundColor: AppColors.mypsyBgApp,
@@ -57,8 +70,8 @@ class PatientDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   _buildInfoRow("Nom", "${patient["patient_name"]}"),
-                  _buildInfoRow("Age", "26 ans"),
-                  _buildInfoRow("Genre", "Femme"),
+                  _buildInfoRow("Âge", ageText),
+                  _buildInfoRow("Genre", genderText),
                 ],
               ),
             ),
@@ -81,12 +94,6 @@ class PatientDetailScreen extends StatelessWidget {
                         iconTitle("Cause d'annulation", Icons.info_outline,
                             colorWhite: true),
                         const SizedBox(height: 8),
-                        Text(
-                            patient['description'] ??
-                                "Je vous accompagne avec écoute et bienveillance.\nChaque pas compte vers une vie plus apaisée.",
-                            style: AppThemes.getTextStyle(
-                                clr: AppColors.mypsyBgApp,
-                                fontWeight: FontWeight.w600)),
                       ],
                     ),
                   )
@@ -103,10 +110,31 @@ class PatientDetailScreen extends StatelessWidget {
                           Icons.info_outline,
                         ),
                         const SizedBox(height: 8),
-                        Text(
-                            patient['description'] ??
-                                "Je vous accompagne avec écoute et bienveillance.Chaque pas compte vers une vie plus apaisée.",
-                            style: AppThemes.getTextStyle()),
+                        if (patient['appointment_id'] != null)
+                          FutureBuilder<String?>(
+                            future: RatingService()
+                                .getPsyNote(patient['appointment_id']),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const CircularProgressIndicator();
+                              } else if (snapshot.hasError) {
+                                return const Text(
+                                    "Erreur lors du chargement de la note.");
+                              } else if (snapshot.data == null ||
+                                  snapshot.data!.isEmpty) {
+                                return const Text("Aucune note ajoutée.");
+                              } else {
+                                return Text(
+                                  snapshot.data!,
+                                  style: AppThemes.getTextStyle(),
+                                );
+                              }
+                            },
+                          )
+                        else
+                          const Text(
+                              "Note indisponible (ID rendez-vous manquant)."),
                       ],
                     ),
                   ),

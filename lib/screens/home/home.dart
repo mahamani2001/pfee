@@ -57,9 +57,24 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
 
     final now = DateTime.now();
     final futureAppointments = appointments.where((appt) {
-      final apptDate = DateTime.parse(appt['date']);
-      return apptDate.isAfter(now);
+      final date = DateTime.parse(appt['date']);
+      final time = appt['start_time'] ?? '00:00';
+      final parts = time.split(':');
+      final startDateTime = DateTime(
+        date.year,
+        date.month,
+        date.day,
+        int.parse(parts[0]),
+        int.parse(parts[1]),
+      );
+      return startDateTime.isAfter(now);
     }).toList();
+
+    futureAppointments.sort((a, b) {
+      final aDate = DateTime.parse(a['date'] + ' ' + a['start_time']);
+      final bDate = DateTime.parse(b['date'] + ' ' + b['start_time']);
+      return aDate.compareTo(bDate);
+    });
 
     final nextAppointment =
         futureAppointments.isNotEmpty ? futureAppointments.first : null;
