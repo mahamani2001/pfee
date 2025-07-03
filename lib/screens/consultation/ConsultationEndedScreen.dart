@@ -139,7 +139,7 @@ class _ConsultationEndedScreenState extends State<ConsultationEndedScreen> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text("📝 Note sur le patient"),
+        title: const Text("📝 Observation sur le patient"),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

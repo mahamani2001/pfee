@@ -717,20 +717,7 @@ class _ChatScreenState extends State<ChatScreen> {
           centerTitle: false,
           toolbarHeight: 70,
           title: headerInfo(isPeerOnline, peerName),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.call, color: Colors.white),
-              onPressed: () {
-                print('📞 Appel audio');
-              },
-            ),
-            IconButton(
-              icon: const Icon(Icons.videocam, color: Colors.white),
-              onPressed: () {
-                print('🎥 Appel vidéo');
-              },
-            ),
-          ],
+          actions: [],
         ),
         backgroundColor: const Color(0xFFEDEDED),
         body: ClipRRect(
