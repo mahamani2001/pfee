@@ -56,23 +56,26 @@ class CryptoService {
       remotePublicKey: peerPublicKey,
     );
 
-    final nonce = aesGcm
-        .newNonce(); // 👈 correct, reste identique pour chiffrer/déchiffrer
+    final nonce = aesGcm.newNonce();
 
     final secretBox = await aesGcm.encrypt(
       utf8.encode(plainText),
       secretKey: sharedSecret,
       nonce: nonce,
     );
-    print("🔐 Encrypted:");
-    print("cipherText: ${base64Encode(secretBox.cipherText)}");
-    print("nonce: ${base64Encode(secretBox.nonce)}");
-    print("mac: ${base64Encode(secretBox.mac.bytes)}");
+
+    // ✅ ➤ Ajoute ceci :
+    print("******** DEBUG ENCRYPTION ********");
+    print("Message clair : $plainText");
+    print("cipherText : ${base64Encode(secretBox.cipherText)}");
+    print("nonce : ${base64Encode(secretBox.nonce)}");
+    print("mac : ${base64Encode(secretBox.mac.bytes)}");
+    print("*********************************");
 
     return {
       'cipherText': base64Encode(secretBox.cipherText),
       'nonce': base64Encode(secretBox.nonce),
-      'mac': base64Encode(secretBox.mac.bytes), // facultatif
+      'mac': base64Encode(secretBox.mac.bytes),
     };
   }
 

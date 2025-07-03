@@ -254,6 +254,17 @@ class AppointmentService {
     return response.statusCode == 201;
   }
 
+  Future<bool> updateAvailiblity({
+    required dynamic slots,
+  }) async {
+    final response = await HttpService().request(
+      url: baseUrlavailability,
+      method: 'PUT',
+      body: {'slots': slots},
+    );
+    return response.statusCode == 200;
+  }
+
   Future<void> extendConsultation({
     required int consultationId,
     required int extraMinutes,
@@ -280,5 +291,53 @@ class AppointmentService {
     );
 
     if (response.statusCode != 200) throw Exception('Échec de la prolongation');
+  }
+
+  Future<bool> deleteAvailability(int id) async {
+    final token = await AuthService().getToken();
+
+    final url = Uri.parse("${baseUrlavailability}/$id");
+
+    final response = await http.delete(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    print(
+        "🔴 DELETE availability response: ${response.statusCode} | ${response.body}");
+
+    return response.statusCode >= 200 && response.statusCode < 300;
+  }
+
+  Future<bool> updateAvailability({
+    required int id,
+    required String dayOfWeek,
+    required String startTime,
+    required String endTime,
+  }) async {
+    final token = await AuthService().getToken();
+
+    final url = Uri.parse("${baseUrlavailability}/$id");
+
+    final response = await http.put(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'day_of_week': dayOfWeek,
+        'start_time': startTime,
+        'end_time': endTime,
+      }),
+    );
+
+    print(
+        "🟢 UPDATE availability response: ${response.statusCode} | ${response.body}");
+
+    return response.statusCode == 200;
   }
 }

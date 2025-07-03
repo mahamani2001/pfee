@@ -139,11 +139,7 @@ class _ConsultationEndedScreenState extends State<ConsultationEndedScreen> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text(
-          "📝 Note sur le patient",
-          style: AppThemes.getTextStyle(size: 16, fontWeight: FontWeight.bold),
-          textAlign: TextAlign.center,
-        ),
+        title: const Text("📝 Observation sur le patient"),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

@@ -170,10 +170,54 @@ class _DoctorAvailiblityState extends State<DoctorAvailiblity> {
         cleaned[day] = sorted;
       }
     });
-
+    print('selectedSlots $selectedSlots');
     final result = await AppointmentService().setAvailiblity(
       slots: cleaned,
     );
+    setState(() {
+      ispressed = false;
+    });
+    if (result) {
+      customFlushbar(
+        '',
+        'Vos créneaux ont été enregistrés avec succès',
+        context,
+      );
+      Future.delayed(const Duration(seconds: 2), () async {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const MainScreenPsy(initialTabIndex: 0),
+          ),
+        );
+      });
+    } else {
+      customFlushbar('', 'Erreur lors de la confirmation', context,
+          isError: true);
+    }
+
+    print("Saved Availability:\n$cleaned");
+  }
+//updateAvailability
+
+  Future<void> updateAvailability() async {
+    setState(() {
+      ispressed = true;
+    });
+
+    selectedSlots.forEach((day, slots) {
+      if (slots.isNotEmpty) {
+        List<String> sorted = slots.toList()
+          ..sort((a, b) => _timeToMinutes(a.split('-')[0])
+              .compareTo(_timeToMinutes(b.split('-')[0])));
+        cleaned[day] = sorted;
+      }
+    });
+    print('selectedSlots $selectedSlots');
+    final result = await AppointmentService().updateAvailiblity(
+      slots: cleaned,
+    );
+    print(" result $result");
     setState(() {
       ispressed = false;
     });
@@ -275,8 +319,13 @@ class _DoctorAvailiblityState extends State<DoctorAvailiblity> {
               height: 30,
             ),
             mypsyButton(
-              onPress: ispressed ? null : saveAvailability,
-              text: "Save Availability",
+              onPress: ispressed
+                  ? null
+                  : (selectedSlots.isNotEmpty)
+                      ? updateAvailability
+                      : saveAvailability,
+              text:
+                  "${selectedSlots.length > 0 ? 'Mettre a jour' : 'Enregistrer'}  la disponibilité",
               withLoader: ispressed,
             )
           ],
