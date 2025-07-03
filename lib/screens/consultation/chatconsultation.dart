@@ -1,6 +1,7 @@
 import 'dart:async'; // ← important pour Timer
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:mypsy_app/helpers/app_config.dart';
 import 'package:mypsy_app/resources/services/appointment_service.dart';
 import 'package:mypsy_app/resources/services/consultation_service.dart';
@@ -799,7 +800,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 msg['fileName'], msg['filePath'], fromMe);
                           }
 
-                          if (type == 'image') {
+                          if (type == 'image' || type == 'jpg') {
                             return buildImageBubble(msg['filePath'], fromMe);
                           }
 
@@ -823,7 +824,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           }
 
                           return msgRead(fromMe, '${msg['text']}',
-                              status: msg['status']);
+                              status: msg != null ? msg['status'] : '');
                         },
                       ),
               ),
@@ -1033,6 +1034,43 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  File? _imageFile;
+  final picker = ImagePicker();
+
+  Future<void> _pickImage() async {
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      setState(() {
+        _imageFile = File(pickedFile.path);
+      });
+    }
+
+    if (_imageFile == null) return;
+
+    final fileUrl = await ChatService().uploadFileMessage(
+      file: _imageFile!,
+      appointmentId: appointmentId,
+      receiverId: int.parse(peerId),
+    );
+
+    if (fileUrl != null) {
+      setState(() {
+        messages.add({
+          'type': 'image',
+          'filePath': fileUrl,
+          'fileName': 'fileNamem',
+          'fromMe': true,
+          'createdAt': DateTime.now().toIso8601String(),
+        });
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Erreur envoi fichier')),
+      );
+    }
+  }
+
   Future<void> _pickFile({required String extension}) async {
     final allowedExtensions =
         extension == 'pdf' ? ['pdf'] : ['jpg', 'jpeg', 'png'];
@@ -1097,7 +1135,8 @@ class _ChatScreenState extends State<ChatScreen> {
               title: const Text('Photo ou Image'),
               onTap: () {
                 Navigator.pop(context);
-                _pickFile(extension: 'image');
+                _pickImage();
+                //  _pickFile(extension: 'image');
               },
             ),
             const Divider(),

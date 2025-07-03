@@ -139,13 +139,20 @@ class _ConsultationEndedScreenState extends State<ConsultationEndedScreen> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text("📝 Note sur le patient"),
+        title: Text(
+          "📝 Note sur le patient",
+          style: AppThemes.getTextStyle(size: 16, fontWeight: FontWeight.bold),
+          textAlign: TextAlign.center,
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: _feedbackController,
               maxLines: 4,
+              style: AppThemes.getTextStyle(
+                size: 14,
+              ),
               decoration: const InputDecoration(
                 hintText: "Rédigez une note confidentielle...",
                 border: OutlineInputBorder(),
@@ -174,7 +181,8 @@ class _ConsultationEndedScreenState extends State<ConsultationEndedScreen> {
               },
               icon: const Icon(Icons.send),
               label: const Text("Enregistrer"),
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.teal, foregroundColor: Colors.white),
             ),
           ],
         ),
@@ -234,13 +242,25 @@ class _ConsultationEndedScreenState extends State<ConsultationEndedScreen> {
               ),
             ),
             if (isPsychiatrist)
-              ElevatedButton.icon(
-                onPressed: _showFeedbackDialog,
-                icon: const Icon(Icons.edit_note),
-                label: const Text("Ajouter une note confidentielle"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.teal,
-                  minimumSize: const Size.fromHeight(45),
+              Container(
+                margin: EdgeInsets.only(top: 20),
+                child: ElevatedButton.icon(
+                  onPressed: _showFeedbackDialog,
+                  icon: const Icon(
+                    Icons.edit_note,
+                    color: AppColors.mypsyBgApp,
+                  ),
+                  label: Text(
+                    "Ajouter une note confidentielle",
+                    style: AppThemes.getTextStyle(
+                        clr: AppColors.mypsyBgApp,
+                        size: 15,
+                        fontWeight: FontWeight.bold),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.teal,
+                    minimumSize: const Size.fromHeight(45),
+                  ),
                 ),
               ),
             const Spacer(),

@@ -195,7 +195,7 @@ Widget buildVocalMessage(bool fromMe, String fileName, Function onTap) => Align(
 
 Widget buildImageBubble(String filePath, bool fromMe) {
   final isUrl = filePath.startsWith('http');
-
+  print(filePath);
   return Align(
     alignment: fromMe ? Alignment.centerRight : Alignment.centerLeft,
     child: Container(
@@ -222,6 +222,18 @@ Widget buildImageBubble(String filePath, bool fromMe) {
             ),
     ),
   );
+}
+
+Widget buildChatImage(String? localPath, String? remoteUrl) {
+  if (localPath != null) {
+    // Display local picked image
+    return Image.file(File(localPath));
+  } else if (remoteUrl != null) {
+    // Display uploaded image
+    return Image.network(remoteUrl);
+  } else {
+    return SizedBox();
+  }
 }
 
 Future<void> _playAudioWithJustAudio(
